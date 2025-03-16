@@ -1,0 +1,31 @@
+Data Structure Consistency
+Maintain consistent parameter naming across HTML forms, JavaScript, and Python backend
+Follow the established structure for result objects (loan_details, monthly_breakdown, closing_costs, etc.)
+File Organization
+Keep route definitions organized by function (admin_routes.py for admin functions, app.py for main app routes)
+Store configuration data in the designated config directory (JSON files for closing costs, etc.)
+Place CSS files in static/css with descriptive names indicating their purpose
+Code Standards
+Use consistent error handling with proper logging throughout the application
+Include debug information in log statements for troubleshooting
+Comment complex calculation logic, especially in the mortgage calculator functions
+Frontend Patterns
+Maintain the two-column layout structure with form inputs on the left and results on the right
+Use Bootstrap cards to organize related information sections
+Follow the established table structure for displaying itemized costs
+Testing Guidelines
+Create test cases for calculator functions with representative loan scenarios
+Verify calculation accuracy, especially for different loan types (conventional, VA, FHA)
+Test admin functionality with valid and invalid inputs
+Performance Considerations
+Keep JSON response sizes minimal (avoid including amortization schedules in main responses)
+Optimize form submission and response handling for a smooth user experience
+Use appropriate caching for static assets
+Security Practices
+Maintain CSRF protection for all form submissions
+Validate all user inputs on both client and server side
+Follow proper authentication for admin routes
+Versioning
+Create backups before major changes (as we did with version 1.2)
+Keep track of version changes in a structured way
+Document significant updates to the codebase

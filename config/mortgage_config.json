@@ -1,0 +1,86 @@
+{
+    "loan_types": {
+        "conventional": {
+            "min_down_payment": 3,
+            "max_ltv": 97,
+            "min_credit_score": 620,
+            "description": "Traditional mortgage loan"
+        },
+        "fha": {
+            "min_down_payment": 3.5,
+            "max_ltv": 96.5,
+            "min_credit_score": 580,
+            "upfront_mip_rate": 1.75,
+            "annual_mip_rate": 0.85,
+            "description": "FHA-insured mortgage loan"
+        },
+        "va": {
+            "min_down_payment": 0,
+            "max_ltv": 100,
+            "min_credit_score": 580,
+            "funding_fee_rates": {
+                "funding_fee": {
+                    "active": {
+                        "less_than_5": {
+                            "first": 2.3,
+                            "subsequent": 3.6
+                        },
+                        "5_to_10": {
+                            "first": 1.65,
+                            "subsequent": 1.65
+                        },
+                        "10_or_more": {
+                            "first": 1.4,
+                            "subsequent": 1.4
+                        }
+                    },
+                    "reserves": {
+                        "less_than_5": {
+                            "first": 2.3,
+                            "subsequent": 3.6
+                        },
+                        "5_to_10": {
+                            "first": 1.65,
+                            "subsequent": 1.65
+                        },
+                        "10_or_more": {
+                            "first": 1.4,
+                            "subsequent": 1.4
+                        }
+                    }
+                }
+            },
+            "description": "VA-guaranteed mortgage loan"
+        },
+        "usda": {
+            "min_down_payment": 0,
+            "max_ltv": 100,
+            "min_credit_score": 640,
+            "upfront_fee_rate": 1.0,
+            "annual_fee_rate": 0.35,
+            "description": "USDA Rural Development loan"
+        },
+        "jumbo": {
+            "min_down_payment": 10,
+            "max_ltv": 90,
+            "min_credit_score": 700,
+            "description": "Jumbo mortgage loan"
+        }
+    },
+    "limits": {
+        "max_interest_rate": 15.0,
+        "max_loan_term": 30,
+        "min_purchase_price": 50000,
+        "max_purchase_price": 2000000,
+        "max_seller_credit_percentage": 9,
+        "max_lender_credit_percentage": 6,
+        "max_points": 4
+    },
+    "prepaid_items": {
+        "months_insurance_prepaid": 12.0,
+        "months_tax_prepaid": 3.0,
+        "months_insurance_escrow": 2.0,
+        "months_tax_escrow": 3.0,
+        "days_interest_prepaid": 30
+    }
+}

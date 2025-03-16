@@ -1,0 +1,40 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "python.sortImports.args": [
+        "--profile", "black"
+    ],
+    "python.linting.flake8Args": [
+        "--config=setup.cfg"
+    ],
+    "python.linting.pylintArgs": [
+        "--rcfile=.pylintrc"
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.rulers": [100]
+    },
+    // Exclude certain folders from search and file watching
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.venv": true
+    },
+    "search.exclude": {
+        "**/backups": true,
+        "**/test_config": true,
+        "**/.venv": true
+    },
+    "files.watcherExclude": {
+        "**/backups/**": true,
+        "**/test_config/**": true,
+        "**/.venv/**": true
+    }
+}

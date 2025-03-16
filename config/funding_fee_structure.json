@@ -1,0 +1,14 @@
+{
+  "funding_fee": {
+    "active": {
+      "less_than_5": {"first": 2.3, "subsequent": 3.6},
+      "5_to_10": {"first": 1.65, "subsequent": 1.65},
+      "10_or_more": {"first": 1.4, "subsequent": 1.4}
+    },
+    "reserves": {
+      "less_than_5": {"first": 2.3, "subsequent": 3.6},
+      "5_to_10": {"first": 1.65, "subsequent": 1.65},
+      "10_or_more": {"first": 1.4, "subsequent": 1.4}
+    }
+  }
+}

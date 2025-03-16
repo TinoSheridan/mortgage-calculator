@@ -1,0 +1,152 @@
+{
+    "loan_types": {
+        "conventional": {
+            "pmi_rate": 0.5,
+            "min_down_payment": 3.0,
+            "tolerances": {
+                "seller_contributions": {
+                    "max_percentage": 6.0,
+                    "warning_message": "Seller contributions cannot exceed {max_amount}. Current excess: {excess_amount}"
+                },
+                "down_payment": {
+                    "min_percentage": 3.0,
+                    "warning_message": "Down payment must be at least {min_amount}. Current shortfall: {shortfall_amount}"
+                }
+            }
+        },
+        "fha": {
+            "annual_mip_rate": 0.85,
+            "upfront_mip_rate": 1.75,
+            "min_down_payment": 3.5,
+            "tolerances": {
+                "seller_contributions": {
+                    "max_percentage": 6.0,
+                    "warning_message": "FHA loans limit seller contributions to {max_amount}. Current excess: {excess_amount}"
+                },
+                "down_payment": {
+                    "min_percentage": 3.5,
+                    "warning_message": "FHA loans require minimum {min_amount} down payment. Current shortfall: {shortfall_amount}"
+                },
+                "debt_to_income": {
+                    "max_percentage": 43.0,
+                    "warning_message": "FHA loans typically require DTI ratio below {max_percentage}%. Current DTI: {current_percentage}%"
+                }
+            }
+        },
+        "va": {
+            "funding_fee_rates": {
+                "0": {
+                    "first": 2.3,
+                    "subsequent": 3.6,
+                    "reserves": 1.65
+                },
+                "5": {
+                    "first": 1.65,
+                    "subsequent": 1.65,
+                    "reserves": 1.65
+                },
+                "10": {
+                    "first": 1.4,
+                    "subsequent": 1.4,
+                    "reserves": 1.4
+                }
+            },
+            "min_down_payment": 0.0,
+            "tolerances": {
+                "seller_contributions": {
+                    "max_percentage": 4.0,
+                    "warning_message": "VA loans limit seller contributions to {max_amount}. Current excess: {excess_amount}"
+                }
+            }
+        },
+        "usda": {
+            "upfront_fee_rate": 1.0,
+            "annual_fee_rate": 0.35,
+            "min_down_payment": 0.0,
+            "tolerances": {
+                "seller_contributions": {
+                    "max_percentage": 6.0,
+                    "warning_message": "USDA loans limit seller contributions to {max_amount}. Current excess: {excess_amount}"
+                },
+                "income_limit": {
+                    "warning_message": "Income exceeds USDA limit for the area. Maximum allowed: {max_amount}"
+                }
+            }
+        },
+        "jumbo": {
+            "min_down_payment": 10.0,
+            "tolerances": {
+                "seller_contributions": {
+                    "max_percentage": 3.0,
+                    "warning_message": "Jumbo loans limit seller contributions to {max_amount}. Current excess: {excess_amount}"
+                },
+                "down_payment": {
+                    "min_percentage": 10.0,
+                    "warning_message": "Jumbo loans require minimum {min_amount} down payment. Current shortfall: {shortfall_amount}"
+                }
+            }
+        }
+    },
+    "closing_costs": {
+        "origination_fee": {
+            "type": "percentage",
+            "value": 0.0,
+            "description": "Loan origination fee"
+        },
+        "appraisal_fee": {
+            "type": "fixed",
+            "value": 675.0,
+            "description": "Appraisal Fee",
+            "calculation_base": "fixed"
+        },
+        "credit_report_fee": {
+            "type": "fixed",
+            "value": 249.0,
+            "description": "Credit report fee"
+        },
+        "title_insurance": {
+            "type": "percentage",
+            "value": 0.25,
+            "description": "Title insurance",
+            "calculation_base": "total_loan_amount"
+        },
+        "recording_fees": {
+            "type": "fixed",
+            "value": 120,
+            "description": "County recording fees"
+        },
+        "underwriting_fee": {
+            "type": "fixed",
+            "value": 675.0,
+            "description": "Underwriting fee"
+        },
+        "Processing Fee": {
+            "type": "fixed",
+            "value": 575.0,
+            "description": "Processing Fee"
+        },
+        "Verification_Fee": {
+            "type": "fixed",
+            "value": 150.0,
+            "description": "Verification Fee",
+            "calculation_base": "fixed"
+        },
+        "Admin_Fee": {
+            "type": "fixed",
+            "value": 125.0,
+            "description": "Admin Fee",
+            "calculation_base": "fixed"
+        }
+    },
+    "prepaid_items": {
+        "months_insurance_prepaid": 12,
+        "months_tax_prepaid": 6,
+        "days_interest_prepaid": 30
+    },
+    "limits": {
+        "max_interest_rate": 25.0,
+        "max_loan_term": 50,
+        "min_purchase_price": 1000,
+        "max_purchase_price": 10000000
+    }
+}

@@ -1,0 +1,45 @@
+[Unit]
+Description=Mortgage Calculator Web Application
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+RuntimeDirectory=mortgage_calc
+WorkingDirectory=/var/www/mortgage_calc
+Environment="PATH=/var/www/mortgage_calc/.venv/bin"
+Environment="PYTHONPATH=/var/www/mortgage_calc"
+Environment="FLASK_APP=app.py"
+Environment="FLASK_ENV=production"
+EnvironmentFile=/etc/mortgage_calc/environment
+
+ExecStart=/var/www/mortgage_calc/.venv/bin/gunicorn \
+    --config /var/www/mortgage_calc/gunicorn.conf.py \
+    wsgi:app
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Limits
+LimitNOFILE=65535
+LimitNPROC=65535
+
+# Restart settings
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}Mortgage Calculator{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calculator-enhanced.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/two-column-layout.css') }}">
+<style>
+    .monthly-summary {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .results-card {
+        display: none;
+    }
+    .total-row {
+        font-weight: bold;
+    }
+    #debugOutput {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-top: 20px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+    }
+    .table-primary {
+        background-color: #e2e3e5 !important;
+    }
+    .progress-bar {
+        transition: width 1s;
+    }
+    
+    /* Enhanced styling for mortgage calculator */
+    .card {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border: none;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        font-weight: 600;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    /* Form styling */
+    label {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    #calculateBtn {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    #calculateBtn:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        transform: translateY(-1px);
+    }
+    
+    /* Results section styling */
+    .results-card {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    /* Table styling */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        font-weight: 600;
+        border-top: none;
+    }
+    
+    .table td, .table th {
+        padding: 0.6rem;
+        vertical-align: middle;
+    }
+    
+    .text-end {
+        font-family: 'Courier New', monospace;
+    }
+    
+    /* Total rows */
+    tr:last-child td {
+        font-weight: 700;
+    }
+    
+    .table tfoot tr {
+        background-color: #f2f2f2;
+        border-top: 2px solid #dee2e6;
+    }
+    
+    /* Debug section */
+    #debugToggle {
+        cursor: pointer;
+        color: #6c757d;
+        text-decoration: underline;
+        font-size: 0.875rem;
+    }
+    
+    #debugSection {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        margin-top: 1.5rem;
+    }
+    
+    #debugOutput {
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        background-color: #212529;
+        color: #f8f9fa;
+        border-radius: 6px;
+        padding: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Mortgage Calculator</h1>
+    
+    <div class="row">
+        <!-- Form Column -->
+        <div class="col-md-5">
+            <form id="mortgageForm" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Loan Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label for="purchase_price" class="form-label">Purchase Price ($)</label>
+                            <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="1000" min="0" value="300000" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="down_payment_percentage" class="form-label">Down Payment (%)</label>
+                            <input type="number" class="form-control" id="down_payment_percentage" name="down_payment_percentage" step="0.5" min="0" max="100" value="20" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="loan_type" class="form-label">Loan Type</label>
+                            <select class="form-select" id="loan_type" name="loan_type">
+                                <option value="conventional">Conventional</option>
+                                <option value="fha">FHA</option>
+                                <option value="va">VA</option>
+                                <option value="jumbo">Jumbo</option>
+                            </select>
+                        </div>
+                        
+                        <!-- VA Loan Options (hidden by default) -->
+                        <div id="vaOptions" class="va-options" style="display: none;">
+                            <div class="form-group mb-3">
+                                <label for="va_service_type" class="form-label">Military Service</label>
+                                <select class="form-select" id="va_service_type" name="va_service_type">
+                                    <option value="active">Active Duty</option>
+                                    <option value="reserves">Reserves/National Guard</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="va_usage" class="form-label">VA Loan Usage</label>
+                                <select class="form-select" id="va_usage" name="va_usage">
+                                    <option value="first">First Use</option>
+                                    <option value="subsequent">Subsequent Use</option>
+                                </select>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="va_disability_exempt" name="va_disability_exempt" value="true">
+                                <label class="form-check-label" for="va_disability_exempt">
+                                    Disability Exemption
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="annual_rate" class="form-label">Interest Rate (%)</label>
+                            <input type="number" class="form-control" id="annual_rate" name="annual_rate" step="0.125" min="0" max="15" value="6.5" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="loan_term" class="form-label">Loan Term (years)</label>
+                            <select class="form-select" id="loan_term" name="loan_term">
+                                <option value="30">30 years</option>
+                                <option value="20">20 years</option>
+                                <option value="15">15 years</option>
+                                <option value="10">10 years</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="annual_tax_rate" class="form-label">Property Tax Rate (%)</label>
+                            <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate" step="0.01" min="0" max="5" value="1.1" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="annual_insurance_rate" class="form-label">Insurance Rate (%)</label>
+                            <input type="number" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate" step="0.01" min="0" max="2" value="0.35" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="monthly_hoa_fee" class="form-label">Monthly HOA Fee ($)</label>
+                            <input type="number" class="form-control" id="monthly_hoa_fee" name="monthly_hoa_fee" step="25" min="0" value="0">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="closing_date" class="form-label">Closing Date</label>
+                            <input type="date" class="form-control" id="closing_date" name="closing_date">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="discount_points" class="form-label">Discount Points</label>
+                            <input type="number" class="form-control" id="discount_points" name="discount_points" value="0" min="0" step="0.125">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="seller_credit" class="form-label">Seller Credit ($)</label>
+                            <input type="number" class="form-control" id="seller_credit" name="seller_credit" value="0" min="0" step="500">
+                        </div>
+                        
+                        <!-- Calculate Button -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button id="calculateBtn" type="submit" class="btn btn-primary w-100">Calculate</button>
+                            </div>
+                        </div>
+                        
+                        <div class="progress mt-2" id="loadingProgress" style="display: none;">
+                            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results Column -->
+        <div class="col-md-7">
+            <!-- Loading Spinner and Error Alert -->
+            <div class="my-4 text-center">
+                <div id="loadingSpinner" class="spinner-border text-primary mx-auto d-none" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div id="errorAlert" class="alert alert-danger" style="display: none;" role="alert">
+                    Error message goes here.
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="resultsSection">
+                <!-- Monthly Payment Breakdown Card -->
+                <div class="card results-card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Monthly Payment Breakdown</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr>
+                                    <td>Principal & Interest</td>
+                                    <td class="text-end" id="monthlyPayment">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Property Tax</td>
+                                    <td class="text-end" id="monthlyTax">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Homeowners Insurance</td>
+                                    <td class="text-end" id="monthlyInsurance">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>HOA Fees</td>
+                                    <td class="text-end" id="monthlyHoa">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Mortgage Insurance</td>
+                                    <td class="text-end" id="monthlyPmi">$0.00</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>Total Monthly Payment</strong></td>
+                                    <td class="text-end" id="totalMonthlyPayment"><strong>$0.00</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Loan Details Card -->
+                <div class="card results-card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Loan Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr>
+                                    <td>Purchase Price</td>
+                                    <td class="text-end" id="purchasePrice">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Down Payment</td>
+                                    <td class="text-end" id="downPaymentAmount">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Base Loan Amount</td>
+                                    <td class="text-end" id="baseLoanAmount">$0.00</td>
+                                </tr>
+                                <tr id="upfrontMipRow" style="display: none;">
+                                    <td>Upfront MIP</td>
+                                    <td class="text-end" id="upfrontMip">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Loan Amount</td>
+                                    <td class="text-end" id="loanAmount">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td>Interest Rate</td>
+                                    <td class="text-end" id="interestRate">0%</td>
+                                </tr>
+                                <tr>
+                                    <td>Loan Term</td>
+                                    <td class="text-end" id="loanTermDisplay">30 years</td>
+                                </tr>
+                                <tr>
+                                    <td>LTV (Loan-to-Value)</td>
+                                    <td class="text-end" id="ltvDisplay">0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Cash Needed at Closing Card -->
+                <div class="card results-card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Cash Needed at Closing</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="section-title">Down Payment</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Down Payment</td>
+                                    <td class="text-end" id="downPayment">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <h5 class="section-title">Closing Costs</h5>
+                        <table class="table table-sm">
+                            <tbody id="closingCostsTable">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                            <tfoot class="total-row">
+                                <tr>
+                                    <td><strong>Total Closing Costs</strong></td>
+                                    <td class="text-end" id="totalClosingCosts"><strong>$0.00</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+                        <h5 class="section-title">Prepaid Items</h5>
+                        <table class="table table-sm">
+                            <tbody id="prepaidsTable">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                            <tfoot class="total-row">
+                                <tr>
+                                    <td><strong>Total Prepaid Items</strong></td>
+                                    <td class="text-end" id="totalPrepaids"><strong>$0.00</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+                        <h5 class="section-title">Total Cash Needed</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr class="total-row">
+                                    <td><strong>Total Cash Needed at Closing</strong></td>
+                                    <td class="text-end" id="totalCashNeeded"><strong>$0.00</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debug Section -->
+    <div class="mt-5 mb-3">
+        <p id="debugToggle" class="text-center">Show/Hide Debug Information</p>
+        <div id="debugSection" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Debug Output</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="debugOutput" class="p-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='calculator.js') }}"></script>
+<script>
+    document.getElementById('toggleDebug').addEventListener('click', function() {
+        const debugOutput = document.getElementById('debugOutput');
+        debugOutput.style.display = debugOutput.style.display === 'none' ? 'block' : 'none';
+    });
+</script>
+{% endblock %}
