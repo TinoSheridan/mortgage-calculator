@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mortgage-calculator:
+    build: .
+    container_name: mortgage-calculator
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=testing
+      - FLASK_APP=app.py
+      - SECRET_KEY=beta-testing-secret-key-change-in-production
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
