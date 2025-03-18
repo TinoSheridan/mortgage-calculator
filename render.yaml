@@ -11,5 +11,7 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: PATH
+        value: /opt/render/project/python/venv/bin:/opt/render/project/.venv/bin:/opt/render/project/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     healthCheckPath: /health
     autoDeploy: true
