@@ -13,6 +13,10 @@ echo "===== Installing dependencies ====="
 pip install -r requirements.txt
 pip install gunicorn==21.2.0
 
+# Create necessary directories
+echo "===== Creating log directories ====="
+mkdir -p logs
+
 # Verify gunicorn installation
 echo "===== Verifying gunicorn installation ====="
 gunicorn_path=$(which gunicorn || echo "NOT_FOUND")
@@ -23,12 +27,6 @@ pip list | grep gunicorn
 echo "===== PATH environment ====="
 echo $PATH
 
-# If gunicorn wasn't found in PATH, try a direct module approach
-if [ "$gunicorn_path" = "NOT_FOUND" ]; then
-    echo "===== Starting with python -m approach ====="
-    exec python -m gunicorn app:app --bind 0.0.0.0:$PORT
-else
-    # Start the application with the found gunicorn
-    echo "===== Starting application with gunicorn from PATH ====="
-    exec $gunicorn_path app:app --bind 0.0.0.0:$PORT
-fi
+# Start the application with our gunicorn config
+echo "===== Starting application with gunicorn config ====="
+exec gunicorn app:app -c gunicorn.conf.py --bind 0.0.0.0:$PORT

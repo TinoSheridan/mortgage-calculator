@@ -14,18 +14,22 @@ timeout = 30
 keepalive = 2
 
 # SSL/TLS Configuration
-keyfile = "/etc/ssl/private/mortgage_calc.key"
-certfile = "/etc/ssl/certs/mortgage_calc.crt"
-ssl_version = "TLS"
+keyfile = None  # Handled by Render
+certfile = None  # Handled by Render
+# ssl_version = "TLS"  # Deprecated, using ssl_context instead
 ciphers = 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
 
 # Process naming
 proc_name = 'mortgage_calc'
 pythonpath = '.'
 
-# Logging
-accesslog = "/var/log/mortgage_calc/access.log"
-errorlog = "/var/log/mortgage_calc/error.log"
+# Logging - Store logs in a directory that will be available in Render
+log_directory = "./logs"
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory, exist_ok=True)
+    
+accesslog = os.path.join(log_directory, "access.log")
+errorlog = os.path.join(log_directory, "error.log")
 loglevel = "info"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
@@ -36,10 +40,10 @@ limit_request_field_size = 8190
 
 # Server mechanics
 daemon = False
-pidfile = "/var/run/mortgage_calc/gunicorn.pid"
+pidfile = None  # No pidfile in Render environment
 umask = 0o007
-user = "www-data"
-group = "www-data"
+user = None  # Let Render handle user permissions
+group = None  # Let Render handle group permissions
 tmp_upload_dir = None
 
 # SSL Session configuration
@@ -48,9 +52,7 @@ ssl_session_tickets = False
 
 def when_ready(server):
     """Run when server is ready."""
-    # Ensure directories exist
-    os.makedirs("/var/log/mortgage_calc", exist_ok=True)
-    os.makedirs("/var/run/mortgage_calc", exist_ok=True)
+    pass  # Simply pass as Render handles server readiness
 
 def on_starting(server):
     """Run when server is starting."""
