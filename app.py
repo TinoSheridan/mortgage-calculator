@@ -16,6 +16,11 @@ from datetime import datetime
 from config_factory import get_config
 from beta_routes import beta_bp
 
+# Configure logging early
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info("Application module loading")
+
 # Load environment variables
 load_dotenv()
 
@@ -28,6 +33,9 @@ app.config.from_object(app_config)
 app.secret_key = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['WTF_CSRF_ENABLED'] = True
 CORS(app)
+
+# Log app initialization with config details
+app.logger.info(f"Flask app initialized with config: {app.config.get('ENV', 'unknown')}")
 
 # Initialize app with environment-specific settings
 if hasattr(app_config, 'init_app'):
@@ -50,7 +58,6 @@ def add_header(response):
 csrf = CSRFProtect(app)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 app.permanent_session_lifetime = timedelta(days=5)
 
 # Log application version on startup
@@ -73,6 +80,46 @@ app.register_blueprint(chat_bp)
 # Register beta testing blueprint
 app.register_blueprint(beta_bp)
 app.config_manager = config_manager
+
+# Main calculator route
+@app.route('/')
+def index():
+    """Render the main calculator page."""
+    app.logger.info("Index route accessed")
+    try:
+        # Get configuration limits
+        limits = config.get('limits', {})
+        
+        # Default parameters
+        params = {
+            'purchase_price': 400000,
+            'down_payment_percentage': 20,
+            'annual_rate': 6.5,
+            'loan_term': 30,
+            'annual_tax_rate': 1.0,
+            'annual_insurance_rate': 0.35,
+            'credit_score': 740,
+            'loan_type': 'conventional',
+            'hoa_fee': 0,
+            'seller_credit': 0,
+            'lender_credit': 0,
+            'discount_points': 0
+        }
+        
+        return render_template('index.html', 
+                            params=params, 
+                            limits=limits,
+                            version=getattr(app, 'version', 'Unknown'))
+    except Exception as e:
+        app.logger.error(f"Error in index route: {str(e)}")
+        return f"Error rendering calculator: {str(e)}", 500
+
+# Catch-all route to diagnose 404 issues
+@app.route('/<path:path>')
+def catch_all(path):
+    """Catch-all route to log missing endpoints."""
+    app.logger.warning(f"404 Not Found: {path}")
+    return f"Page not found: /{path}. Try accessing the root URL instead.", 404
 
 # Health check endpoint for monitoring
 @app.route('/health')

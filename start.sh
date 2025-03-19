@@ -29,4 +29,4 @@ echo $PATH
 
 # Start the application with our gunicorn config
 echo "===== Starting application with gunicorn config ====="
-exec gunicorn app:app -c gunicorn.conf.py --bind 0.0.0.0:$PORT
+exec gunicorn app:app -c gunicorn.conf.py

@@ -2,8 +2,9 @@
 import multiprocessing
 import os
 
-# Server socket
-bind = "0.0.0.0:8013"
+# Render assigns a PORT environment variable - use it or fallback to 10000
+port = int(os.environ.get("PORT", 10000))
+bind = f"0.0.0.0:{port}"
 backlog = 2048
 
 # Worker processes
