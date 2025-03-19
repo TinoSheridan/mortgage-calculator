@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_from_directory
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
@@ -29,6 +29,15 @@ app = Flask(__name__)
 
 # Load configuration based on environment
 app_config = get_config()
+
+# Ensure proper MIME types for static files
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # During development
+# Add proper MIME type handling for static files
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
+
+# Apply configuration from the selected environment
 app.config.from_object(app_config)
 app.secret_key = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['WTF_CSRF_ENABLED'] = True
