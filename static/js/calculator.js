@@ -194,8 +194,6 @@ function updateCreditsTable(result) {
     // Debug the result structure
     console.log("Full API result:", result);
     console.log("Credits section in API result:", result.credits);
-    console.log("Credits object structure:", JSON.stringify(result.credits, null, 2));
-    console.log("Credits object keys:", Object.keys(result.credits));
     
     if (result.credits && typeof result.credits === 'object') {
         console.log("Credits object found in result.credits");
@@ -270,57 +268,72 @@ function updateCreditsTable(result) {
         }
     }
     
-    // Always add seller credit row, even if zero
-    const sellerCreditRow = document.createElement('tr');
-    
-    // If seller credit exceeds maximum, add warning
-    if (sellerCreditExceedsMax) {
-        if (isVaLoan) {
-            // Special VA loan warning for concessions limit
-            sellerCreditRow.innerHTML = `
-                <td style="font-weight: normal;">
-                    Seller Credit 
-                    <div class="text-danger mt-1">
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        Warning: VA loans allow unlimited closing costs coverage, but prepaids and discount points 
-                        (${formatCurrency(potentialConcessions)}) exceed the 4% concession limit: ${formatCurrency(vaConcessionLimit)}
-                    </div>
-                </td>
-                <td style="font-weight: normal;" class="text-end text-danger">${formatCurrency(sellerCredit)}</td>
-            `;
-        } else {
-            // Standard warning for other loan types
-            sellerCreditRow.innerHTML = `
-                <td style="font-weight: normal;">
-                    Seller Credit 
-                    <div class="text-danger mt-1">
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        Exceeds maximum allowed: ${formatCurrency(maxSellerContribution)}
-                    </div>
-                </td>
-                <td style="font-weight: normal;" class="text-end text-danger">${formatCurrency(sellerCredit)}</td>
-            `;
+    // Only add rows if there are credits (either seller or lender)
+    if (sellerCredit > 0 || lenderCredit > 0) {
+        // Add seller credit row if it exists
+        if (sellerCredit > 0) {
+            const sellerCreditRow = document.createElement('tr');
+            
+            // If seller credit exceeds maximum, add warning
+            if (sellerCreditExceedsMax) {
+                if (isVaLoan) {
+                    // Special VA loan warning for concessions limit
+                    sellerCreditRow.innerHTML = `
+                        <td style="font-weight: normal;">
+                            Seller Credit 
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Warning: VA loans allow unlimited closing costs coverage, but prepaids and discount points 
+                                (${formatCurrency(potentialConcessions)}) exceed the 4% concession limit: ${formatCurrency(vaConcessionLimit)}
+                            </div>
+                        </td>
+                        <td style="font-weight: normal;" class="text-end text-danger">${formatCurrency(sellerCredit)}</td>
+                    `;
+                } else {
+                    // Standard warning for other loan types
+                    sellerCreditRow.innerHTML = `
+                        <td style="font-weight: normal;">
+                            Seller Credit 
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Exceeds maximum allowed: ${formatCurrency(maxSellerContribution)}
+                            </div>
+                        </td>
+                        <td style="font-weight: normal;" class="text-end text-danger">${formatCurrency(sellerCredit)}</td>
+                    `;
+                }
+                // Highlight the row with a warning color
+                sellerCreditRow.classList.add('table-warning');
+            } else {
+                sellerCreditRow.innerHTML = `
+                    <td style="font-weight: normal;">Seller Credit</td>
+                    <td style="font-weight: normal;" class="text-end">${formatCurrency(sellerCredit)}</td>
+                `;
+            }
+            
+            tbody.appendChild(sellerCreditRow);
+            console.log("Added seller credit row");
         }
-        // Highlight the row with a warning color
-        sellerCreditRow.classList.add('table-warning');
+        
+        // Add lender credit row if it exists
+        if (lenderCredit > 0) {
+            const lenderCreditRow = document.createElement('tr');
+            lenderCreditRow.innerHTML = `
+                <td style="font-weight: normal;">Lender Credit</td>
+                <td style="font-weight: normal;" class="text-end">${formatCurrency(lenderCredit)}</td>
+            `;
+            tbody.appendChild(lenderCreditRow);
+            console.log("Added lender credit row");
+        }
     } else {
-        sellerCreditRow.innerHTML = `
-            <td style="font-weight: normal;">Seller Credit</td>
-            <td style="font-weight: normal;" class="text-end">${formatCurrency(sellerCredit)}</td>
+        // If no credits, add a "No Credits" row to indicate there are no credits
+        const noCreditsRow = document.createElement('tr');
+        noCreditsRow.innerHTML = `
+            <td style="font-weight: normal; font-style: italic;" colspan="2">No credits applied</td>
         `;
+        tbody.appendChild(noCreditsRow);
+        console.log("Added 'No Credits' row");
     }
-    
-    tbody.appendChild(sellerCreditRow);
-    console.log("Added seller credit row");
-    
-    // Always add lender credit row, even if zero
-    const lenderCreditRow = document.createElement('tr');
-    lenderCreditRow.innerHTML = `
-        <td style="font-weight: normal;">Lender Credit</td>
-        <td style="font-weight: normal;" class="text-end">${formatCurrency(lenderCredit)}</td>
-    `;
-    tbody.appendChild(lenderCreditRow);
-    console.log("Added lender credit row");
     
     // Make sure the total credits element is updated
     const totalCreditsElement = document.getElementById('totalCredits');
