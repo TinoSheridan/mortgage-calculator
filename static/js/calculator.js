@@ -174,8 +174,8 @@ function updatePrepaidsTable(prepaids) {
 function updateCreditsTable(result) {
     console.log("Starting credit table update...");
     
-    // Find the credits table body
-    const tbody = document.querySelector('#creditsTable');
+    // Find the credits table body - NOTE: This was the issue - needed to be more specific with the selector!
+    const tbody = document.getElementById('creditsTable');
     if (!tbody) {
         console.error('Credits table tbody not found! Check HTML for element with id="creditsTable"');
         return 0;
@@ -478,6 +478,7 @@ if (mortgageForm) {
             };
             
             console.log("Updating results with:", JSON.stringify(completeResult, null, 2));
+            console.log("Credits object specifically:", JSON.stringify(completeResult.credits, null, 2));
             
             // Update loan details
             safelyUpdateElement('purchasePrice', result.loan_details.purchase_price, formatCurrency);
