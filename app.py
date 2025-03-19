@@ -60,17 +60,19 @@ def inject_config():
 def add_header(response):
     # Security and caching headers
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     
     # Add Content Security Policy that allows both cdn.jsdelivr.net and cdnjs.cloudflare.com
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:;"
     
     # Explicitly set MIME types for static files if needed
-    if 'Content-Type' not in response.headers and request.path.startswith('/static/'):
+    if request.path.startswith('/static/'):
         file_ext = os.path.splitext(request.path)[1].lower()
         if file_ext == '.css':
             response.headers['Content-Type'] = 'text/css'
         elif file_ext == '.js':
-            response.headers['Content-Type'] = 'text/javascript'
+            response.headers['Content-Type'] = 'application/javascript'
     
     return response
 

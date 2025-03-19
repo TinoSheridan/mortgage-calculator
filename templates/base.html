@@ -134,44 +134,49 @@
     
     <!-- Beta Feedback JavaScript -->
     <script>
-        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            fetch('/beta/feedback', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Clear form and hide modal
-                    this.reset();
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
-                    modal.hide();
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedbackForm = document.getElementById('feedbackForm');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
                     
-                    // Show success alert
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                    alertDiv.setAttribute('role', 'alert');
-                    alertDiv.innerHTML = `
-                        <strong>Thank you!</strong> Your feedback has been submitted.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    `;
-                    document.body.appendChild(alertDiv);
-                    
-                    // Auto-dismiss after 5 seconds
-                    setTimeout(() => {
-                        alertDiv.remove();
-                    }, 5000);
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting feedback:', error);
-            });
+                    fetch('/beta/feedback', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Clear form and hide modal
+                            this.reset();
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                            modal.hide();
+                            
+                            // Show success alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                            alertDiv.setAttribute('role', 'alert');
+                            alertDiv.innerHTML = `
+                                <strong>Thank you!</strong> Your feedback has been submitted.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            `;
+                            document.body.appendChild(alertDiv);
+                            
+                            // Auto-dismiss after 5 seconds
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 5000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting feedback:', error);
+                    });
+                });
+            }
         });
     </script>
     {% endif %}
