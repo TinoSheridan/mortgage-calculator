@@ -104,10 +104,19 @@ app.register_blueprint(beta_bp)
 app.config_manager = config_manager
 
 # Main calculator route
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """Render the main calculator page."""
-    app.logger.info("Index route accessed")
+    app.logger.info(f"Index route accessed with method: {request.method}")
+    
+    # If it's a POST request, redirect to calculate endpoint
+    if request.method == 'POST':
+        app.logger.warning("POST request received at root route - redirecting to /calculate")
+        return jsonify({
+            "error": "Direct form submission to root URL is not supported",
+            "message": "Please use the /calculate endpoint with proper JSON data"
+        }), 400
+        
     try:
         # Get configuration limits
         limits = config.get('limits', {})
