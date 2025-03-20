@@ -442,11 +442,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add debug info
                 addDebug(`Form data: ${JSON.stringify(formDataObj, null, 2)}`);
                 
+                // Get CSRF token
+                const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+                console.log("Using CSRF token:", csrfToken);
+                
                 // Make API request
                 const response = await fetch('/calculate', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
                     },
                     body: JSON.stringify(formDataObj)
                 });

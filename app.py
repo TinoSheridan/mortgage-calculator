@@ -79,99 +79,8 @@ def add_header(response):
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 
-# Configure logging
-app.permanent_session_lifetime = timedelta(days=5)
-
-# Log application version on startup
-try:
-    from VERSION import VERSION, LAST_UPDATED
-    app.logger.info(f"Starting Mortgage Calculator version {VERSION} (last updated: {LAST_UPDATED})")
-except ImportError:
-    app.logger.warning("VERSION module not found, version tracking not enabled")
-
-# Load calculator configuration
-calculator = MortgageCalculator()
-config_manager = ConfigManager()
-config_manager.load_config()  # Load the config
-config = config_manager.get_config()  # Get the loaded config
-
-# Register admin blueprint
-app.register_blueprint(admin_bp)
-# Register chat blueprint
-app.register_blueprint(chat_bp)
-# Register beta testing blueprint
-app.register_blueprint(beta_bp)
-app.config_manager = config_manager
-
-# Main calculator route
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    """Render the main calculator page."""
-    app.logger.info(f"Index route accessed with method: {request.method}")
-    
-    # If it's a POST request, redirect to calculate endpoint
-    if request.method == 'POST':
-        app.logger.warning("POST request received at root route - redirecting to /calculate")
-        return jsonify({
-            "error": "Direct form submission to root URL is not supported",
-            "message": "Please use the /calculate endpoint with proper JSON data"
-        }), 400
-        
-    try:
-        # Get configuration limits
-        limits = config.get('limits', {})
-        
-        # Default parameters
-        params = {
-            'purchase_price': 400000,
-            'down_payment_percentage': 20,
-            'annual_rate': 6.5,
-            'loan_term': 30,
-            'annual_tax_rate': 1.0,
-            'annual_insurance_rate': 0.35,
-            'credit_score': 740,
-            'loan_type': 'conventional',
-            'hoa_fee': 0,
-            'seller_credit': 0,
-            'lender_credit': 0,
-            'discount_points': 0
-        }
-        
-        return render_template('index.html', 
-                            params=params, 
-                            limits=limits,
-                            version=getattr(app, 'version', 'Unknown'))
-    except Exception as e:
-        app.logger.error(f"Error in index route: {str(e)}")
-        return f"Error rendering calculator: {str(e)}", 500
-
-# Catch-all route to diagnose 404 issues
-@app.route('/<path:path>')
-def catch_all(path):
-    """Catch-all route to log missing endpoints."""
-    app.logger.warning(f"404 Not Found: {path}")
-    return f"Page not found: /{path}. Try accessing the root URL instead.", 404
-
-# Health check endpoint for monitoring
-@app.route('/health')
-def health_check():
-    """Get health and version information about the application."""
-    try:
-        from VERSION import VERSION, LAST_UPDATED, FEATURES
-    except ImportError:
-        VERSION = "unknown"
-        LAST_UPDATED = "unknown"
-        FEATURES = []
-    
-    return jsonify({
-        'status': 'healthy',
-        'version': VERSION,
-        'features': FEATURES,
-        'last_updated': LAST_UPDATED,
-        'environment': os.environ.get('FLASK_ENV', 'development'),
-        'timestamp': datetime.now().isoformat()
-    })
-
+# Exempt the calculate endpoint from CSRF protection (we'll handle it manually with X-CSRFToken header)
+@csrf.exempt
 @app.route('/calculate', methods=['POST'])
 def calculate():
     """Main calculation endpoint that returns complete mortgage details."""
@@ -419,3 +328,96 @@ def calculate_max_seller_contribution(loan_type, purchase_price, down_payment_am
                     f"{max_contribution_pct:.1f}% = ${max_contribution_amount:.2f}")
     
     return max_contribution_amount
+
+# Configure logging
+app.permanent_session_lifetime = timedelta(days=5)
+
+# Log application version on startup
+try:
+    from VERSION import VERSION, LAST_UPDATED
+    app.logger.info(f"Starting Mortgage Calculator version {VERSION} (last updated: {LAST_UPDATED})")
+except ImportError:
+    app.logger.warning("VERSION module not found, version tracking not enabled")
+
+# Load calculator configuration
+calculator = MortgageCalculator()
+config_manager = ConfigManager()
+config_manager.load_config()  # Load the config
+config = config_manager.get_config()  # Get the loaded config
+
+# Register admin blueprint
+app.register_blueprint(admin_bp)
+# Register chat blueprint
+app.register_blueprint(chat_bp)
+# Register beta testing blueprint
+app.register_blueprint(beta_bp)
+app.config_manager = config_manager
+
+# Main calculator route
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    """Render the main calculator page."""
+    app.logger.info(f"Index route accessed with method: {request.method}")
+    
+    # If it's a POST request, redirect to calculate endpoint
+    if request.method == 'POST':
+        app.logger.warning("POST request received at root route - redirecting to /calculate")
+        return jsonify({
+            "error": "Direct form submission to root URL is not supported",
+            "message": "Please use the /calculate endpoint with proper JSON data"
+        }), 400
+        
+    try:
+        # Get configuration limits
+        limits = config.get('limits', {})
+        
+        # Default parameters
+        params = {
+            'purchase_price': 400000,
+            'down_payment_percentage': 20,
+            'annual_rate': 6.5,
+            'loan_term': 30,
+            'annual_tax_rate': 1.0,
+            'annual_insurance_rate': 0.35,
+            'credit_score': 740,
+            'loan_type': 'conventional',
+            'hoa_fee': 0,
+            'seller_credit': 0,
+            'lender_credit': 0,
+            'discount_points': 0
+        }
+        
+        return render_template('index.html', 
+                            params=params, 
+                            limits=limits,
+                            version=getattr(app, 'version', 'Unknown'))
+    except Exception as e:
+        app.logger.error(f"Error in index route: {str(e)}")
+        return f"Error rendering calculator: {str(e)}", 500
+
+# Catch-all route to diagnose 404 issues
+@app.route('/<path:path>')
+def catch_all(path):
+    """Catch-all route to log missing endpoints."""
+    app.logger.warning(f"404 Not Found: {path}")
+    return f"Page not found: /{path}. Try accessing the root URL instead.", 404
+
+# Health check endpoint for monitoring
+@app.route('/health')
+def health_check():
+    """Get health and version information about the application."""
+    try:
+        from VERSION import VERSION, LAST_UPDATED, FEATURES
+    except ImportError:
+        VERSION = "unknown"
+        LAST_UPDATED = "unknown"
+        FEATURES = []
+    
+    return jsonify({
+        'status': 'healthy',
+        'version': VERSION,
+        'features': FEATURES,
+        'last_updated': LAST_UPDATED,
+        'environment': os.environ.get('FLASK_ENV', 'development'),
+        'timestamp': datetime.now().isoformat()
+    })
