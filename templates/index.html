@@ -149,7 +149,7 @@
     <div class="row">
         <!-- Form Column -->
         <div class="col-md-5">
-            <form id="mortgageForm" method="post" action="javascript:void(0);">
+            <form id="mortgageForm" method="post" action="/calculate" onsubmit="return false;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 
                 <div class="card mb-4">

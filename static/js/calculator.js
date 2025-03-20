@@ -390,10 +390,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const mortgageForm = document.getElementById('mortgageForm');
     if (mortgageForm) {
         console.log("Form found, adding submit handler");
-        mortgageForm.addEventListener('submit', async function(e) {
-            // Prevent the default form submission
+        
+        // Add click handler for the submit button instead of form submit
+        document.querySelector('button[type="submit"]').addEventListener('click', async function(e) {
+            // Prevent default button behavior
             e.preventDefault();
-            console.log("Form submission intercepted by event listener");
+            console.log("Submit button clicked, handling form submission manually");
             
             // Show loading spinner, hide results and error
             document.getElementById('loadingSpinner').style.display = 'block';
@@ -408,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             try {
                 // Get form data
-                const formData = new FormData(this);
+                const formData = new FormData(mortgageForm);
                 const formDataObj = Object.fromEntries(formData.entries());
                 
                 // Convert percentage inputs to decimal
