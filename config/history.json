@@ -2,270 +2,6 @@
     "calculations": [],
     "changes": [
         {
-            "timestamp": "2025-03-13T20:00:15.808117",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_4.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:00:15.809302",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_5.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:00:15.810502",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_6.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:00:15.811562",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_7.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:00:15.812718",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_8.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:00:15.813458",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200015_9.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.731569",
-            "description": "Updated configuration",
-            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
-            "user": "admin"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.733179",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_0.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.734425",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_1.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.735510",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_2.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.736527",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_3.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.737511",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_4.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.738971",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_5.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.740215",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_6.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.741410",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_7.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.742485",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_8.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:01:21.743495",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200121_9.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.861217",
-            "description": "Updated configuration",
-            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
-            "user": "admin"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.862566",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_0.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.863711",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_1.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.864914",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_2.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.866263",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_3.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.867544",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_4.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.868815",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_5.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.870026",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_6.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.871313",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_7.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.872490",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_8.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:02:40.873567",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200240_9.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.253023",
-            "description": "Updated configuration",
-            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
-            "user": "admin"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.254497",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_0.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.255948",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_1.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.257217",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_2.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.258358",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_3.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.259389",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_4.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.260737",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_5.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.261832",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_6.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.262909",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_7.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.263962",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_8.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:03:17.265014",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200317_9.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:04:50.776411",
-            "description": "Updated configuration",
-            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
-            "user": "admin"
-        },
-        {
-            "timestamp": "2025-03-13T20:04:50.778062",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200450_0.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:04:50.779497",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200450_1.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:04:50.780777",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200450_2.json",
-            "user": "system"
-        },
-        {
-            "timestamp": "2025-03-13T20:04:50.782002",
-            "description": "Configuration Backup",
-            "details": "Created backup: config_backup_20250313_200450_3.json",
-            "user": "system"
-        },
-        {
             "timestamp": "2025-03-13T20:04:50.783212",
             "description": "Configuration Backup",
             "details": "Created backup: config_backup_20250313_200450_4.json",
@@ -299,6 +35,270 @@
             "timestamp": "2025-03-13T20:04:50.789261",
             "description": "Configuration Backup",
             "details": "Created backup: config_backup_20250313_200450_9.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.660886",
+            "description": "Updated configuration",
+            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
+            "user": "admin"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.662117",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_0.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.662802",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_1.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.663359",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_2.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.664440",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_3.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.664900",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_4.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.665337",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_5.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.665768",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_6.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.666199",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_7.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.666623",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_8.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:39.667054",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135739_9.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.618532",
+            "description": "Updated configuration",
+            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
+            "user": "admin"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.620368",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_0.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.622139",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_1.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.623954",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_2.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.625728",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_3.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.627328",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_4.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.629202",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_5.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.630586",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_6.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.631832",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_7.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.632983",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_8.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T13:57:50.634323",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_135750_9.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.332693",
+            "description": "Updated configuration",
+            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
+            "user": "admin"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.335023",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_0.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.336389",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_1.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.338195",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_2.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.339561",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_3.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.340846",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_4.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.341960",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_5.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.342960",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_6.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.343875",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_7.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.344879",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_8.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:11:55.345817",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141155_9.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.298138",
+            "description": "Updated configuration",
+            "details": "Modified sections: mortgage_config, pmi_rates, closing_costs, county_rates, compliance_text, output_templates",
+            "user": "admin"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.300354",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_0.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.302045",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_1.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.303834",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_2.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.305432",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_3.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.306643",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_4.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.307676",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_5.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.308574",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_6.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.309362",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_7.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.310053",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_8.json",
+            "user": "system"
+        },
+        {
+            "timestamp": "2025-03-23T14:15:41.310666",
+            "description": "Configuration Backup",
+            "details": "Created backup: config_backup_20250323_141541_9.json",
             "user": "system"
         }
     ]

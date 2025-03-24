@@ -221,6 +221,12 @@ document.addEventListener('DOMContentLoaded', function() {
         logToDebug('Form data being sent to backend:');
         for (const [key, value] of Object.entries(jsonData)) {
             logToDebug(`  ${key}: ${value}`);
+            
+            // Remove credit_score if it exists in the data
+            if (key === 'credit_score') {
+                logToDebug('Found credit_score in form data - removing it as it\'s no longer needed');
+                delete jsonData['credit_score'];
+            }
         }
         
         // Add CSRF token to prevent 403 errors
@@ -465,4 +471,55 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsCards.forEach(card => card.style.display = 'none');
         }
     }
+    
+    // Function to initialize form fields - restores the correct configuration
+    function initializeFormFields() {
+        logToDebug('Initializing form fields with correct configuration...');
+        
+        // Ensure credit score field is removed if it exists
+        const creditScoreField = document.getElementById('credit_score');
+        if (creditScoreField) {
+            logToDebug('Found credit score field - removing it as it\'s not needed');
+            creditScoreField.parentElement.parentElement.remove();
+        }
+        
+        // Ensure closing date field is visible
+        const closingDateField = document.getElementById('closing_date');
+        if (closingDateField) {
+            const closingDateContainer = closingDateField.parentElement.parentElement;
+            closingDateContainer.style.display = 'block';
+            logToDebug('Ensuring closing date field is visible');
+            
+            // Set default closing date to today if not already set
+            if (!closingDateField.value) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                let mm = today.getMonth() + 1; // Months start at 0!
+                let dd = today.getDate();
+
+                // Add leading zeros if needed
+                if (dd < 10) dd = '0' + dd;
+                if (mm < 10) mm = '0' + mm;
+
+                closingDateField.value = `${yyyy}-${mm}-${dd}`;
+                logToDebug('Set default closing date to today: ' + closingDateField.value);
+            }
+        } else {
+            logToDebug('WARNING: Closing date field not found in the form!');
+        }
+    }
+
+    // Call the initialization function when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        logToDebug('DOM loaded, initializing form fields...');
+        initializeFormFields();
+        
+        // Also add a loan type change handler to ensure fields are correct when loan type changes
+        const loanTypeSelect = document.getElementById('loan_type');
+        if (loanTypeSelect) {
+            loanTypeSelect.addEventListener('change', function() {
+                initializeFormFields();
+            });
+        }
+    });
 });

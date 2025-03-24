@@ -11,10 +11,10 @@ function formatCurrency(number) {
 function formatPercentage(number) {
     if (typeof number !== 'number') {
         console.error('formatPercentage called with non-number:', number);
-        return '0.00%';
+        return '0.000%';
     }
     
-    return number.toFixed(2) + '%';
+    return number.toFixed(3) + '%';
 }
 
 // Safely updates an element with formatted value
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (document.getElementById('downPaymentPercentage')) {
                     const downPaymentPercentage = result.loan_details.down_payment_percentage || 
                                                  (result.loan_details.down_payment / result.loan_details.purchase_price * 100);
-                    document.getElementById('downPaymentPercentage').textContent = downPaymentPercentage.toFixed(2) + '%';
+                    document.getElementById('downPaymentPercentage').textContent = downPaymentPercentage.toFixed(3) + '%';
                 }
                 
                 safelyUpdateElement('loanAmount', result.loan_details.loan_amount, formatCurrency);
@@ -511,6 +511,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (loanTermElement) {
                     loanTermElement.textContent = `${result.loan_details.loan_term} years`;
                     loanTermElement.style.fontWeight = 'normal';
+                }
+                
+                // Update closing date if available
+                const closingDateElement = document.getElementById('closingDate');
+                if (closingDateElement) {
+                    if (result.loan_details.closing_date) {
+                        const closingDate = new Date(result.loan_details.closing_date);
+                        closingDateElement.textContent = closingDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                    } else {
+                        closingDateElement.textContent = 'Not specified';
+                    }
                 }
                 
                 safelyUpdateElement('ltv', result.loan_details.ltv, formatPercentage);
@@ -574,3 +585,364 @@ if (loanTypeSelect) {
         }
     });
 }
+
+// Helper function to format a line with aligned columns
+function formatAlignedColumns(label, value, labelWidth = 30) {
+    // Ensure label doesn't exceed the width
+    let formattedLabel = label;
+    if (label.length > labelWidth - 1) {
+        formattedLabel = label.substring(0, labelWidth - 4) + '...';
+    } else {
+        // Pad the label to fixed width
+        formattedLabel = label.padEnd(labelWidth);
+    }
+    
+    return `${formattedLabel} ${value}`;
+}
+
+// Function to format detailed mortgage calculation results including all line items
+function formatDetailedResultsForClipboard() {
+    // Define column width for label alignment
+    const LABEL_WIDTH = 30;
+    
+    let resultsText = "DETAILED MORTGAGE CALCULATION RESULTS\n";
+    resultsText += "=====================================\n\n";
+    
+    // Get all result cards
+    const resultCards = document.querySelectorAll('.results-card');
+    
+    // Track what tables we've already processed to avoid duplication
+    const processedTables = new Set();
+    const processedCardIds = new Set();
+    
+    // First, process only the loan details and monthly payment cards
+    resultCards.forEach(card => {
+        if (card.style.display === 'none') return; // Skip hidden cards
+        
+        // Get card header/title
+        const cardHeader = card.querySelector('.card-header');
+        if (cardHeader) {
+            const title = cardHeader.textContent.trim();
+            // Skip the closing costs, prepaids, and credits cards
+            if (title.toLowerCase().includes("closing cost") || 
+                title.toLowerCase().includes("prepaid") || 
+                title.toLowerCase().includes("credit") ||
+                title.toLowerCase().includes("cash needed")) {
+                return;
+            }
+            
+            resultsText += `${title.toUpperCase()}\n`;
+            resultsText += "".padEnd(title.length, '=') + "\n";
+        }
+        
+        // Get all table rows in this card
+        const tables = card.querySelectorAll('table');
+        tables.forEach(table => {
+            // Mark this table as processed and skip if it's one of our special tables
+            // that we'll process separately
+            if (table.id === 'closingCostsTable' || 
+                table.id === 'prepaidsTable' || 
+                table.id === 'creditsTable') {
+                processedTables.add(table.id);
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const label = row.querySelector('td:first-child');
+                const value = row.querySelector('td:last-child');
+                
+                if (label && value) {
+                    resultsText += formatAlignedColumns(label.textContent.trim(), value.textContent.trim(), LABEL_WIDTH) + "\n";
+                }
+            });
+        });
+        
+        resultsText += "\n"; // Add extra line between cards
+    });
+    
+    // Store down payment value 
+    let downPaymentValue = "";
+    const downPaymentElement = document.getElementById('downPaymentAmount');
+    if (downPaymentElement) {
+        downPaymentValue = downPaymentElement.textContent;
+    }
+    
+    // Add closing costs table details
+    const closingCostsTable = document.getElementById('closingCostsTable');
+    let closingCostsTotal = "";
+    if (closingCostsTable) {
+        resultsText += "CLOSING COSTS BREAKDOWN\n";
+        resultsText += "=======================\n";
+        
+        const rows = closingCostsTable.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 2) {
+                resultsText += formatAlignedColumns(cells[0].textContent.trim(), cells[1].textContent.trim(), LABEL_WIDTH) + "\n";
+            }
+        });
+        
+        // Add total closing costs
+        const totalClosingCosts = document.getElementById('totalClosingCosts');
+        if (totalClosingCosts) {
+            closingCostsTotal = totalClosingCosts.textContent;
+            resultsText += formatAlignedColumns("Total Closing Costs", closingCostsTotal, LABEL_WIDTH) + "\n";
+        }
+        
+        resultsText += "\n";
+    }
+    
+    // Add prepaids table details
+    const prepaidsTable = document.getElementById('prepaidsTable');
+    let prepaidsTotal = "";
+    if (prepaidsTable) {
+        resultsText += "PREPAIDS BREAKDOWN\n";
+        resultsText += "==================\n";
+        
+        const rows = prepaidsTable.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 2) {
+                resultsText += formatAlignedColumns(cells[0].textContent.trim(), cells[1].textContent.trim(), LABEL_WIDTH) + "\n";
+            }
+        });
+        
+        // Add total prepaids
+        const totalPrepaids = document.getElementById('totalPrepaids');
+        if (totalPrepaids) {
+            prepaidsTotal = totalPrepaids.textContent;
+            resultsText += formatAlignedColumns("Total Prepaids", prepaidsTotal, LABEL_WIDTH) + "\n";
+        }
+        
+        resultsText += "\n";
+    }
+    
+    // Add credits table details
+    const creditsTable = document.getElementById('creditsTable');
+    let creditsTotal = "";
+    let hasCredits = false;
+    if (creditsTable) {
+        resultsText += "CREDITS BREAKDOWN\n";
+        resultsText += "=================\n";
+        
+        const rows = creditsTable.querySelectorAll('tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 2) {
+                const label = cells[0].textContent.trim();
+                const value = cells[1].textContent.trim();
+                
+                // Skip the "No credits applied" row if it's there
+                if (label !== "No credits applied") {
+                    resultsText += formatAlignedColumns(label, value, LABEL_WIDTH) + "\n";
+                    hasCredits = true;
+                }
+            }
+        });
+        
+        if (!hasCredits) {
+            resultsText += "No credits applied\n";
+        } else {
+            // Add total credits
+            const totalCredits = document.getElementById('totalCredits');
+            if (totalCredits) {
+                creditsTotal = totalCredits.textContent;
+                resultsText += formatAlignedColumns("Total Credits", creditsTotal, LABEL_WIDTH) + "\n";
+            }
+        }
+        
+        resultsText += "\n";
+    }
+    
+    // Always add the CASH NEEDED AT CLOSING section
+    resultsText += "CASH NEEDED AT CLOSING\n";
+    resultsText += "======================\n";
+    
+    // Add down payment
+    if (downPaymentValue) {
+        resultsText += formatAlignedColumns("Down Payment", downPaymentValue, LABEL_WIDTH) + "\n";
+    }
+    
+    // Add total closing costs as a line item
+    if (closingCostsTotal) {
+        resultsText += formatAlignedColumns("Closing Costs", closingCostsTotal, LABEL_WIDTH) + "\n";
+    }
+    
+    // Add total prepaids as a line item
+    if (prepaidsTotal) {
+        resultsText += formatAlignedColumns("Prepaids", prepaidsTotal, LABEL_WIDTH) + "\n";
+    }
+    
+    // Add total credits (as negative) if they exist
+    if (creditsTotal && creditsTotal.trim() !== "$0.00") {
+        resultsText += formatAlignedColumns("Credits", creditsTotal, LABEL_WIDTH) + "\n";
+    }
+    
+    // Add the total cash needed
+    const totalCashNeeded = document.getElementById('totalCashNeeded');
+    if (totalCashNeeded) {
+        resultsText += formatAlignedColumns("Total Cash to Close", totalCashNeeded.textContent, LABEL_WIDTH) + "\n";
+    }
+    
+    resultsText += "\n";
+    
+    // Add timestamp
+    const now = new Date();
+    resultsText += `Generated on: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}\n`;
+    
+    return resultsText;
+}
+
+// Also update the summary format for consistent columns
+function formatResultsForClipboard() {
+    // Define column width for label alignment
+    const LABEL_WIDTH = 30;
+    
+    let resultsText = "MORTGAGE CALCULATION RESULTS\n";
+    resultsText += "===========================\n\n";
+
+    // Loan Details
+    resultsText += "LOAN DETAILS:\n";
+    if (document.getElementById('purchasePrice')) {
+        resultsText += formatAlignedColumns("Purchase Price:", document.getElementById('purchasePrice').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('downPaymentAmount')) {
+        let downPaymentText = `Down Payment: ${document.getElementById('downPaymentAmount').textContent}`;
+        if (document.getElementById('downPaymentPercentage')) {
+            downPaymentText += ` (${document.getElementById('downPaymentPercentage').textContent})`;
+        }
+        resultsText += formatAlignedColumns("Down Payment:", document.getElementById('downPaymentAmount').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('loanAmount')) {
+        resultsText += formatAlignedColumns("Loan Amount:", document.getElementById('loanAmount').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('interestRate')) {
+        resultsText += formatAlignedColumns("Interest Rate:", document.getElementById('interestRate').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('loanTerm')) {
+        resultsText += formatAlignedColumns("Loan Term:", document.getElementById('loanTerm').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('ltv')) {
+        resultsText += formatAlignedColumns("Loan to Value:", document.getElementById('ltv').textContent, LABEL_WIDTH) + "\n";
+    }
+
+    // Monthly Payment
+    resultsText += "\nMONTHLY PAYMENT:\n";
+    if (document.getElementById('principalAndInterest')) {
+        resultsText += formatAlignedColumns("Principal & Interest:", document.getElementById('principalAndInterest').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('propertyTax')) {
+        resultsText += formatAlignedColumns("Property Tax:", document.getElementById('propertyTax').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('homeInsurance')) {
+        resultsText += formatAlignedColumns("Home Insurance:", document.getElementById('homeInsurance').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('pmi')) {
+        resultsText += formatAlignedColumns("Mortgage Insurance:", document.getElementById('pmi').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('hoaFee')) {
+        resultsText += formatAlignedColumns("HOA Fee:", document.getElementById('hoaFee').textContent, LABEL_WIDTH) + "\n";
+    }
+    if (document.getElementById('totalMonthlyPayment')) {
+        resultsText += formatAlignedColumns("Total Monthly Payment:", document.getElementById('totalMonthlyPayment').textContent, LABEL_WIDTH) + "\n";
+    }
+
+    // Closing Costs
+    const closingCostsTotal = document.getElementById('totalClosingCosts');
+    if (closingCostsTotal) {
+        resultsText += "\nCLOSING COSTS:\n";
+        resultsText += formatAlignedColumns("Total Closing Costs:", closingCostsTotal.textContent, LABEL_WIDTH) + "\n";
+    }
+
+    // Prepaids
+    const totalPrepaids = document.getElementById('totalPrepaids');
+    if (totalPrepaids) {
+        resultsText += "\nPREPAIDS:\n";
+        resultsText += formatAlignedColumns("Total Prepaids:", totalPrepaids.textContent, LABEL_WIDTH) + "\n";
+    }
+
+    // Credits
+    const creditsTotal = document.getElementById('totalCredits');
+    if (creditsTotal) {
+        resultsText += "\nCREDITS:\n";
+        resultsText += formatAlignedColumns("Total Credits:", creditsTotal.textContent, LABEL_WIDTH) + "\n";
+    }
+
+    // Total Cash Needed
+    const cashNeeded = document.getElementById('totalCashNeeded');
+    if (cashNeeded) {
+        resultsText += "\nCASH NEEDED:\n";
+        resultsText += formatAlignedColumns("Total Cash Needed:", cashNeeded.textContent, LABEL_WIDTH) + "\n";
+    }
+    
+    // Add timestamp
+    const now = new Date();
+    resultsText += `\nGenerated on: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}\n`;
+
+    return resultsText;
+}
+
+// Initialize the copy to clipboard functionality when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup summary copy button
+    const copyBtn = document.getElementById('copyResultsBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            if (!document.getElementById('resultsSection').style.display || 
+                document.getElementById('resultsSection').style.display === 'none') {
+                return; // Don't do anything if results aren't displayed yet
+            }
+            
+            const resultsText = formatResultsForClipboard();
+            
+            // Use the Clipboard API to copy text
+            navigator.clipboard.writeText(resultsText)
+                .then(() => {
+                    // Show the success message
+                    const copyConfirmation = document.getElementById('copyConfirmation');
+                    copyConfirmation.classList.remove('d-none');
+                    
+                    // Hide the confirmation after 3 seconds
+                    setTimeout(() => {
+                        copyConfirmation.classList.add('d-none');
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy results: ', err);
+                    alert('Failed to copy results to clipboard. Please try again.');
+                });
+        });
+    }
+    
+    // Setup detailed copy button
+    const copyDetailBtn = document.getElementById('copyDetailBtn');
+    if (copyDetailBtn) {
+        copyDetailBtn.addEventListener('click', function() {
+            if (!document.getElementById('resultsSection').style.display || 
+                document.getElementById('resultsSection').style.display === 'none') {
+                return; // Don't do anything if results aren't displayed yet
+            }
+            
+            const detailedResultsText = formatDetailedResultsForClipboard();
+            
+            // Use the Clipboard API to copy text
+            navigator.clipboard.writeText(detailedResultsText)
+                .then(() => {
+                    // Show the success message
+                    const copyConfirmation = document.getElementById('copyConfirmation');
+                    copyConfirmation.classList.remove('d-none');
+                    
+                    // Hide the confirmation after 3 seconds
+                    setTimeout(() => {
+                        copyConfirmation.classList.add('d-none');
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy detailed results: ', err);
+                    alert('Failed to copy detailed results to clipboard. Please try again.');
+                });
+        });
+    }
+});

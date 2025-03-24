@@ -1,0 +1,181 @@
+/* Two-column layout for mortgage calculator */
+@media (min-width: 992px) {
+    /* The container for the form */
+    #mortgageForm {
+        width: 45%;
+        float: left;
+        padding-right: 15px;
+    }
+    
+    /* The container for all result cards */
+    .results-card {
+        width: 50%;
+        float: right;
+        margin-left: 15px;
+    }
+    
+    /* Clear the float after the calculator */
+    #debugToggle {
+        clear: both;
+    }
+}
+
+/* Enhanced styling for mortgage calculator */
+
+/* Target all cards in the calculator */
+.container .card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: none;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Form styling */
+#mortgageForm label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+#mortgageForm .form-control,
+#mortgageForm .form-select {
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+}
+
+#mortgageForm .form-control:focus,
+#mortgageForm .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#calculateBtn {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+#calculateBtn:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-1px);
+}
+
+/* Results section styling */
+#resultsSection .card {
+    background-color: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+#resultsSection .card-header h4 {
+    color: #212529;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+/* Table styling for results */
+#resultsSection table {
+    margin-bottom: 0;
+}
+
+#resultsSection table th {
+    font-weight: 600;
+    border-top: none;
+}
+
+#resultsSection table td,
+#resultsSection table th {
+    padding: 0.6rem;
+    vertical-align: middle;
+}
+
+/* Style all currency values */
+#monthlyPayment, #monthlyTax, #monthlyInsurance, #monthlyHoa, #monthlyPmi,
+#totalMonthlyPayment, #purchasePrice, #downPaymentAmount, #baseLoanAmount,
+#upfrontMip, #loanAmount, #downPayment, #totalClosingCosts, #totalPrepaids,
+#totalCashNeeded {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+}
+
+/* Style the total rows */
+#totalMonthlyPayment, #totalClosingCosts, #totalPrepaids, #totalCashNeeded {
+    font-weight: 700;
+}
+
+tr:has(#totalMonthlyPayment),
+tr:has(#totalClosingCosts),
+tr:has(#totalPrepaids),
+tr:has(#totalCashNeeded) {
+    background-color: #f2f2f2;
+    border-top: 2px solid #dee2e6;
+}
+
+/* Section titles in Cash Needed at Closing */
+#resultsSection h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Loading spinner enhancements */
+#loadingSpinner {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25rem;
+}
+
+/* Debug section styling */
+#debugToggle {
+    cursor: pointer;
+    color: #6c757d;
+    text-decoration: underline;
+    font-size: 0.875rem;
+}
+
+#debugSection {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    margin-top: 1.5rem;
+}
+
+#debugOutput {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    background-color: #212529;
+    color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Error alert styling */
+#errorAlert {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container .card {
+        margin-bottom: 1rem;
+    }
+    
+    #mortgageForm .form-group {
+        margin-bottom: 0.75rem;
+    }
+}

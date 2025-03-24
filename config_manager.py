@@ -230,55 +230,98 @@ class ConfigManager:
             # Track which sections are modified
             modified_sections = []
             
+            # Check file permissions before attempting to save
+            pmi_rates_path = os.path.join(self.config_dir, 'pmi_rates.json')
+            if os.path.exists(pmi_rates_path):
+                if not os.access(pmi_rates_path, os.W_OK):
+                    self.logger.error(f"No write permission for file: {pmi_rates_path}")
+                    raise PermissionError(f"No write permission for PMI rates file: {pmi_rates_path}")
+            
             # Save mortgage configuration
             mortgage_config_path = os.path.join(self.config_dir, 'mortgage_config.json')
             self.logger.info(f"Saving mortgage config to: {mortgage_config_path}")
-            with open(mortgage_config_path, 'w') as f:
-                mortgage_config = {k: v for k, v in self.config.items() 
-                                 if k not in ['pmi_rates', 'closing_costs', 'county_rates', 'compliance_text', 'output_templates']}
-                json.dump(mortgage_config, f, indent=4)
-                self.logger.info("Saved mortgage configuration")
-                modified_sections.append('mortgage_config')
+            try:
+                with open(mortgage_config_path, 'w') as f:
+                    mortgage_config = {k: v for k, v in self.config.items() 
+                                     if k not in ['pmi_rates', 'closing_costs', 'county_rates', 'compliance_text', 'output_templates']}
+                    json.dump(mortgage_config, f, indent=4)
+                    self.logger.info("Saved mortgage configuration")
+                    modified_sections.append('mortgage_config')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save mortgage config: {e}")
+                raise
             
             # Save PMI rates
-            pmi_rates_path = os.path.join(self.config_dir, 'pmi_rates.json')
             self.logger.info(f"Saving PMI rates to: {pmi_rates_path}")
-            with open(pmi_rates_path, 'w') as f:
-                json.dump(self.config.get('pmi_rates', {}), f, indent=4)
-                self.logger.info("Saved PMI rates")
-                modified_sections.append('pmi_rates')
+            try:
+                # Create a backup of the PMI rates file first
+                if os.path.exists(pmi_rates_path):
+                    backup_dir = os.path.join(self.config_dir, 'backups')
+                    os.makedirs(backup_dir, exist_ok=True)
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    backup_file = os.path.join(backup_dir, f'pmi_rates_backup_{timestamp}.json')
+                    with open(pmi_rates_path, 'r') as src, open(backup_file, 'w') as dst:
+                        dst.write(src.read())
+                    self.logger.info(f"Created backup of PMI rates at {backup_file}")
+                
+                # Save the new PMI rates
+                with open(pmi_rates_path, 'w') as f:
+                    pmi_data = self.config.get('pmi_rates', {})
+                    self.logger.info(f"Writing PMI data: {pmi_data}")
+                    json.dump(pmi_data, f, indent=4)
+                    self.logger.info("Saved PMI rates successfully")
+                    modified_sections.append('pmi_rates')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save PMI rates: {e}")
+                raise
             
             # Save closing costs
             closing_costs_path = os.path.join(self.config_dir, 'closing_costs.json')
             self.logger.info(f"Saving closing costs to: {closing_costs_path}")
-            with open(closing_costs_path, 'w') as f:
-                json.dump(self.config.get('closing_costs', {}), f, indent=4)
-                self.logger.info("Saved closing costs")
-                modified_sections.append('closing_costs')
+            try:
+                with open(closing_costs_path, 'w') as f:
+                    json.dump(self.config.get('closing_costs', {}), f, indent=4)
+                    self.logger.info("Saved closing costs")
+                    modified_sections.append('closing_costs')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save closing costs: {e}")
+                raise
             
             # Save county rates
             county_rates_path = os.path.join(self.config_dir, 'county_rates.json')
             self.logger.info(f"Saving county rates to: {county_rates_path}")
-            with open(county_rates_path, 'w') as f:
-                json.dump(self.config.get('county_rates', {}), f, indent=4)
-                self.logger.info("Saved county rates")
-                modified_sections.append('county_rates')
+            try:
+                with open(county_rates_path, 'w') as f:
+                    json.dump(self.config.get('county_rates', {}), f, indent=4)
+                    self.logger.info("Saved county rates")
+                    modified_sections.append('county_rates')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save county rates: {e}")
+                raise
             
             # Save compliance text
             compliance_path = os.path.join(self.config_dir, 'compliance_text.json')
             self.logger.info(f"Saving compliance text to: {compliance_path}")
-            with open(compliance_path, 'w') as f:
-                json.dump(self.config.get('compliance_text', {}), f, indent=4)
-                self.logger.info("Saved compliance text")
-                modified_sections.append('compliance_text')
+            try:
+                with open(compliance_path, 'w') as f:
+                    json.dump(self.config.get('compliance_text', {}), f, indent=4)
+                    self.logger.info("Saved compliance text")
+                    modified_sections.append('compliance_text')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save compliance text: {e}")
+                raise
             
             # Save output templates
             templates_path = os.path.join(self.config_dir, 'output_templates.json')
             self.logger.info(f"Saving output templates to: {templates_path}")
-            with open(templates_path, 'w') as f:
-                json.dump(self.config.get('output_templates', {}), f, indent=4)
-                self.logger.info("Saved output templates")
-                modified_sections.append('output_templates')
+            try:
+                with open(templates_path, 'w') as f:
+                    json.dump(self.config.get('output_templates', {}), f, indent=4)
+                    self.logger.info("Saved output templates")
+                    modified_sections.append('output_templates')
+            except (IOError, PermissionError) as e:
+                self.logger.error(f"Failed to save output templates: {e}")
+                raise
             
             # Track changes and create backup
             if modified_sections:

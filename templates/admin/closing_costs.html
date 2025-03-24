@@ -89,7 +89,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Amount</label>
-                            <input type="number" class="form-control" name="value" step="0.01" min="0" required>
+                            <input type="number" class="form-control" name="value" step="any" required>
                             <div class="invalid-feedback">Please enter a valid amount</div>
                         </div>
                         <div class="mb-3">
@@ -142,7 +142,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Amount</label>
-                            <input type="number" class="form-control" name="value" id="editCostAmount" step="0.01" min="0" required>
+                            <input type="number" class="form-control" name="value" id="editCostAmount" step="any" required>
                             <div class="invalid-feedback">Please enter a valid amount</div>
                         </div>
                         <div class="mb-3">
@@ -213,8 +213,9 @@
             
             // Send AJAX request
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/admin/closing-costs/add', true);
+            xhr.open('POST', '/admin/closing-costs', true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Content-Type', 'application/json');
             
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -248,7 +249,22 @@
                 showNotification('Network error occurred', 'danger');
             };
             
-            xhr.send(formData);
+            // Convert form data to JSON
+            const formObject = {};
+            for (let pair of formData.entries()) {
+                // Ensure proper data conversion
+                if (pair[0] === 'value') {
+                    formObject[pair[0]] = pair[1]; // Keep as string to preserve exact value
+                } else {
+                    formObject[pair[0]] = pair[1];
+                }
+            }
+            
+            // Add debug log to check data
+            console.log('Sending data object:', formObject);
+            
+            // Send as JSON
+            xhr.send(JSON.stringify(formObject));
         });
         
         // Edit cost
@@ -300,9 +316,12 @@
             
             // Send AJAX request
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `/admin/closing-costs/update/${costId}`, true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.open('PUT', `/admin/closing-costs/${costId}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            // Add CSRF token header
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
             
             xhr.onload = function() {
                 console.log('Response status:', xhr.status);
@@ -339,13 +358,22 @@
                 showNotification('Network error occurred', 'danger');
             };
             
-            // Serialize form data for submission
-            const params = new URLSearchParams();
+            // Convert form data to JSON
+            const formObject = {};
             for (let pair of formData.entries()) {
-                params.append(pair[0], pair[1]);
+                // Ensure proper data conversion
+                if (pair[0] === 'value') {
+                    formObject[pair[0]] = pair[1]; // Keep as string to preserve exact value
+                } else {
+                    formObject[pair[0]] = pair[1];
+                }
             }
             
-            xhr.send(params.toString());
+            // Add debug log to check data
+            console.log('Sending data object:', formObject);
+            
+            // Send as JSON
+            xhr.send(JSON.stringify(formObject));
         });
         
         // Delete cost

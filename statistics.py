@@ -80,8 +80,7 @@ class StatisticsManager:
             'down_payment': params.get('down_payment', 0),
             'annual_rate': params.get('annual_rate', 0),
             'loan_term': params.get('loan_term', 30),
-            'loan_type': params.get('loan_type', 'conventional'),
-            'credit_score': params.get('credit_score', 750)
+            'loan_type': params.get('loan_type', 'conventional')
         }
         
         # Anonymize IP if provided
@@ -140,7 +139,6 @@ class StatisticsManager:
                 'avg_loan_amount': 0,
                 'loan_terms': {},
                 'loan_types': {},
-                'credit_score_ranges': {},
                 'device_types': {},
                 'calculations_by_date': {},
                 'avg_interest_rate': 0
@@ -151,7 +149,6 @@ class StatisticsManager:
             'total_calculations': len(self.calculations),
             'loan_terms': defaultdict(int),
             'loan_types': defaultdict(int),
-            'credit_score_ranges': defaultdict(int),
             'device_types': defaultdict(int),
             'calculations_by_date': defaultdict(int)
         }
@@ -176,23 +173,9 @@ class StatisticsManager:
             loan_term = params.get('loan_term', 30)
             data['loan_terms'][str(loan_term)] += 1
             
-            # Count loan types
+            # Track loan types
             loan_type = params.get('loan_type', 'conventional')
             data['loan_types'][loan_type] += 1
-            
-            # Group credit scores into ranges
-            credit_score = params.get('credit_score', 0)
-            if credit_score < 580:
-                score_range = 'Poor (< 580)'
-            elif credit_score < 670:
-                score_range = 'Fair (580-669)'
-            elif credit_score < 740:
-                score_range = 'Good (670-739)'
-            elif credit_score < 800:
-                score_range = 'Very Good (740-799)'
-            else:
-                score_range = 'Excellent (800+)'
-            data['credit_score_ranges'][score_range] += 1
             
             # Track device types
             device_type = calc.get('user_agent_type', 'unknown')
@@ -220,7 +203,15 @@ class StatisticsManager:
         # Sort by date (oldest to newest)
         data['calculations_by_date'] = dict(sorted(last_30_days.items()))
         
-        return data
+        return {
+            'total_calculations': data['total_calculations'],
+            'avg_loan_amount': data['avg_loan_amount'],
+            'loan_terms': dict(data['loan_terms']),
+            'loan_types': dict(data['loan_types']),
+            'device_types': dict(data['device_types']),
+            'calculations_by_date': data['calculations_by_date'],
+            'avg_interest_rate': data['avg_interest_rate']
+        }
     
     def get_chart_data(self):
         """Generate chart data for the admin dashboard."""
@@ -242,11 +233,6 @@ class StatisticsManager:
         charts['loan_terms'] = {
             'labels': list(summary['loan_terms'].keys()),
             'data': list(summary['loan_terms'].values())
-        }
-        
-        charts['credit_score_ranges'] = {
-            'labels': list(summary['credit_score_ranges'].keys()),
-            'data': list(summary['credit_score_ranges'].values())
         }
         
         charts['device_types'] = {

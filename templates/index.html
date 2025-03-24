@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/calculator-enhanced.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/two-column-layout.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
     .monthly-summary {
         font-size: 1.2rem;
@@ -140,11 +141,82 @@
         max-height: 300px;
         overflow-y: auto;
     }
+    
+    /* 3D Button styling */
+    #copyResultsBtn {
+        position: relative;
+        border: none;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+        transform: translateY(-4px);
+        transition: all 0.3s ease;
+        font-weight: bold;
+        background: linear-gradient(to bottom, #2196F3, #0d8aee);
+        border-bottom: 4px solid #0b5aa1;
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        border-radius: 8px;
+    }
+    
+    #copyResultsBtn:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.4);
+        background: linear-gradient(to bottom, #42a5f5, #2196F3);
+    }
+    
+    #copyResultsBtn:active {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        background: linear-gradient(to bottom, #0d8aee, #0c7ed9);
+        border-bottom: 3px solid #0b5aa1;
+    }
+    
+    #copyResultsBtn i {
+        margin-right: 10px;
+        font-size: 1.3rem;
+        vertical-align: middle;
+    }
+    
+    #copyDetailBtn {
+        position: relative;
+        border: none;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+        transform: translateY(-4px);
+        transition: all 0.3s ease;
+        font-weight: bold;
+        background: linear-gradient(to bottom, #2196F3, #0d8aee);
+        border-bottom: 4px solid #0b5aa1;
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        border-radius: 8px;
+    }
+    
+    #copyDetailBtn:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.4);
+        background: linear-gradient(to bottom, #42a5f5, #2196F3);
+    }
+    
+    #copyDetailBtn:active {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        background: linear-gradient(to bottom, #0d8aee, #0c7ed9);
+        border-bottom: 3px solid #0b5aa1;
+    }
+    
+    #copyDetailBtn i {
+        margin-right: 10px;
+        font-size: 1.3rem;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Mortgage Calculator</h1>
+    <h1 class="text-center mb-4">Mortgage Calculator <small class="text-muted">v1.9.6</small></h1>
     
     <div class="row">
         <!-- Form Column -->
@@ -237,24 +309,17 @@
                         </div>
                         
                         <div class="form-group mb-1">
-                            <label for="credit_score" class="form-label">Credit Score</label>
-                            <select class="form-select" id="credit_score" name="credit_score">
-                                <option value="760">Excellent (760+)</option>
-                                <option value="720">Very Good (720-759)</option>
-                                <option value="680">Good (680-719)</option>
-                                <option value="640">Fair (640-679)</option>
-                                <option value="600">Poor (600-639)</option>
-                                <option value="550">Very Poor (550-599)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group mb-1">
                             <label for="occupancy" class="form-label">Property Usage</label>
                             <select class="form-select" id="occupancy" name="occupancy">
                                 <option value="primary_residence">Primary Residence</option>
                                 <option value="second_home">Second Home</option>
                                 <option value="investment_property">Investment Property</option>
                             </select>
+                        </div>
+                        
+                        <div class="form-group mb-1">
+                            <label for="closing_date" class="form-label">Closing Date</label>
+                            <input type="date" class="form-control" id="closing_date" name="closing_date">
                         </div>
                         
                         <!-- Credits Section -->
@@ -294,6 +359,19 @@
             </div>
             
             <div id="resultsSection">
+                <!-- Copy Buttons -->
+                <div class="mb-3 text-end">
+                    <button id="copyResultsBtn" class="btn btn-lg" type="button">
+                        <i class="bi bi-clipboard"></i> Copy Summary
+                    </button>
+                    <button id="copyDetailBtn" class="btn btn-lg ms-2" type="button">
+                        <i class="bi bi-clipboard-data"></i> Copy Detail
+                    </button>
+                    <span id="copyConfirmation" class="text-success d-none ms-2">
+                        <i class="bi bi-check-circle"></i> Copied!
+                    </span>
+                </div>
+                
                 <!-- Loan Details Card -->
                 <div class="card results-card mb-4" id="loanDetailsCard">
                     <div class="card-header">
@@ -329,6 +407,10 @@
                                 <tr>
                                     <td>Loan Term:</td>
                                     <td class="text-end" id="loanTerm">0 years</td>
+                                </tr>
+                                <tr>
+                                    <td>Closing Date:</td>
+                                    <td class="text-end" id="closingDate">Not specified</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -1,0 +1,272 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}System Maintenance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">System Maintenance</h1>
+            <p class="text-muted">Manage and maintain your system configuration</p>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="row g-4">
+        <!-- System Health -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">System Health</h5>
+                    <span class="badge {% if health_info.status == 'healthy' %}bg-success{% elif health_info.status == 'warning' %}bg-warning{% else %}bg-danger{% endif %}">
+                        {{ health_info.status|capitalize }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for file, exists in health_info.config_files.items() %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file-code me-2"></i>
+                                {{ file.replace('_', ' ')|capitalize }}
+                            </div>
+                            <span>
+                                {% if exists %}
+                                <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-save me-2"></i>
+                                Last Backup
+                            </div>
+                            <span>{{ health_info.last_backup }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-save me-2"></i>
+                                Total Backups
+                            </div>
+                            <span>{{ health_info.total_backups }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" onclick="createBackup()">
+                        <i class="fas fa-save me-2"></i> Create Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculation Stats -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Calculation Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-calculator me-2"></i>
+                                Total Calculations
+                            </div>
+                            <span>{{ stats.calculation_count }}</span>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="mb-2">
+                                <i class="fas fa-history me-2"></i>
+                                Recent Changes
+                            </div>
+                            <div class="recent-changes-list">
+                                {% if health_info.recent_changes %}
+                                    {% for change in health_info.recent_changes %}
+                                    <div class="mb-2 p-2 bg-light rounded">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>{{ change.description }}</strong>
+                                            <small class="text-muted">{{ change.timestamp|replace('T', ' ').split('.')[0] }}</small>
+                                        </div>
+                                        <p class="mb-0 small">{{ change.details }}</p>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-center text-muted">No recent changes</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('admin.statistics') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-bar me-2"></i> View Detailed Statistics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Maintenance -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Advanced Maintenance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="fas fa-trash-alt fa-3x text-danger"></i>
+                                    </div>
+                                    <h5>Clear Calculation History</h5>
+                                    <p class="small text-muted">Remove all saved calculation history data.</p>
+                                    <button class="btn btn-outline-danger" onclick="confirmAction('clear-history')">
+                                        Clear History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="fas fa-file-export fa-3x text-primary"></i>
+                                    </div>
+                                    <h5>Export Configuration</h5>
+                                    <p class="small text-muted">Export all configuration files as a ZIP archive.</p>
+                                    <button class="btn btn-outline-primary" onclick="confirmAction('export-config')">
+                                        Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="fas fa-undo fa-3x text-warning"></i>
+                                    </div>
+                                    <h5>Restore Default Configuration</h5>
+                                    <p class="small text-muted">Reset all settings to default values.</p>
+                                    <button class="btn btn-outline-warning" onclick="confirmAction('restore-defaults')">
+                                        Restore Defaults
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                Are you sure you want to proceed with this action?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Create a configuration backup
+    async function createBackup() {
+        try {
+            const response = await fetch('/admin/maintenance/backup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                showNotification('Backup created successfully', 'success');
+                // Refresh page after short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showNotification('Error creating backup: ' + (data.error || 'Unknown error'), 'danger');
+            }
+        } catch (error) {
+            showNotification('Error: ' + error.message, 'danger');
+        }
+    }
+    
+    // Set up confirmation modal
+    function confirmAction(action) {
+        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        const confirmButton = document.getElementById('confirmButton');
+        
+        // Configure modal based on action
+        switch(action) {
+            case 'clear-history':
+                document.getElementById('confirmModalTitle').textContent = 'Clear Calculation History';
+                document.getElementById('confirmModalBody').textContent = 
+                    'Are you sure you want to clear all calculation history? This action cannot be undone.';
+                confirmButton.className = 'btn btn-danger';
+                confirmButton.textContent = 'Clear History';
+                confirmButton.onclick = performClearHistory;
+                break;
+            case 'export-config':
+                document.getElementById('confirmModalTitle').textContent = 'Export Configuration';
+                document.getElementById('confirmModalBody').textContent = 
+                    'Export all configuration files as a ZIP archive?';
+                confirmButton.className = 'btn btn-primary';
+                confirmButton.textContent = 'Export';
+                confirmButton.onclick = performExportConfig;
+                break;
+            case 'restore-defaults':
+                document.getElementById('confirmModalTitle').textContent = 'Restore Default Configuration';
+                document.getElementById('confirmModalBody').textContent = 
+                    'Are you sure you want to restore all settings to their default values? This action cannot be undone.';
+                confirmButton.className = 'btn btn-warning';
+                confirmButton.textContent = 'Restore Defaults';
+                confirmButton.onclick = performRestoreDefaults;
+                break;
+        }
+        
+        modal.show();
+    }
+    
+    // Placeholder functions for advanced maintenance actions
+    // These would need to be connected to actual API endpoints
+    async function performClearHistory() {
+        showNotification('This feature is not yet implemented', 'warning');
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    }
+    
+    async function performExportConfig() {
+        showNotification('This feature is not yet implemented', 'warning');
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    }
+    
+    async function performRestoreDefaults() {
+        showNotification('This feature is not yet implemented', 'warning');
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    }
+</script>
+{% endblock %}

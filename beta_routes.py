@@ -4,8 +4,10 @@ from datetime import datetime
 import json
 import os
 
+
 # Create a blueprint for beta testing features
 beta_bp = Blueprint('beta', __name__, url_prefix='/beta')
+
 
 @beta_bp.route('/feedback', methods=['POST'])
 def submit_feedback():

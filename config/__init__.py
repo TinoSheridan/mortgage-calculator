@@ -1,3 +1,1 @@
-"""
-Configuration package for the Mortgage Calculator.
-"""
+"""Configuration package for the Mortgage Calculator."""

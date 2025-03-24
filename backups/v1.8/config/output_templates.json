@@ -1,0 +1,11 @@
+{
+    "standard_report": {
+        "content": "# Mortgage Calculation Report\n\nLoan Amount: ${loan_amount}\nInterest Rate: {interest_rate}%\nMonthly Payment: ${monthly_payment}\nTotal Payment: ${total_payment}\n\n## Payment Breakdown\n- Principal & Interest\n- Property Tax\n- Insurance\n- PMI (if applicable)\n- HOA Fees (if applicable)\n\n## Important Notes\n- All calculations are estimates\n- Actual rates and fees may vary\n- Contact your lender for exact terms"
+    },
+    "detailed_analysis": {
+        "content": "# Detailed Mortgage Analysis\n\n## Loan Details\nLoan Amount: ${loan_amount}\nInterest Rate: {interest_rate}%\nMonthly Payment: ${monthly_payment}\nTotal Payment: ${total_payment}\n\n## Cost Breakdown\n### Monthly Costs\n- Principal & Interest Payment\n- Property Tax Payment\n- Insurance Payment\n- PMI Payment (if applicable)\n- HOA Fees (if applicable)\n\n### One-Time Costs\n- Down Payment\n- Closing Costs\n- Points\n- Other Fees\n\n## Amortization Summary\n- Total Interest Paid\n- Years to Build 20% Equity\n- Break-even Analysis\n\n## Risk Analysis\n- Debt-to-Income Ratio\n- Payment-to-Income Ratio\n- Property Value Trends\n\n## Recommendations\n- Refinancing Opportunities\n- PMI Removal Strategy\n- Extra Payment Impact"
+    },
+    "comparison_report": {
+        "content": "# Mortgage Options Comparison\n\n## Option 1: {loan_amount} @ {interest_rate}%\n- Monthly Payment: ${monthly_payment}\n- Total Payment: ${total_payment}\n- Total Interest Paid\n- PMI Details\n\n## Option 2: [Alternative Scenario]\n- Different Down Payment\n- Different Term Length\n- Different Interest Rate\n- Buy Points Analysis\n\n## Cost Comparison\n- Monthly Payment Difference\n- Total Cost Difference\n- Break-even Analysis\n- Long-term Savings\n\n## Recommendation\nBased on your financial goals and current market conditions..."
+    }
+}

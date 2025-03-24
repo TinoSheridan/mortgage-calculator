@@ -1,0 +1,32 @@
+/* Two-column layout for mortgage calculator */
+@media (min-width: 768px) {
+    .calculator-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -15px;
+    }
+    
+    .form-column {
+        flex: 0 0 40%;
+        max-width: 40%;
+        padding: 0 15px;
+    }
+    
+    .results-column {
+        flex: 0 0 60%;
+        max-width: 60%;
+        padding: 0 15px;
+    }
+    
+    /* Make sure form takes full width of its column */
+    #mortgageForm {
+        width: 100%;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 767px) {
+    .form-column, .results-column {
+        width: 100%;
+    }
+}

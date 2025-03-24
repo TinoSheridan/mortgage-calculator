@@ -1,0 +1,518 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Mortgage Configuration{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">Mortgage Configuration</h1>
+            <p class="text-muted">Manage loan types, limits, and prepaid items settings</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Notification -->
+    <div class="notification-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        <div id="notification" class="toast align-items-center border-0 fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <!-- Notification message will be set dynamically -->
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="configTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="loan-types-tab" data-bs-toggle="tab" data-bs-target="#loan-types-tab-pane" type="button" role="tab" aria-controls="loan-types-tab-pane" aria-selected="true">Loan Types</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="limits-tab" data-bs-toggle="tab" data-bs-target="#limits-tab-pane" type="button" role="tab" aria-controls="limits-tab-pane" aria-selected="false">Limits</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="prepaid-tab" data-bs-toggle="tab" data-bs-target="#prepaid-tab-pane" type="button" role="tab" aria-controls="prepaid-tab-pane" aria-selected="false">Prepaid Items</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="configTabsContent">
+        <!-- Loan Types Tab -->
+        <div class="tab-pane fade show active" id="loan-types-tab-pane" role="tabpanel" aria-labelledby="loan-types-tab" tabindex="0">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Loan Types</h5>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLoanTypeModal">
+                        <i class="fas fa-plus"></i> Add Loan Type
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Loan Type</th>
+                                    <th>Min Down Payment (%)</th>
+                                    <th>Max LTV (%)</th>
+                                    <th>Min Credit Score</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan_type, config in mortgage_config.loan_types.items() %}
+                                <tr>
+                                    <td>{{ loan_type }}</td>
+                                    <td>{{ config.min_down_payment }}</td>
+                                    <td>{{ config.max_ltv }}</td>
+                                    <td>{{ config.min_credit_score }}</td>
+                                    <td>{{ config.description }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editLoanType('{{ loan_type }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteLoanType('{{ loan_type }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limits Tab -->
+        <div class="tab-pane fade" id="limits-tab-pane" role="tabpanel" aria-labelledby="limits-tab" tabindex="0">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Global Limits</h5>
+                </div>
+                <div class="card-body">
+                    <form id="limitsForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            {% for key, value in mortgage_config.limits.items() %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ key | replace('_', ' ') | title }}</label>
+                                    <input type="number" class="form-control" name="{{ key }}" value="{{ value }}" step="0.01" required>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prepaid Items Tab -->
+        <div class="tab-pane fade" id="prepaid-tab-pane" role="tabpanel" aria-labelledby="prepaid-tab" tabindex="0">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Prepaid Items Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form id="prepaidItemsForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            {% for key, value in mortgage_config.prepaid_items.items() %}
+                            {% if key != 'days_interest_prepaid' %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ key | replace('_', ' ') | title }}</label>
+                                    <input type="number" class="form-control" name="{{ key }}" value="{{ value }}" required>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> Prepaid interest is now calculated automatically based on the closing date selected by the user, 
+                            and no longer uses a fixed number of days.
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Loan Type Modal -->
+<div class="modal fade" id="addLoanTypeModal" tabindex="-1" aria-labelledby="addLoanTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addLoanTypeForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLoanTypeModalLabel">Add Loan Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Loan Type Name</label>
+                        <input type="text" class="form-control" name="loan_type" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Down Payment (%)</label>
+                        <input type="number" class="form-control" name="min_down_payment" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maximum LTV (%)</label>
+                        <input type="number" class="form-control" name="max_ltv" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Credit Score</label>
+                        <input type="number" class="form-control" name="min_credit_score" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Loan Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Loan Type Modal -->
+<div class="modal fade" id="editLoanTypeModal" tabindex="-1" aria-labelledby="editLoanTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editLoanTypeForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLoanTypeModalLabel">Edit Loan Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="original_loan_type" id="editLoanTypeId">
+                    <div class="mb-3">
+                        <label class="form-label">Loan Type Name</label>
+                        <input type="text" class="form-control" name="loan_type" id="editLoanTypeName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Down Payment (%)</label>
+                        <input type="number" class="form-control" name="min_down_payment" id="editMinDownPayment" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maximum LTV (%)</label>
+                        <input type="number" class="form-control" name="max_ltv" id="editMaxLtv" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Minimum Credit Score</label>
+                        <input type="number" class="form-control" name="min_credit_score" id="editMinCreditScore" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" id="editDescription" rows="2" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to show notifications
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.classList.remove('bg-success', 'bg-danger');
+        notification.classList.add(`bg-${type}`);
+        notification.querySelector('.toast-body').textContent = message;
+        
+        const bsNotification = new bootstrap.Toast(notification);
+        bsNotification.show();
+    }
+    
+    // Handle limits form submission
+    document.getElementById('limitsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!this.checkValidity()) {
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/admin/mortgage-config/limits/update', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Success
+                showNotification('Limits updated successfully!', 'success');
+            } else {
+                // Error
+                let errorMsg = 'Failed to update limits';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMsg = response.error;
+                    }
+                } catch (e) {
+                    console.error('Could not parse error response', e);
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            showNotification('Network error occurred', 'danger');
+        };
+        
+        xhr.send(formData);
+    });
+    
+    // Handle prepaid items form submission
+    document.getElementById('prepaidItemsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!this.checkValidity()) {
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/admin/mortgage-config/prepaid/update', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Success
+                showNotification('Prepaid items updated successfully!', 'success');
+            } else {
+                // Error
+                let errorMsg = 'Failed to update prepaid items';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMsg = response.error;
+                    }
+                } catch (e) {
+                    console.error('Could not parse error response', e);
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            showNotification('Network error occurred', 'danger');
+        };
+        
+        xhr.send(formData);
+    });
+    
+    // Handle add loan type form submission
+    document.getElementById('addLoanTypeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!this.checkValidity()) {
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/admin/mortgage-config/loan-types/add', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Success
+                showNotification('Loan type added successfully!', 'success');
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addLoanTypeModal'));
+                modal.hide();
+                
+                // Refresh page after a short delay
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                // Error
+                let errorMsg = 'Failed to add loan type';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMsg = response.error;
+                    }
+                } catch (e) {
+                    console.error('Could not parse error response', e);
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            showNotification('Network error occurred', 'danger');
+        };
+        
+        xhr.send(formData);
+    });
+    
+    // Function to populate edit loan type modal
+    function editLoanType(loanType) {
+        // Fetch loan type data
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/admin/mortgage-config/loan-types/${loanType}`, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Parse response
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    
+                    // Populate form fields
+                    document.getElementById('editLoanTypeId').value = loanType;
+                    document.getElementById('editLoanTypeName').value = loanType;
+                    document.getElementById('editMinDownPayment').value = response.data.min_down_payment;
+                    document.getElementById('editMaxLtv').value = response.data.max_ltv;
+                    document.getElementById('editMinCreditScore').value = response.data.min_credit_score;
+                    document.getElementById('editDescription').value = response.data.description;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('editLoanTypeModal'));
+                    modal.show();
+                } catch (e) {
+                    console.error('Could not parse response', e);
+                    showNotification('Error fetching loan type data', 'danger');
+                }
+            } else {
+                // Error
+                showNotification('Failed to fetch loan type data', 'danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            showNotification('Network error occurred', 'danger');
+        };
+        
+        xhr.send();
+    }
+    
+    // Handle edit loan type form submission
+    document.getElementById('editLoanTypeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!this.checkValidity()) {
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // Get form data
+        const formData = new FormData(this);
+        const loanType = formData.get('original_loan_type');
+        
+        // Send AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `/admin/mortgage-config/loan-types/update/${loanType}`, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Success
+                showNotification('Loan type updated successfully!', 'success');
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editLoanTypeModal'));
+                modal.hide();
+                
+                // Refresh page after a short delay
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                // Error
+                let errorMsg = 'Failed to update loan type';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMsg = response.error;
+                    }
+                } catch (e) {
+                    console.error('Could not parse error response', e);
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        };
+        
+        xhr.onerror = function() {
+            showNotification('Network error occurred', 'danger');
+        };
+        
+        xhr.send(formData);
+    });
+    
+    // Function to delete loan type
+    function deleteLoanType(loanType) {
+        if (confirm(`Are you sure you want to delete this loan type?`)) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `/admin/mortgage-config/loan-types/delete/${loanType}`, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    // Success
+                    showNotification('Loan type deleted successfully!', 'success');
+                    
+                    // Refresh page after a short delay
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Error
+                    let errorMsg = 'Failed to delete loan type';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.error) {
+                            errorMsg = response.error;
+                        }
+                    } catch (e) {
+                        console.error('Could not parse error response', e);
+                    }
+                    showNotification(errorMsg, 'danger');
+                }
+            };
+            
+            xhr.onerror = function() {
+                showNotification('Network error occurred', 'danger');
+            };
+            
+            // Include CSRF token in the request
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+            xhr.send(`csrf_token=${csrfToken}`);
+        }
+    }
+</script>
+{% endblock %}

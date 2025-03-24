@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Mortgage Calculator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Quick Mortgage Calculator</h4>
+            </div>
+            <div class="card-body">
+                <form id="mortgageForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="purchase_price">Purchase Price ($)</label>
+                            <input type="number" class="form-control" id="purchase_price" name="purchase_price" value="400000">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="down_payment">Down Payment ($)</label>
+                            <input type="number" class="form-control" id="down_payment" name="down_payment" value="80000">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="annual_rate">Interest Rate (%)</label>
+                            <input type="number" step="0.125" class="form-control" id="annual_rate" name="annual_rate" value="6.5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="loan_term">Loan Term (years)</label>
+                            <select class="form-control" id="loan_term" name="loan_term">
+                                <option value="30">30 years</option>
+                                <option value="20">20 years</option>
+                                <option value="15">15 years</option>
+                                <option value="10">10 years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="annual_tax_rate">Property Tax Rate (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="annual_tax_rate" name="annual_tax_rate" value="1.2">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="annual_insurance_rate">Insurance Rate (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate" value="0.5">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="credit_score">Credit Score</label>
+                            <input type="number" class="form-control" id="credit_score" name="credit_score" value="750">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="loan_type">Loan Type</label>
+                            <select class="form-select" id="loan_type" name="loan_type">
+                                <option value="conventional">Conventional</option>
+                                <option value="fha">FHA</option>
+                                <option value="va">VA</option>
+                                <option value="usda">USDA</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hoa_fee">Monthly HOA Fee ($)</label>
+                            <input type="number" class="form-control" id="hoa_fee" name="hoa_fee" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="discount_points">Discount Points</label>
+                            <input type="number" step="0.125" class="form-control" id="discount_points" name="discount_points" value="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="seller_credit">Seller Credit ($)</label>
+                            <input type="number" class="form-control" id="seller_credit" name="seller_credit" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lender_credit">Lender Credit ($)</label>
+                            <input type="number" class="form-control" id="lender_credit" name="lender_credit" value="0">
+                        </div>
+                    </div>
+                    <!-- VA-specific options (only shown when VA is selected) -->
+                    <div id="va_options" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="va_service_type" class="form-label">Service Type</label>
+                                    <select class="form-select" id="va_service_type" name="va_service_type">
+                                        <option value="active">Active Duty/Veteran</option>
+                                        <option value="reserves">Reserves/National Guard</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="va_usage" class="form-label">Loan Usage</label>
+                                    <select class="form-select" id="va_usage" name="va_usage">
+                                        <option value="first">First Use</option>
+                                        <option value="subsequent">Subsequent Use</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="va_disability_exempt" name="va_disability_exempt">
+                                    <label class="form-check-label" for="va_disability_exempt">
+                                        VA Disability Exempt from Funding Fee
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- USDA-specific options (only shown when USDA is selected) -->
+                    <div id="usda_options" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    USDA loans include an upfront guarantee fee (added to the loan amount) and an annual fee (paid monthly).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Calculate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Results</h4>
+            </div>
+            <div class="card-body" id="results">
+                <div class="alert alert-info">
+                    Enter values and click Calculate to see results.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded - initializing mortgage calculator');
+    
+    // Show/hide VA options based on loan type selection
+    const loanTypeSelect = document.getElementById('loan_type');
+    const vaOptionsDiv = document.getElementById('va_options');
+    const usdaOptionsDiv = document.getElementById('usda_options');
+    
+    // Set initial visibility based on selected loan type
+    function updateLoanTypeOptions() {
+        const loanType = loanTypeSelect.value;
+        console.log('Loan type changed to:', loanType);
+        vaOptionsDiv.style.display = loanType === 'va' ? 'block' : 'none';
+        usdaOptionsDiv.style.display = loanType === 'usda' ? 'block' : 'none';
+    }
+    
+    // Update on page load
+    updateLoanTypeOptions();
+    
+    // Update when loan type changes
+    loanTypeSelect.addEventListener('change', updateLoanTypeOptions);
+
+    // Handle form submission
+    document.getElementById('mortgageForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        document.getElementById('results').innerHTML = '<div class="alert alert-info">Calculating...</div>';
+        
+        // Get form data
+        const formData = {
+            purchase_price: parseFloat(document.getElementById('purchase_price').value),
+            down_payment: parseFloat(document.getElementById('down_payment').value),
+            annual_rate: parseFloat(document.getElementById('annual_rate').value),
+            loan_term: parseInt(document.getElementById('loan_term').value),
+            annual_tax_rate: parseFloat(document.getElementById('annual_tax_rate').value),
+            annual_insurance_rate: parseFloat(document.getElementById('annual_insurance_rate').value),
+            credit_score: parseInt(document.getElementById('credit_score').value),
+            loan_type: document.getElementById('loan_type').value,
+            hoa_fee: parseFloat(document.getElementById('hoa_fee').value) || 0,
+            seller_credit: parseFloat(document.getElementById('seller_credit').value) || 0,
+            lender_credit: parseFloat(document.getElementById('lender_credit').value) || 0,
+            discount_points: parseFloat(document.getElementById('discount_points').value) || 0
+        };
+        
+        // Add VA-specific parameters if VA loan is selected
+        if (formData.loan_type === 'va') {
+            console.log('VA loan selected - adding VA parameters');
+            const serviceType = document.getElementById('va_service_type');
+            const usage = document.getElementById('va_usage');
+            const disabilityExempt = document.getElementById('va_disability_exempt');
+            
+            if (!serviceType || !usage) {
+                console.error('VA form elements not found');
+                document.getElementById('results').innerHTML = '<div class="alert alert-danger">Error: VA form elements not found</div>';
+                return;
+            }
+            
+            formData.va_service_type = serviceType.value;
+            formData.va_usage = usage.value;
+            formData.va_disability_exempt = disabilityExempt.checked;
+            
+            console.log('VA parameters:', {
+                va_service_type: formData.va_service_type,
+                va_usage: formData.va_usage,
+                va_disability_exempt: formData.va_disability_exempt
+            });
+        }
+        
+        console.log('Submitting calculation request with data:', formData);
+        
+        // Submit data to API
+        fetch('/api/quick_calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'An error occurred');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Calculation result received:', data);
+            
+            if (data.error) {
+                console.error('API returned error:', data.error);
+                document.getElementById('results').innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                return;
+            }
+            
+            // Display results
+            const resultsHtml = `
+                <div class="mb-4">
+                    <h5>Loan Details</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr><td>Purchase Price:</td><td>$${data.loan_details.purchase_price.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Down Payment:</td><td>$${data.loan_details.down_payment.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Loan Amount:</td><td>$${data.loan_details.loan_amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Interest Rate:</td><td>${data.loan_details.annual_rate}%</td></tr>
+                            <tr><td>LTV:</td><td>${data.loan_details.ltv}%</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h5>Monthly Payments</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr><td>Principal & Interest:</td><td>$${data.monthly_payment.principal_and_interest.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Property Tax:</td><td>$${data.monthly_payment.property_tax.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Insurance:</td><td>$${data.monthly_payment.home_insurance.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Mortgage Insurance:</td><td>$${data.monthly_payment.mortgage_insurance.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>HOA:</td><td>$${data.monthly_payment.hoa_fee.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr class="table-primary"><td><strong>Total Monthly:</strong></td><td><strong>$${data.monthly_payment.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h5>Cash Required</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr><td>Closing Costs:</td><td>$${data.closing_costs.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Prepaid Items:</td><td>$${data.prepaid_items.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr><td>Credits:</td><td>$${data.credits.total.toLocaleString('en-US', {minimumFractionDigits: 2})}</td></tr>
+                            <tr class="table-success"><td><strong>Total Cash Needed:</strong></td><td><strong>$${data.total_cash_needed.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('results').innerHTML = resultsHtml;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('results').innerHTML = '<div class="alert alert-danger">An error occurred while calculating. Please try again.</div>';
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// No extra JavaScript code here
+</script>
+{% endblock %}

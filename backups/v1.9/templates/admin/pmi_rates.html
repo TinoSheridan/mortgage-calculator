@@ -1,0 +1,1069 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}PMI Rates - Mortgage Calculator{% endblock %}
+
+{% block admin_title %}PMI Rates{% endblock %}
+
+{% block admin_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="card-title mb-0">PMI Rates Management</h5>
+                        <p class="text-muted small">Configure Private Mortgage Insurance (PMI) rates for different loan types</p>
+                    </div>
+                </div>
+                
+                <!-- Alert for notifications -->
+                <div id="pmiAlert" class="alert d-none" role="alert"></div>
+                
+                <div class="accordion" id="pmiAccordion">
+                    <!-- VA Funding Fee Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vaFundingFee">
+                                VA Loan Funding Fees
+                            </button>
+                        </h2>
+                        <div id="vaFundingFee" class="accordion-collapse collapse" data-bs-parent="#pmiAccordion">
+                            <div class="accordion-body">
+                                <form id="vaFundingFeeForm" data-loan-type="va">
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">VA Funding Fee Rates</h6>
+                                                        <span class="badge bg-info" data-bs-toggle="tooltip" title="VA funding fees are one-time charges collected at closing.">
+                                                            <i class="fas fa-info-circle"></i> One-time Fee
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small mb-4">
+                                                        VA loans do not have monthly PMI but instead have a one-time funding fee 
+                                                        that varies based on the down payment and service status.
+                                                    </p>
+                                                    
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Type of Service</th>
+                                                                    <th>Down Payment</th>
+                                                                    <th>First Use</th>
+                                                                    <th>Subsequent Use</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td rowspan="3" class="align-middle fw-bold">Active Duty/Veteran</td>
+                                                                    <td>Less than 5%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="less_than_5" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('less_than_5', {}).get('first', 2.3) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="less_than_5" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('less_than_5', {}).get('subsequent', 3.6) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>5% to 9.99%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="5_to_10" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('5_to_10', {}).get('first', 1.65) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="5_to_10" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('5_to_10', {}).get('subsequent', 1.65) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>10% or more</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="10_or_more" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('10_or_more', {}).get('first', 1.4) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="active" data-down-payment="10_or_more" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('active', {}).get('10_or_more', {}).get('subsequent', 1.4) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td rowspan="3" class="align-middle fw-bold">Reserves/National Guard</td>
+                                                                    <td>Less than 5%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="less_than_5" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('less_than_5', {}).get('first', 2.3) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="less_than_5" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('less_than_5', {}).get('subsequent', 3.6) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>5% to 9.99%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="5_to_10" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('5_to_10', {}).get('first', 1.65) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="5_to_10" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('5_to_10', {}).get('subsequent', 1.65) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>10% or more</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="10_or_more" data-use="first"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('10_or_more', {}).get('first', 1.4) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control va-funding-fee" 
+                                                                                data-service="reserves" data-down-payment="10_or_more" data-use="subsequent"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('va', {}).get('funding_fee', {}).get('reserves', {}).get('10_or_more', {}).get('subsequent', 1.4) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colspan="4">
+                                                                        <div class="form-check form-switch">
+                                                                            <input class="form-check-input" type="checkbox" id="vaDisabilityExemption" 
+                                                                                   {% if pmi_rates.get('va', {}).get('funding_fee', {}).get('disability_exempt', true) %}checked{% endif %}>
+                                                                            <label class="form-check-label" for="vaDisabilityExemption">
+                                                                                Exempt VA disability recipients (recommended)
+                                                                            </label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-primary" id="saveVaFundingFeeBtn">
+                                            <i class="fas fa-save me-1"></i> Save VA Funding Fee Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FHA Mortgage Insurance Premium Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fhaMip">
+                                FHA Mortgage Insurance Premium (MIP)
+                            </button>
+                        </h2>
+                        <div id="fhaMip" class="accordion-collapse collapse" data-bs-parent="#pmiAccordion">
+                            <div class="accordion-body">
+                                <form id="fhaMipForm" data-loan-type="fha">
+                                    <!-- Upfront MIP Section -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Upfront Mortgage Insurance Premium (UFMIP)</h6>
+                                                        <span class="badge bg-info" data-bs-toggle="tooltip" title="Upfront MIP is a one-time charge collected at closing, which can also be financed into the loan amount.">
+                                                            <i class="fas fa-info-circle"></i> One-time Fee
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small mb-4">
+                                                        FHA loans require an upfront MIP payment at closing, as well as annual MIP payments that are included in the monthly mortgage payment.
+                                                    </p>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Upfront MIP Rate</label>
+                                                                <div class="input-group">
+                                                                    <input type="number" class="form-control" id="fhaUfmipRate" 
+                                                                        step="0.01" min="0" max="5" 
+                                                                        value="{{ pmi_rates.get('fha', {}).get('upfront_mip_rate', 1.75) }}">
+                                                                    <span class="input-group-text">%</span>
+                                                                </div>
+                                                                <div class="form-text">Standard rate is 1.75% of the base loan amount</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Annual MIP Section -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Annual MIP Rates</h6>
+                                                        <span class="badge bg-primary" data-bs-toggle="tooltip" title="Annual MIP is charged as part of the monthly mortgage payment.">
+                                                            <i class="fas fa-info-circle"></i> Monthly Payment
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small mb-4">
+                                                        Annual MIP rates vary based on loan terms, loan amounts, and down payment percentages. 
+                                                        The standard loan limit shown ($726,200) is for most areas and is adjusted annually.
+                                                    </p>
+                                                    
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Loan Term</th>
+                                                                    <th>Base Loan Amount</th>
+                                                                    <th>LTV Ratio</th>
+                                                                    <th>Annual MIP Rate</th>
+                                                                    <th>Duration</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <!-- Long-term loans (>15 years) with standard loan amount -->
+                                                                <tr>
+                                                                    <td rowspan="4" class="align-middle">Over 15 years</td>
+                                                                    <td rowspan="2" class="align-middle">≤ $726,200</td>
+                                                                    <td>≤ 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="long" data-amount="standard" data-ltv="low"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('long_term', {}).get('standard_amount', {}).get('low_ltv', 0.50) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>11 years</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>> 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="long" data-amount="standard" data-ltv="high"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('long_term', {}).get('standard_amount', {}).get('high_ltv', 0.55) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>Life of loan</td>
+                                                                </tr>
+                                                                
+                                                                <!-- Long-term loans (>15 years) with high loan amount -->
+                                                                <tr>
+                                                                    <td rowspan="2" class="align-middle">> $726,200</td>
+                                                                    <td>≤ 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="long" data-amount="high" data-ltv="low"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('long_term', {}).get('high_amount', {}).get('low_ltv', 0.70) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>11 years</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>> 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="long" data-amount="high" data-ltv="high"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('long_term', {}).get('high_amount', {}).get('high_ltv', 0.75) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>Life of loan</td>
+                                                                </tr>
+                                                                
+                                                                <!-- Short-term loans (≤15 years) with standard loan amount -->
+                                                                <tr>
+                                                                    <td rowspan="5" class="align-middle">15 years or less</td>
+                                                                    <td rowspan="2" class="align-middle">≤ $726,200</td>
+                                                                    <td>≤ 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="short" data-amount="standard" data-ltv="low"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('short_term', {}).get('standard_amount', {}).get('low_ltv', 0.15) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>11 years</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>> 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="short" data-amount="standard" data-ltv="high"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('short_term', {}).get('standard_amount', {}).get('high_ltv', 0.40) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>Life of loan</td>
+                                                                </tr>
+                                                                
+                                                                <!-- Short-term loans (≤15 years) with high loan amount -->
+                                                                <tr>
+                                                                    <td rowspan="3" class="align-middle">> $726,200</td>
+                                                                    <td>≤ 78%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="short" data-amount="high" data-ltv="very_low"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('short_term', {}).get('high_amount', {}).get('very_low_ltv', 0.15) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>11 years</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>> 78% and ≤ 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="short" data-amount="high" data-ltv="low"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('short_term', {}).get('high_amount', {}).get('low_ltv', 0.40) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>11 years</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>> 90%</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control fha-annual-mip" 
+                                                                                data-term="short" data-amount="high" data-ltv="high"
+                                                                                step="0.01" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('fha', {}).get('annual_mip', {}).get('short_term', {}).get('high_amount', {}).get('high_ltv', 0.65) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>Life of loan</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <div class="mt-4">
+                                                        <h6>Additional Settings</h6>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Standard Loan Limit</label>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text">$</span>
+                                                                        <input type="number" class="form-control" id="fhaStandardLoanLimit" 
+                                                                            step="1000" min="0" 
+                                                                            value="{{ pmi_rates.get('fha', {}).get('standard_loan_limit', 726200) }}">
+                                                                    </div>
+                                                                    <div class="form-text">The threshold between standard and high-cost loans (2023-2024: $726,200)</div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">High-Cost Loan Limit</label>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text">$</span>
+                                                                        <input type="number" class="form-control" id="fhaHighCostLoanLimit" 
+                                                                            step="1000" min="0" 
+                                                                            value="{{ pmi_rates.get('fha', {}).get('high_cost_loan_limit', 1089300) }}">
+                                                                    </div>
+                                                                    <div class="form-text">The maximum loan limit for high-cost areas (2023-2024: $1,089,300)</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-primary" id="saveFhaMipBtn">
+                                            <i class="fas fa-save me-1"></i> Save FHA MIP Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- USDA Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#usdaFees">
+                                USDA Loan Guarantee Fees
+                            </button>
+                        </h2>
+                        <div id="usdaFees" class="accordion-collapse collapse" data-bs-parent="#pmiAccordion">
+                            <div class="accordion-body">
+                                <form id="usdaFeesForm" data-loan-type="usda">
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">USDA Guarantee Fee Rates</h6>
+                                                        <span class="badge bg-info" data-bs-toggle="tooltip" title="USDA loans have both upfront and annual guarantee fees.">
+                                                            <i class="fas fa-info-circle"></i> Fee Structure
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small mb-4">
+                                                        USDA Rural Development loans require both an upfront guarantee fee and an annual fee that's paid monthly.
+                                                        These fees are used to sustain the loan program and are typically lower than FHA mortgage insurance.
+                                                    </p>
+                                                    
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Fee Type</th>
+                                                                    <th>Rate</th>
+                                                                    <th>Description</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>Upfront Guarantee Fee</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control usda-fee" 
+                                                                                data-fee-type="upfront"
+                                                                                step="0.001" min="0" max="5" 
+                                                                                value="{{ pmi_rates.get('usda', {}).get('upfront_guarantee_fee', 1.0) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                        <div class="form-text">One-time fee paid at closing or financed into the loan</div>
+                                                                    </td>
+                                                                    <td>Applied to the base loan amount</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Annual Fee</td>
+                                                                    <td>
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" class="form-control usda-fee" 
+                                                                                data-fee-type="annual"
+                                                                                step="0.001" min="0" max="2" 
+                                                                                value="{{ pmi_rates.get('usda', {}).get('annual_fee', 0.35) }}">
+                                                                            <span class="input-group-text">%</span>
+                                                                        </div>
+                                                                        <div class="form-text">Paid monthly as part of the mortgage payment</div>
+                                                                    </td>
+                                                                    <td>Applied to the average annual outstanding loan balance</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-primary" id="saveUsdaFeesBtn">
+                                            <i class="fas fa-save me-1"></i> Save USDA Fee Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if pmi_rates %}
+                        {% for loan_type, rates in pmi_rates.items() %}
+                        {% if loan_type != 'va' and loan_type != 'fha' and loan_type != 'usda' %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pmi{{ loop.index }}">
+                                    {{ loan_type|replace('_', ' ')|title }} Loan PMI Rates
+                                </button>
+                            </h2>
+                            <div id="pmi{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#pmiAccordion">
+                                <div class="accordion-body">
+                                    <form id="pmiForm{{ loop.index }}" data-loan-type="{{ loan_type }}">
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">LTV Ranges & Rates</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>LTV Range</th>
+                                                                        <th>Rate (%)</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% if rates.get('ltv_ranges') %}
+                                                                        {% for ltv_range, rate in rates.ltv_ranges.items() %}
+                                                                        <tr>
+                                                                            <td>{{ ltv_range }}</td>
+                                                                            <td>
+                                                                                <div class="input-group input-group-sm">
+                                                                                    <input type="number" class="form-control ltv-rate" 
+                                                                                           data-range="{{ ltv_range }}"
+                                                                                           step="0.001" min="0" max="10" 
+                                                                                           value="{{ rate }}">
+                                                                                    <span class="input-group-text">%</span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                        {% endfor %}
+                                                                    {% else %}
+                                                                        <tr>
+                                                                            <td colspan="2" class="text-center text-muted">
+                                                                                <i>No LTV ranges defined for this loan type</i>
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endif %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">Credit Score Adjustments</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Credit Score Range</th>
+                                                                        <th>Adjustment (%)</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% if rates.get('credit_score_adjustments') %}
+                                                                        {% for score_range, adjustment in rates.credit_score_adjustments.items() %}
+                                                                        <tr>
+                                                                            <td>{{ score_range }}</td>
+                                                                            <td>
+                                                                                <div class="input-group input-group-sm">
+                                                                                    <input type="number" class="form-control credit-adjustment" 
+                                                                                           data-range="{{ score_range }}"
+                                                                                           step="0.001" min="-5" max="5" 
+                                                                                           value="{{ adjustment }}">
+                                                                                    <span class="input-group-text">%</span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                        {% endfor %}
+                                                                    {% else %}
+                                                                        <tr>
+                                                                            <td colspan="2" class="text-center text-muted">
+                                                                                <i>No credit score adjustments defined for this loan type</i>
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endif %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-4">
+                                            <div class="col-md-12">
+                                                <div class="card">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">Annual PMI Rates</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if rates.get('annual') %}
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">LTV Under 95%</label>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control annual-rate" 
+                                                                            data-type="ltv_under_95"
+                                                                            step="0.001" min="0" max="5" 
+                                                                            value="{{ rates.get('annual', {}).get('ltv_under_95', 0) }}">
+                                                                        <span class="input-group-text">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">LTV Over 95%</label>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control annual-rate" 
+                                                                            data-type="ltv_over_95"
+                                                                            step="0.001" min="0" max="5" 
+                                                                            value="{{ rates.get('annual', {}).get('ltv_over_95', 0) }}">
+                                                                        <span class="input-group-text">%</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="alert alert-info mb-0">
+                                                                <i class="fas fa-info-circle me-2"></i> 
+                                                                No annual PMI rates defined for this loan type. Add these rates to enable annual PMI calculation.
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" class="btn btn-outline-primary save-pmi-btn" 
+                                                   data-loan-type="{{ loan_type }}" 
+                                                   data-form-index="{{ loop.index }}">
+                                                <i class="fas fa-save me-1"></i> Save Changes
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No PMI rates have been configured yet. Please contact your system administrator.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+// Show notification
+function showNotification(element, message, type = 'success') {
+    const alert = document.getElementById(element);
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = message;
+    alert.classList.remove('d-none');
+    
+    // Auto hide after 5 seconds for success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            alert.classList.add('d-none');
+        }, 5000);
+    }
+}
+
+// Save PMI rates
+function savePmiRates(loanType, formIndex) {
+    const form = document.getElementById(`pmiForm${formIndex}`);
+    const saveBtn = form.querySelector('.save-pmi-btn');
+    const originalBtnText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Build the PMI rates data
+    const pmiData = {
+        ltv_ranges: {},
+        credit_score_adjustments: {},
+        annual: {
+            ltv_under_95: 0,
+            ltv_over_95: 0
+        }
+    };
+    
+    // Collect LTV ranges data
+    form.querySelectorAll('.ltv-rate').forEach((input) => {
+        const range = input.dataset.range;
+        pmiData.ltv_ranges[range] = parseFloat(input.value);
+    });
+    
+    // Collect credit score adjustments data
+    form.querySelectorAll('.credit-adjustment').forEach((input) => {
+        const range = input.dataset.range;
+        pmiData.credit_score_adjustments[range] = parseFloat(input.value);
+    });
+    
+    // Collect annual rates data
+    form.querySelectorAll('.annual-rate').forEach((input) => {
+        const type = input.dataset.type;
+        pmiData.annual[type] = parseFloat(input.value);
+    });
+    
+    // Get the complete PMI rates data
+    fetch('/admin/pmi-rates/data')
+    .then((response) => response.json())
+    .then((data) => {
+        // Update only the rate for this loan type
+        const allPmiRates = data.pmi_rates || {};
+        allPmiRates[loanType] = pmiData;
+        
+        // Send the update
+        return fetch('/admin/pmi-rates/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(allPmiRates)
+        });
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('pmiAlert', `PMI rates for ${loanType.replace('_', ' ').toUpperCase()} updated successfully`, 'success');
+        } else {
+            showNotification('pmiAlert', `Error updating PMI rates: ${data.error}`, 'danger');
+        }
+    })
+    .catch((error) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        showNotification('pmiAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Save VA Funding Fees
+function saveVaFundingFees() {
+    const saveBtn = document.getElementById('saveVaFundingFeeBtn');
+    const originalBtnText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Build the VA funding fee data
+    const vaData = {
+        funding_fee: {
+            active: {
+                less_than_5: {
+                    first: 0,
+                    subsequent: 0
+                },
+                '5_to_10': {
+                    first: 0,
+                    subsequent: 0
+                },
+                '10_or_more': {
+                    first: 0,
+                    subsequent: 0
+                }
+            },
+            reserves: {
+                less_than_5: {
+                    first: 0,
+                    subsequent: 0
+                },
+                '5_to_10': {
+                    first: 0,
+                    subsequent: 0
+                },
+                '10_or_more': {
+                    first: 0,
+                    subsequent: 0
+                }
+            },
+            disability_exempt: document.getElementById('vaDisabilityExemption').checked
+        }
+    };
+    
+    // Collect VA funding fee data
+    document.querySelectorAll('.va-funding-fee').forEach((input) => {
+        const service = input.dataset.service;
+        const downPayment = input.dataset.downPayment;
+        const use = input.dataset.use;
+        
+        if (!vaData.funding_fee[service]) {
+            vaData.funding_fee[service] = {};
+        }
+        
+        if (!vaData.funding_fee[service][downPayment]) {
+            vaData.funding_fee[service][downPayment] = {};
+        }
+        
+        vaData.funding_fee[service][downPayment][use] = parseFloat(input.value);
+    });
+    
+    // Get the complete PMI rates data
+    fetch('/admin/pmi-rates/data')
+    .then((response) => response.json())
+    .then((data) => {
+        // Update only the rate for VA loan type
+        const allPmiRates = data.pmi_rates || {};
+        allPmiRates['va'] = vaData;
+        
+        // Send the update
+        return fetch('/admin/pmi-rates/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(allPmiRates)
+        });
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('pmiAlert', 'VA Funding Fee rates updated successfully', 'success');
+        } else {
+            showNotification('pmiAlert', `Error updating VA Funding Fee rates: ${data.error}`, 'danger');
+        }
+    })
+    .catch((error) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        showNotification('pmiAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Save FHA MIP
+function saveFhaMip() {
+    const saveBtn = document.getElementById('saveFhaMipBtn');
+    const originalBtnText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Build the FHA MIP data
+    const fhaData = {
+        upfront_mip_rate: parseFloat(document.getElementById('fhaUfmipRate').value),
+        annual_mip: {
+            long_term: {
+                standard_amount: {
+                    low_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="long"][data-amount="standard"][data-ltv="low"]').value),
+                    high_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="long"][data-amount="standard"][data-ltv="high"]').value)
+                },
+                high_amount: {
+                    low_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="long"][data-amount="high"][data-ltv="low"]').value),
+                    high_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="long"][data-amount="high"][data-ltv="high"]').value)
+                }
+            },
+            short_term: {
+                standard_amount: {
+                    low_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="short"][data-amount="standard"][data-ltv="low"]').value),
+                    high_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="short"][data-amount="standard"][data-ltv="high"]').value)
+                },
+                high_amount: {
+                    very_low_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="short"][data-amount="high"][data-ltv="very_low"]').value),
+                    low_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="short"][data-amount="high"][data-ltv="low"]').value),
+                    high_ltv: parseFloat(document.querySelector('.fha-annual-mip[data-term="short"][data-amount="high"][data-ltv="high"]').value)
+                }
+            }
+        },
+        standard_loan_limit: parseFloat(document.getElementById('fhaStandardLoanLimit').value),
+        high_cost_loan_limit: parseFloat(document.getElementById('fhaHighCostLoanLimit').value)
+    };
+    
+    // Get the complete PMI rates data
+    fetch('/admin/pmi-rates/data')
+    .then((response) => response.json())
+    .then((data) => {
+        // Update only the rate for FHA loan type
+        const allPmiRates = data.pmi_rates || {};
+        allPmiRates['fha'] = fhaData;
+        
+        // Send the update
+        return fetch('/admin/pmi-rates/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(allPmiRates)
+        });
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('pmiAlert', 'FHA MIP rates updated successfully', 'success');
+        } else {
+            showNotification('pmiAlert', `Error updating FHA MIP rates: ${data.error}`, 'danger');
+        }
+    })
+    .catch((error) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        showNotification('pmiAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Save USDA Fees
+function saveUsdaFees() {
+    const saveBtn = document.getElementById('saveUsdaFeesBtn');
+    const originalBtnText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Build the USDA fees data
+    const usdaData = {
+        upfront_guarantee_fee: parseFloat(document.querySelector('.usda-fee[data-fee-type="upfront"]').value),
+        annual_fee: parseFloat(document.querySelector('.usda-fee[data-fee-type="annual"]').value)
+    };
+    
+    // Get the complete PMI rates data
+    fetch('/admin/pmi-rates/data')
+    .then((response) => response.json())
+    .then((data) => {
+        // Update only the rate for USDA loan type
+        const allPmiRates = data.pmi_rates || {};
+        allPmiRates['usda'] = usdaData;
+        
+        // Send the update
+        return fetch('/admin/pmi-rates/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(allPmiRates)
+        });
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('pmiAlert', 'USDA fees updated successfully', 'success');
+        } else {
+            showNotification('pmiAlert', `Error updating USDA fees: ${data.error}`, 'danger');
+        }
+    })
+    .catch((error) => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        showNotification('pmiAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Initialize validation and tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add event listeners to all save buttons
+    document.querySelectorAll('.save-pmi-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const loanType = this.getAttribute('data-loan-type');
+            const formIndex = this.getAttribute('data-form-index');
+            savePmiRates(loanType, parseInt(formIndex, 10));
+        });
+    });
+    
+    // Add event listener for VA Funding Fee save button
+    document.getElementById('saveVaFundingFeeBtn').addEventListener('click', saveVaFundingFees);
+    
+    // Add event listener for FHA MIP save button
+    document.getElementById('saveFhaMipBtn').addEventListener('click', saveFhaMip);
+    
+    // Add event listener for USDA Fees save button
+    document.getElementById('saveUsdaFeesBtn').addEventListener('click', saveUsdaFees);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} - Mortgage Calculator</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .sidebar .nav-link {
+            color: #333;
+            padding: 0.5rem 1rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .form-invalid {
+            border-color: #dc3545;
+        }
+        
+        .form-invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 position-fixed sidebar">
+                <div class="d-flex flex-column p-3">
+                    <a href="/admin" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
+                        <i class="fas fa-calculator me-2"></i>
+                        <span class="fs-4">Admin Panel</span>
+                    </a>
+                    <hr>
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">
+                                <i class="fas fa-calculator me-2"></i>
+                                Back to Calculator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/admin" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                                <i class="fas fa-home me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/counties" class="nav-link {% if request.endpoint == 'admin_counties' %}active{% endif %}">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                Counties
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/compliance" class="nav-link {% if request.endpoint == 'admin_compliance' %}active{% endif %}">
+                                <i class="fas fa-gavel me-2"></i>
+                                Compliance Text
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/templates" class="nav-link {% if request.endpoint == 'admin_templates' %}active{% endif %}">
+                                <i class="fas fa-file-alt me-2"></i>
+                                Output Templates
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/closing-costs" class="nav-link {% if active_page == 'closing_costs' %}active{% endif %}">
+                                <i class="fas fa-dollar-sign me-2"></i>
+                                Closing Costs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/mortgage-config" class="nav-link {% if active_page == 'mortgage_config' %}active{% endif %}">
+                                <i class="fas fa-home me-2"></i>
+                                Mortgage Config
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/pmi-rates" class="nav-link {% if active_page == 'pmi_rates' %}active{% endif %}">
+                                <i class="fas fa-percentage me-2"></i>
+                                PMI Rates
+                            </a>
+                        </li>
+                    </ul>
+                    <hr>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <strong>{{ session.get('admin_user', 'Admin') }}</strong>
+                        </a>
+                        <ul class="dropdown-menu text-small shadow" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="/admin/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/admin/logout"><i class="fas fa-sign-out-alt me-2"></i>Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-4">
+                <div class="pt-3 pb-2 mb-3">
+                    <h1 class="h2">{% block admin_title %}Dashboard{% endblock %}</h1>
+                </div>
+                {% block admin_content %}{% endblock %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Utility functions -->
+    <script>
+        // Form validation
+        function validateForm(form) {
+            let isValid = true;
+            form.querySelectorAll('[required]').forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('form-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('form-invalid');
+                }
+            });
+            return isValid;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification alert alert-${type} alert-dismissible fade show`;
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.appendChild(notification);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // API request helper
+        async function makeRequest(url, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'An error occurred');
+                }
+                
+                return result;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', () => {
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

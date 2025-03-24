@@ -1,0 +1,406 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Output Templates - Mortgage Calculator{% endblock %}
+
+{% block admin_title %}Output Templates{% endblock %}
+
+{% block admin_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="card-title mb-0">Output Template Management</h5>
+                        <p class="text-muted small">Manage report templates for displaying mortgage calculation results</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTemplateModal">
+                        <i class="fas fa-plus me-2"></i> Add Template
+                    </button>
+                </div>
+                
+                <!-- Alert for notifications -->
+                <div id="templateAlert" class="alert d-none" role="alert"></div>
+                
+                <div class="row">
+                    {% if output_templates %}
+                        {% for template_name, template in output_templates.items() %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ template_name|replace('_', ' ')|title }}</h6>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="previewTemplate('{{ template_name }}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete('{{ template_name }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Template Content</label>
+                                            <textarea class="form-control template-content" rows="10" data-template="{{ template_name }}">{{ template.content }}</textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-outline-primary" onclick="saveTemplate('{{ template_name }}')">
+                                                <i class="fas fa-save me-1"></i> Save Changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <small class="text-muted">
+                                            <strong>Available Variables:</strong>
+                                            <div class="mt-1 d-flex flex-wrap gap-2">
+                                                <code class="bg-light px-2 py-1 rounded">{loan_amount}</code>
+                                                <code class="bg-light px-2 py-1 rounded">{interest_rate}</code>
+                                                <code class="bg-light px-2 py-1 rounded">{term_years}</code>
+                                                <code class="bg-light px-2 py-1 rounded">{monthly_payment}</code>
+                                                <code class="bg-light px-2 py-1 rounded">{total_payment}</code>
+                                                <code class="bg-light px-2 py-1 rounded">{total_interest}</code>
+                                            </div>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> No output templates have been created yet. Click the "Add Template" button to create your first template.
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Template Modal -->
+<div class="modal fade" id="addTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Output Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addTemplateAlert" class="alert d-none" role="alert"></div>
+                <form id="addTemplateForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label">Template Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" required>
+                        <div class="invalid-feedback">Template name is required</div>
+                        <div class="form-text">Example: "Standard Report", "Detailed Analysis", etc.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Template Content <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="content" rows="12" required minlength="10"></textarea>
+                        <div class="invalid-feedback">Template content is required (minimum 10 characters)</div>
+                    </div>
+                    
+                    <div class="card mt-3 mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Available Variables</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{loan_amount}</code>
+                                            <span class="text-muted">$300,000</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{interest_rate}</code>
+                                            <span class="text-muted">3.5%</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{term_years}</code>
+                                            <span class="text-muted">30</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{monthly_payment}</code>
+                                            <span class="text-muted">$1,347.13</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{total_payment}</code>
+                                            <span class="text-muted">$485,000</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <code>{total_interest}</code>
+                                            <span class="text-muted">$185,000</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitTemplate()">Add Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Template Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> This is a preview with sample data.
+                </div>
+                <div id="previewContent" class="border p-3 bg-light"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTemplateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the <strong id="delete_template_name"></strong> template?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+// Show notification
+function showNotification(element, message, type = 'success') {
+    const alert = document.getElementById(element);
+    alert.className = `alert alert-${type}`;
+    alert.innerHTML = message;
+    alert.classList.remove('d-none');
+    
+    // Auto hide after 5 seconds for success messages
+    if (type === 'success') {
+        setTimeout(() => {
+            alert.classList.add('d-none');
+        }, 5000);
+    }
+}
+
+// Form validation
+function validateForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return false;
+    }
+    return true;
+}
+
+// Preview template
+function previewTemplate(templateName) {
+    const textarea = document.querySelector(`textarea[data-template="${templateName}"]`);
+    const content = textarea.value;
+    
+    // Replace variables with sample values
+    const preview = content
+        .replace(/{loan_amount}/g, '$300,000')
+        .replace(/{interest_rate}/g, '3.5%')
+        .replace(/{term_years}/g, '30')
+        .replace(/{monthly_payment}/g, '$1,347.13')
+        .replace(/{total_payment}/g, '$485,000')
+        .replace(/{total_interest}/g, '$185,000');
+    
+    document.getElementById('previewContent').innerHTML = preview;
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+// Save template
+function saveTemplate(templateName) {
+    const textarea = document.querySelector(`textarea[data-template="${templateName}"]`);
+    const content = textarea.value.trim();
+    
+    // Validate content
+    if (content.length < 10) {
+        showNotification('templateAlert', 'Template content must be at least 10 characters', 'danger');
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = textarea.closest('.card-body').querySelector('.btn-outline-primary');
+    const originalBtnText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    fetch('/admin/templates/edit/' + encodeURIComponent(templateName), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('templateAlert', `"${templateName.replace('_', ' ').toUpperCase()}" template updated successfully`, 'success');
+        } else {
+            showNotification('templateAlert', `Error updating template: ${data.error}`, 'danger');
+        }
+    })
+    .catch(error => {
+        // Reset button state
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+        
+        showNotification('templateAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Confirm delete
+function confirmDelete(templateName) {
+    const templateDisplay = templateName.replace('_', ' ').toUpperCase();
+    document.getElementById('delete_template_name').textContent = templateDisplay;
+    document.getElementById('confirmDeleteBtn').onclick = () => deleteTemplate(templateName);
+    new bootstrap.Modal(document.getElementById('deleteTemplateModal')).show();
+}
+
+// Delete template
+function deleteTemplate(templateName) {
+    fetch(`/admin/templates/delete/${templateName}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide delete modal
+        bootstrap.Modal.getInstance(document.getElementById('deleteTemplateModal')).hide();
+        
+        if (data.success) {
+            showNotification('templateAlert', `Template deleted successfully`, 'success');
+            
+            // Remove the template from DOM
+            const templateElement = document.querySelector(`textarea[data-template="${templateName}"]`).closest('.col-md-6');
+            templateElement.remove();
+            
+            // Reload after short delay if no templates left
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification('templateAlert', `Error deleting template: ${data.error}`, 'danger');
+        }
+    })
+    .catch(error => {
+        // Hide delete modal
+        bootstrap.Modal.getInstance(document.getElementById('deleteTemplateModal')).hide();
+        
+        showNotification('templateAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Submit new template
+function submitTemplate() {
+    // Validate form
+    if (!validateForm('addTemplateForm')) return;
+    
+    const form = document.getElementById('addTemplateForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Normalize template name - convert to snake_case
+    data.name = data.name.trim().toLowerCase().replace(/\s+/g, '_');
+    
+    // Show loading state on button
+    const submitBtn = document.querySelector('#addTemplateModal .btn-primary');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Adding...';
+    submitBtn.disabled = true;
+    
+    fetch('/admin/templates/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+        
+        if (data.success) {
+            // Hide modal
+            bootstrap.Modal.getInstance(document.getElementById('addTemplateModal')).hide();
+            
+            // Show success notification
+            showNotification('templateAlert', `New template added successfully`, 'success');
+            
+            // Reset form
+            form.reset();
+            form.classList.remove('was-validated');
+            
+            // Reload page after delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            // Show error in modal
+            showNotification('addTemplateAlert', `Error adding template: ${data.error}`, 'danger');
+        }
+    })
+    .catch(error => {
+        // Reset button state
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+        
+        // Show error in modal
+        showNotification('addTemplateAlert', `Error: ${error}`, 'danger');
+    });
+}
+
+// Initialize Bootstrap validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+            }
+        }, false);
+    });
+});
+</script>
+{% endblock %}

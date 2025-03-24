@@ -1,0 +1,62 @@
+{
+    "San Francisco County, CA": {
+        "property_tax_rate": 1.18,
+        "insurance_rate": 0.35,
+        "min_hoa": 250,
+        "max_hoa": 1200
+    },
+    "Los Angeles County, CA": {
+        "property_tax_rate": 1.16,
+        "insurance_rate": 0.32,
+        "min_hoa": 200,
+        "max_hoa": 800
+    },
+    "King County, WA": {
+        "property_tax_rate": 0.93,
+        "insurance_rate": 0.28,
+        "min_hoa": 150,
+        "max_hoa": 900
+    },
+    "New York County, NY": {
+        "property_tax_rate": 0.88,
+        "insurance_rate": 0.42,
+        "min_hoa": 400,
+        "max_hoa": 2000
+    },
+    "Cook County, IL": {
+        "property_tax_rate": 2.12,
+        "insurance_rate": 0.3,
+        "min_hoa": 175,
+        "max_hoa": 750
+    },
+    "Harris County, TX": {
+        "property_tax_rate": 2.09,
+        "insurance_rate": 0.33,
+        "min_hoa": 125,
+        "max_hoa": 600
+    },
+    "Miami-Dade County, FL": {
+        "property_tax_rate": 1.02,
+        "insurance_rate": 0.45,
+        "min_hoa": 300,
+        "max_hoa": 1500
+    },
+    "Clark County, NV": {
+        "property_tax_rate": 0.71,
+        "insurance_rate": 0.29,
+        "min_hoa": 150,
+        "max_hoa": 700
+    },
+    "Maricopa County, AZ": {
+        "property_tax_rate": 0.68,
+        "insurance_rate": 0.27,
+        "min_hoa": 100,
+        "max_hoa": 500
+    },
+    "Denver County, CO": {
+        "property_tax_rate": 0.71,
+        "insurance_rate": 0.26,
+        "min_hoa": 175,
+        "max_hoa": 800
+    }
+}

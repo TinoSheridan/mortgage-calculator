@@ -1,0 +1,221 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">Dashboard</h1>
+            <p class="text-muted">Overview of your mortgage calculator system</p>
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary" onclick="refreshDashboard()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-calculator fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Total Calculations</h6>
+                            <h3 class="mb-0" id="totalCalculations">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-map-marker-alt fa-2x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Active Counties</h6>
+                            <h3 class="mb-0" id="activeCounties">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-file-alt fa-2x text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Output Templates</h6>
+                            <h3 class="mb-0" id="outputTemplates">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-dollar-sign fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Total Fees</h6>
+                            <h3 class="mb-0" id="totalFees">-</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health & Recent Changes -->
+    <div class="row g-4">
+        <!-- System Health -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Health</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush" id="systemHealth">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file-code me-2"></i>
+                                Configuration Files
+                            </div>
+                            <span class="health-status" data-key="config_files">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-database me-2"></i>
+                                Database Connection
+                            </div>
+                            <span class="health-status" data-key="database">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-memory me-2"></i>
+                                Cache Status
+                            </div>
+                            <span class="health-status" data-key="cache">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-save me-2"></i>
+                                Last Backup
+                            </div>
+                            <span id="lastBackup">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Changes -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Changes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush" id="recentChanges">
+                        <div class="text-center py-3">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            Loading changes...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Refresh dashboard data
+    async function refreshDashboard() {
+        try {
+            const data = await makeRequest('/admin/dashboard/data', 'GET');
+            updateDashboard(data);
+            showNotification('Dashboard refreshed successfully', 'success');
+        } catch (error) {
+            showNotification('Error refreshing dashboard: ' + error.message, 'danger');
+        }
+    }
+    
+    // Update dashboard with new data
+    function updateDashboard(data) {
+        // Update statistics
+        document.getElementById('totalCalculations').textContent = data.stats.total_calculations;
+        document.getElementById('activeCounties').textContent = data.stats.active_counties;
+        document.getElementById('outputTemplates').textContent = data.stats.output_templates;
+        document.getElementById('totalFees').textContent = data.stats.total_fees;
+        
+        // Update system health
+        document.querySelectorAll('.health-status').forEach(status => {
+            const key = status.dataset.key;
+            const isHealthy = data.health[key];
+            status.innerHTML = isHealthy ? 
+                '<i class="fas fa-check-circle text-success"></i>' : 
+                '<i class="fas fa-times-circle text-danger"></i>';
+        });
+        
+        document.getElementById('lastBackup').textContent = data.health.last_backup;
+        
+        // Update recent changes
+        const changesContainer = document.getElementById('recentChanges');
+        if (data.recent_changes.length === 0) {
+            changesContainer.innerHTML = '<div class="text-center py-3">No recent changes</div>';
+            return;
+        }
+        
+        changesContainer.innerHTML = data.recent_changes.map(change => `
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${change.description}</h6>
+                    <small class="text-muted">${formatDate(change.timestamp)}</small>
+                </div>
+                <p class="mb-1">${change.details}</p>
+                <small class="text-muted">By ${change.user}</small>
+            </div>
+        `).join('');
+    }
+    
+    // Format date helper
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+    
+    // Load initial data
+    document.addEventListener('DOMContentLoaded', refreshDashboard);
+</script>
+{% endblock %}
