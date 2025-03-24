@@ -9,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/chart.js" rel="stylesheet">
     <link href="/static/css/styles.css" rel="stylesheet">
-    
+
     <link rel="stylesheet" href="/static/css/calculator-enhanced.css">
     <link rel="stylesheet" href="/static/styles.css">
 <style>
@@ -38,7 +38,7 @@
     .progress-bar {
         transition: width 1s;
     }
-    
+
     /* Enhanced styling for mortgage calculator */
     .card {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -54,23 +54,23 @@
         padding: 0.75rem 1.25rem;
         border-radius: 8px 8px 0 0;
     }
-    
+
     /* Form styling */
     label {
         font-weight: 500;
         margin-bottom: 0.25rem;
     }
-    
+
     .form-control, .form-select {
         border-radius: 6px;
         padding: 0.5rem 0.75rem;
     }
-    
+
     .form-control:focus, .form-select:focus {
         border-color: #80bdff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
-    
+
     #calculateBtn {
         background-color: #0d6efd;
         border-color: #0d6efd;
@@ -79,48 +79,48 @@
         border-radius: 6px;
         transition: all 0.2s ease-in-out;
     }
-    
+
     #calculateBtn:hover {
         background-color: #0b5ed7;
         border-color: #0a58ca;
         transform: translateY(-1px);
     }
-    
+
     /* Results section styling */
     .results-card {
         background-color: #f8f9fa;
         border-left: 4px solid #0d6efd;
     }
-    
+
     /* Table styling */
     .table {
         margin-bottom: 0;
     }
-    
+
     .table th {
         font-weight: 600;
         border-top: none;
     }
-    
+
     .table td, .table th {
         padding: 0.6rem;
         vertical-align: middle;
     }
-    
+
     .text-end {
         font-family: 'Courier New', monospace;
     }
-    
+
     /* Total rows */
     tr:last-child td {
         font-weight: 700;
     }
-    
+
     .table tfoot tr {
         background-color: #f2f2f2;
         border-top: 2px solid #dee2e6;
     }
-    
+
     /* Debug section */
     #debugToggle {
         cursor: pointer;
@@ -128,14 +128,14 @@
         text-decoration: underline;
         font-size: 0.875rem;
     }
-    
+
     #debugSection {
         background-color: #f8f9fa;
         border: 1px solid #dee2e6;
         border-radius: 6px;
         margin-top: 1.5rem;
     }
-    
+
     #debugOutput {
         font-family: 'Courier New', monospace;
         font-size: 0.875rem;
@@ -158,22 +158,22 @@
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
-                    
+
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/login">Admin Login</a>
                         </li>
-                    
+
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container py-4">
-        
-            
-        
 
-        
+
+
+
+
 <h1 class="text-center mb-4">Mortgage Calculator</h1>
 
 <!-- Loan Information Form -->
@@ -181,20 +181,20 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Loan Information</h5>
-            
+
             <div class="row g-3">
                 <!-- Purchase Price -->
                 <div class="col-12">
                     <label for="purchase_price" class="form-label">Purchase Price ($)</label>
                     <input type="number" class="form-control" id="purchase_price" name="purchase_price" value="300000" min="0" step="1000" required>
                 </div>
-                
+
                 <!-- Down Payment Percentage -->
                 <div class="col-12">
                     <label for="down_payment_percentage" class="form-label">Down Payment (%)</label>
                     <input type="number" class="form-control" id="down_payment_percentage" name="down_payment_percentage" value="20" min="0" max="100" step="0.1" required>
                 </div>
-                
+
                 <!-- Loan Term -->
                 <div class="col-12">
                     <label for="loan_term" class="form-label">Loan Term (years)</label>
@@ -205,13 +205,13 @@
                         <option value="10">10 years</option>
                     </select>
                 </div>
-                
+
                 <!-- Interest Rate -->
                 <div class="col-12">
                     <label for="annual_rate" class="form-label">Interest Rate (%)</label>
                     <input type="number" class="form-control" id="annual_rate" name="annual_rate" value="7.0" min="0" max="20" step="0.001" required>
                 </div>
-                
+
                 <!-- Loan Type -->
                 <div class="col-12">
                     <label for="loan_type" class="form-label">Loan Type</label>
@@ -221,49 +221,49 @@
                         <option value="va">VA</option>
                     </select>
                 </div>
-                
+
                 <!-- Annual Property Tax Rate -->
                 <div class="col-12">
                     <label for="annual_tax_rate" class="form-label">Property Tax Rate (%)</label>
                     <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate" value="1.2" min="0" max="10" step="0.01" required>
                 </div>
-                
+
                 <!-- Annual Insurance Rate -->
                 <div class="col-12">
                     <label for="annual_insurance_rate" class="form-label">Home Insurance Rate (%)</label>
                     <input type="number" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate" value="0.5" min="0" max="5" step="0.01" required>
                 </div>
-                
+
                 <!-- Monthly HOA Fee -->
                 <div class="col-12">
                     <label for="monthly_hoa_fee" class="form-label">Monthly HOA Fee ($)</label>
                     <input type="number" class="form-control" id="monthly_hoa_fee" name="monthly_hoa_fee" value="0" min="0" step="10">
                 </div>
-                
+
                 <!-- Closing Date -->
                 <div class="col-12">
                     <label for="closing_date" class="form-label">Closing Date</label>
                     <input type="date" class="form-control" id="closing_date" name="closing_date">
                 </div>
-                
+
                 <!-- Discount Points -->
                 <div class="col-12">
                     <label for="discount_points" class="form-label">Discount Points</label>
                     <input type="number" class="form-control" id="discount_points" name="discount_points" value="0" min="0" step="0.125">
                 </div>
-                
+
                 <!-- Lender Credit -->
                 <div class="col-12">
                     <label for="lender_credit" class="form-label">Lender Credit ($)</label>
                     <input type="number" class="form-control" id="lender_credit" name="lender_credit" value="0" min="0" step="500">
                 </div>
-                
+
                 <!-- Seller Credit -->
                 <div class="col-12">
                     <label for="seller_credit" class="form-label">Seller Credit ($)</label>
                     <input type="number" class="form-control" id="seller_credit" name="seller_credit" value="0" min="0" step="500">
                 </div>
-                
+
                 <!-- VA Loan Options - Hidden by default -->
                 <div class="col-12 va-options" id="vaOptions" style="display: none;">
                     <div class="card">
@@ -278,7 +278,7 @@
                                         <option value="reserves">Reserves/National Guard</option>
                                     </select>
                                 </div>
-                                
+
                                 <!-- VA Usage -->
                                 <div class="col-12">
                                     <label for="va_usage" class="form-label">Usage</label>
@@ -287,7 +287,7 @@
                                         <option value="subsequent">Subsequent Use</option>
                                     </select>
                                 </div>
-                                
+
                                 <!-- VA Disability Exempt -->
                                 <div class="col-12">
                                     <div class="form-check">
@@ -304,7 +304,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="d-grid gap-2">
         <button type="submit" class="btn btn-primary btn-lg" id="calculateBtn">Calculate</button>
         <div class="progress mt-2" id="loadingProgress" style="display: none;">
@@ -330,7 +330,7 @@
     <div id="loadingSpinner" class="spinner-border text-primary d-none" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
-    
+
     <!-- Monthly Payment Breakdown -->
     <div class="card mb-3 results-card" style="display: none;">
         <div class="card-body">
@@ -365,7 +365,7 @@
             </table>
         </div>
     </div>
-    
+
     <!-- Loan Details -->
     <div class="card mb-3 results-card" style="display: none;">
         <div class="card-body">
@@ -408,7 +408,7 @@
             </table>
         </div>
     </div>
-    
+
     <!-- Cash Needed at Closing -->
     <div class="card mb-3 results-card" style="display: none;">
         <div class="card-body">
@@ -482,11 +482,11 @@
 
     <!-- Core JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- App JavaScript -->
     <!-- The JavaScript is now included in specific templates using the block extra_js -->
-    
-    
+
+
 <script src="/static/calculator.js"></script>
 <script>
     document.getElementById('toggleDebug').addEventListener('click', function() {

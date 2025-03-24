@@ -134,7 +134,7 @@
                             {% endfor %}
                         </div>
                         <div class="alert alert-info">
-                            <strong>Note:</strong> Prepaid interest is now calculated automatically based on the closing date selected by the user, 
+                            <strong>Note:</strong> Prepaid interest is now calculated automatically based on the closing date selected by the user,
                             and no longer uses a fixed number of days.
                         </div>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -151,22 +151,22 @@
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle me-2"></i> 
-                        Manage the maximum seller contribution percentages for different loan types, occupancy types, and LTV ranges. 
+                        <i class="fas fa-info-circle me-2"></i>
+                        Manage the maximum seller contribution percentages for different loan types, occupancy types, and LTV ranges.
                         These limits determine how much of the closing costs sellers can contribute based on loan type and property details.
                     </div>
-                    
+
                     {% if seller_contributions is defined %}
                     <div class="accordion" id="sellerContributionsAccordion">
                         <!-- Conventional Loans -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#conventionalContributions" aria-expanded="true">
                                     Conventional Loans
                                 </button>
                             </h2>
-                            <div id="conventionalContributions" class="accordion-collapse collapse show" 
+                            <div id="conventionalContributions" class="accordion-collapse collapse show"
                                  data-bs-parent="#sellerContributionsAccordion">
                                 <div class="accordion-body">
                                     <form id="conventionalContributionsForm" data-loan-type="conventional">
@@ -187,9 +187,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="primary_residence" 
+                                                                    data-occupancy="primary_residence"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -204,7 +204,7 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <h6 class="fw-bold mb-3">Second Home</h6>
                                         <div class="table-responsive mb-4">
                                             <table class="table table-bordered table-striped">
@@ -222,9 +222,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="second_home" 
+                                                                    data-occupancy="second_home"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -239,7 +239,7 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <h6 class="fw-bold mb-3">Investment Property</h6>
                                         <div class="table-responsive mb-4">
                                             <table class="table table-bordered table-striped">
@@ -257,9 +257,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="investment_property" 
+                                                                    data-occupancy="investment_property"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -274,9 +274,9 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn btn-outline-primary save-contributions-btn" 
+                                            <button type="button" class="btn btn-outline-primary save-contributions-btn"
                                                     data-loan-type="conventional">
                                                 <i class="fas fa-save me-1"></i> Save Conventional Limits
                                             </button>
@@ -285,16 +285,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- FHA Loans -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#fhaContributions">
                                     FHA Loans
                                 </button>
                             </h2>
-                            <div id="fhaContributions" class="accordion-collapse collapse" 
+                            <div id="fhaContributions" class="accordion-collapse collapse"
                                  data-bs-parent="#sellerContributionsAccordion">
                                 <div class="accordion-body">
                                     <form id="fhaContributionsForm" data-loan-type="fha">
@@ -315,9 +315,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="all_types" 
+                                                                    data-occupancy="all_types"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -332,17 +332,17 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <div class="alert alert-secondary mb-3">
                                             <small>
                                                 <i class="fas fa-info-circle me-1"></i>
-                                                FHA loans permit seller contributions up to 6% for closing costs, discount points, and other financing concessions. 
+                                                FHA loans permit seller contributions up to 6% for closing costs, discount points, and other financing concessions.
                                                 Any amount exceeding 6% is considered a reduction in the purchase price.
                                             </small>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn btn-outline-primary save-contributions-btn" 
+                                            <button type="button" class="btn btn-outline-primary save-contributions-btn"
                                                     data-loan-type="fha">
                                                 <i class="fas fa-save me-1"></i> Save FHA Limits
                                             </button>
@@ -351,16 +351,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- VA Loans -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#vaContributions">
                                     VA Loans
                                 </button>
                             </h2>
-                            <div id="vaContributions" class="accordion-collapse collapse" 
+                            <div id="vaContributions" class="accordion-collapse collapse"
                                  data-bs-parent="#sellerContributionsAccordion">
                                 <div class="accordion-body">
                                     <form id="vaContributionsForm" data-loan-type="va">
@@ -382,9 +382,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="all_types" 
+                                                                    data-occupancy="all_types"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -400,16 +400,16 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <div class="alert alert-secondary mb-3">
                                             <small>
                                                 <i class="fas fa-info-circle me-1"></i>
                                                 VA loans allow sellers to pay all closing costs but limit concessions (items like prepaid expenses and discount points) to 4% of the purchase price.
                                             </small>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn btn-outline-primary save-contributions-btn" 
+                                            <button type="button" class="btn btn-outline-primary save-contributions-btn"
                                                     data-loan-type="va">
                                                 <i class="fas fa-save me-1"></i> Save VA Limits
                                             </button>
@@ -418,16 +418,16 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- USDA Loans -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#usdaContributions">
                                     USDA Loans
                                 </button>
                             </h2>
-                            <div id="usdaContributions" class="accordion-collapse collapse" 
+                            <div id="usdaContributions" class="accordion-collapse collapse"
                                  data-bs-parent="#sellerContributionsAccordion">
                                 <div class="accordion-body">
                                     <form id="usdaContributionsForm" data-loan-type="usda">
@@ -448,9 +448,9 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <input type="number" class="form-control contribution-rate"
-                                                                    data-occupancy="all_types" 
+                                                                    data-occupancy="all_types"
                                                                     data-ltv-range="{{ range.ltv_range }}"
-                                                                    step="0.1" min="0" max="100" 
+                                                                    step="0.1" min="0" max="100"
                                                                     value="{{ range.max_contribution }}">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
@@ -465,16 +465,16 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        
+
                                         <div class="alert alert-secondary mb-3">
                                             <small>
                                                 <i class="fas fa-info-circle me-1"></i>
                                                 USDA loans follow a 6% limit similar to FHA loans for closing costs, prepaid expenses, and discount points.
                                             </small>
                                         </div>
-                                        
+
                                         <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn btn-outline-primary save-contributions-btn" 
+                                            <button type="button" class="btn btn-outline-primary save-contributions-btn"
                                                     data-loan-type="usda">
                                                 <i class="fas fa-save me-1"></i> Save USDA Limits
                                             </button>
@@ -484,7 +484,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="card mt-4">
                         <div class="card-header bg-light">
                             <h6 class="mb-0">Important Notes</h6>
@@ -593,28 +593,28 @@
         notification.classList.remove('bg-success', 'bg-danger');
         notification.classList.add(`bg-${type}`);
         notification.querySelector('.toast-body').textContent = message;
-        
+
         const bsNotification = new bootstrap.Toast(notification);
         bsNotification.show();
     }
-    
+
     // Handle limits form submission
     document.getElementById('limitsForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (!this.checkValidity()) {
             this.classList.add('was-validated');
             return;
         }
-        
+
         // Get form data
         const formData = new FormData(this);
-        
+
         // Send AJAX request
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/admin/mortgage-config/limits/update', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
+
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 // Success
@@ -633,31 +633,31 @@
                 showNotification(errorMsg, 'danger');
             }
         };
-        
+
         xhr.onerror = function() {
             showNotification('Network error occurred', 'danger');
         };
-        
+
         xhr.send(formData);
     });
-    
+
     // Handle prepaid items form submission
     document.getElementById('prepaidItemsForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (!this.checkValidity()) {
             this.classList.add('was-validated');
             return;
         }
-        
+
         // Get form data
         const formData = new FormData(this);
-        
+
         // Send AJAX request
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/admin/mortgage-config/prepaid/update', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
+
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 // Success
@@ -676,40 +676,40 @@
                 showNotification(errorMsg, 'danger');
             }
         };
-        
+
         xhr.onerror = function() {
             showNotification('Network error occurred', 'danger');
         };
-        
+
         xhr.send(formData);
     });
-    
+
     // Handle add loan type form submission
     document.getElementById('addLoanTypeForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (!this.checkValidity()) {
             this.classList.add('was-validated');
             return;
         }
-        
+
         // Get form data
         const formData = new FormData(this);
-        
+
         // Send AJAX request
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/admin/mortgage-config/loan-types/add', true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
+
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 // Success
                 showNotification('Loan type added successfully!', 'success');
-                
+
                 // Hide modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addLoanTypeModal'));
                 modal.hide();
-                
+
                 // Refresh page after a short delay
                 setTimeout(function() {
                     window.location.reload();
@@ -728,34 +728,34 @@
                 showNotification(errorMsg, 'danger');
             }
         };
-        
+
         xhr.onerror = function() {
             showNotification('Network error occurred', 'danger');
         };
-        
+
         xhr.send(formData);
     });
-    
+
     // Function to populate edit loan type modal
     function editLoanType(loanType) {
         // Fetch loan type data
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `/admin/mortgage-config/loan-types/${loanType}`, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
+
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 // Parse response
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    
+
                     // Populate form fields
                     document.getElementById('editLoanTypeId').value = loanType;
                     document.getElementById('editLoanTypeName').value = loanType;
                     document.getElementById('editMinDownPayment').value = response.data.min_down_payment;
                     document.getElementById('editMaxLtv').value = response.data.max_ltv;
                     document.getElementById('editDescription').value = response.data.description;
-                    
+
                     // Show modal
                     const modal = new bootstrap.Modal(document.getElementById('editLoanTypeModal'));
                     modal.show();
@@ -768,41 +768,41 @@
                 showNotification('Failed to fetch loan type data', 'danger');
             }
         };
-        
+
         xhr.onerror = function() {
             showNotification('Network error occurred', 'danger');
         };
-        
+
         xhr.send();
     }
-    
+
     // Handle edit loan type form submission
     document.getElementById('editLoanTypeForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (!this.checkValidity()) {
             this.classList.add('was-validated');
             return;
         }
-        
+
         // Get form data
         const formData = new FormData(this);
         const loanType = formData.get('original_loan_type');
-        
+
         // Send AJAX request
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `/admin/mortgage-config/loan-types/update/${loanType}`, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
+
         xhr.onload = function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 // Success
                 showNotification('Loan type updated successfully!', 'success');
-                
+
                 // Hide modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editLoanTypeModal'));
                 modal.hide();
-                
+
                 // Refresh page after a short delay
                 setTimeout(function() {
                     window.location.reload();
@@ -821,14 +821,14 @@
                 showNotification(errorMsg, 'danger');
             }
         };
-        
+
         xhr.onerror = function() {
             showNotification('Network error occurred', 'danger');
         };
-        
+
         xhr.send(formData);
     });
-    
+
     // Function to delete loan type
     function deleteLoanType(loanType) {
         if (confirm(`Are you sure you want to delete this loan type?`)) {
@@ -836,12 +836,12 @@
             xhr.open('POST', `/admin/mortgage-config/loan-types/delete/${loanType}`, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            
+
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Success
                     showNotification('Loan type deleted successfully!', 'success');
-                    
+
                     // Refresh page after a short delay
                     setTimeout(function() {
                         window.location.reload();
@@ -860,24 +860,24 @@
                     showNotification(errorMsg, 'danger');
                 }
             };
-            
+
             xhr.onerror = function() {
                 showNotification('Network error occurred', 'danger');
             };
-            
+
             // Include CSRF token in the request
             const csrfToken = document.querySelector('input[name="csrf_token"]').value;
             xhr.send(`csrf_token=${csrfToken}`);
         }
     }
-    
+
     // Update example calculations when contribution rate changes
     document.querySelectorAll('.contribution-rate').forEach(input => {
         input.addEventListener('input', function() {
             const value = parseFloat(this.value) || 0;
             const example = 300000 * (value / 100);
             const formattedExample = new Intl.NumberFormat('en-US').format(Math.round(example));
-            
+
             // Find the closest contribution example div and update it
             const row = this.closest('tr');
             const exampleCell = row.querySelector('.contribution-example');
@@ -886,7 +886,7 @@
             }
         });
     });
-    
+
     // Save contribution limits
     document.querySelectorAll('.save-contributions-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -894,45 +894,45 @@
             saveContributionLimits(loanType);
         });
     });
-    
+
     function saveContributionLimits(loanType) {
         const form = document.querySelector(`form[data-loan-type="${loanType}"]`);
         const data = { loan_type: loanType };
-        
+
         // Structure to collect all contribution rates
         const contributions = {};
-        
+
         // Get all occupancy types for this loan type
         const occupancyTypes = new Set();
         form.querySelectorAll('.contribution-rate').forEach(input => {
             occupancyTypes.add(input.getAttribute('data-occupancy'));
         });
-        
+
         // For each occupancy type, collect the LTV ranges and rates
         occupancyTypes.forEach(occupancy => {
             contributions[occupancy] = [];
-            
+
             form.querySelectorAll(`.contribution-rate[data-occupancy="${occupancy}"]`).forEach(input => {
                 const ltvRange = input.getAttribute('data-ltv-range');
                 const rate = parseFloat(input.value) || 0;
-                
+
                 // Add notes for VA loans
                 let item = {
                     ltv_range: ltvRange,
                     max_contribution: rate
                 };
-                
+
                 // Add notes for VA loans if present
                 if (loanType === 'va' && occupancy === 'all_types') {
                     item.notes = "For closing costs and concessions + reasonable discount points";
                 }
-                
+
                 contributions[occupancy].push(item);
             });
         });
-        
+
         data.contributions = contributions;
-        
+
         // Send data to server
         fetch('/admin/save_seller_contributions', {
             method: 'POST',
@@ -955,10 +955,10 @@
             showNotification('Error saving seller contribution limits: ' + error, 'danger');
         });
     }
-    
+
     $(document).ready(function() {
         // Existing script code...
-        
+
         // Seller Contributions - Update example calculations dynamically
         $('.contribution-rate-input').on('change', function() {
             const rate = parseFloat($(this).val()) || 0;
@@ -967,12 +967,12 @@
             const maxContribution = Math.round(purchasePrice * rate / 100);
             exampleElement.html(`$300,000 × ${rate}% = $${maxContribution.toLocaleString()}`);
         });
-        
+
         // Save seller contributions for a specific loan type
         $('.save-contributions-btn').on('click', function() {
             const loanType = $(this).data('loan-type');
             const contributionsData = {};
-            
+
             // Gather data based on loan type
             if (loanType === 'conventional') {
                 // Process data for all occupancy types
@@ -985,7 +985,7 @@
                         'notes': row.find('td:nth-child(2)').text().trim()
                     });
                 });
-                
+
                 contributionsData['second_home'] = [];
                 $('#conventionalSecondHomeTable tr.contribution-row').each(function() {
                     const row = $(this);
@@ -995,7 +995,7 @@
                         'notes': row.find('td:nth-child(2)').text().trim()
                     });
                 });
-                
+
                 contributionsData['investment_property'] = [];
                 $('#conventionalInvestmentTable tr.contribution-row').each(function() {
                     const row = $(this);
@@ -1017,7 +1017,7 @@
                     });
                 });
             }
-            
+
             // Send data to server
             $.ajax({
                 url: '/admin/save_seller_contributions',

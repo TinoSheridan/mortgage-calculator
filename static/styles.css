@@ -64,13 +64,13 @@ body {
     .btn, .form-section, nav, footer {
         display: none !important;
     }
-    
+
     .results-card {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #ddd;
     }
-    
+
     body {
         background-color: white;
         margin: 0;

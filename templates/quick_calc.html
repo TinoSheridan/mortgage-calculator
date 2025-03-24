@@ -142,12 +142,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded - initializing mortgage calculator');
-    
+
     // Show/hide VA options based on loan type selection
     const loanTypeSelect = document.getElementById('loan_type');
     const vaOptionsDiv = document.getElementById('va_options');
     const usdaOptionsDiv = document.getElementById('usda_options');
-    
+
     // Set initial visibility based on selected loan type
     function updateLoanTypeOptions() {
         const loanType = loanTypeSelect.value;
@@ -155,19 +155,19 @@ document.addEventListener('DOMContentLoaded', function() {
         vaOptionsDiv.style.display = loanType === 'va' ? 'block' : 'none';
         usdaOptionsDiv.style.display = loanType === 'usda' ? 'block' : 'none';
     }
-    
+
     // Update on page load
     updateLoanTypeOptions();
-    
+
     // Update when loan type changes
     loanTypeSelect.addEventListener('change', updateLoanTypeOptions);
 
     // Handle form submission
     document.getElementById('mortgageForm').addEventListener('submit', function(event) {
         event.preventDefault();
-        
+
         document.getElementById('results').innerHTML = '<div class="alert alert-info">Calculating...</div>';
-        
+
         // Get form data
         const formData = {
             purchase_price: parseFloat(document.getElementById('purchase_price').value),
@@ -182,33 +182,33 @@ document.addEventListener('DOMContentLoaded', function() {
             lender_credit: parseFloat(document.getElementById('lender_credit').value) || 0,
             discount_points: parseFloat(document.getElementById('discount_points').value) || 0
         };
-        
+
         // Add VA-specific parameters if VA loan is selected
         if (formData.loan_type === 'va') {
             console.log('VA loan selected - adding VA parameters');
             const serviceType = document.getElementById('va_service_type');
             const usage = document.getElementById('va_usage');
             const disabilityExempt = document.getElementById('va_disability_exempt');
-            
+
             if (!serviceType || !usage) {
                 console.error('VA form elements not found');
                 document.getElementById('results').innerHTML = '<div class="alert alert-danger">Error: VA form elements not found</div>';
                 return;
             }
-            
+
             formData.va_service_type = serviceType.value;
             formData.va_usage = usage.value;
             formData.va_disability_exempt = disabilityExempt.checked;
-            
+
             console.log('VA parameters:', {
                 va_service_type: formData.va_service_type,
                 va_usage: formData.va_usage,
                 va_disability_exempt: formData.va_disability_exempt
             });
         }
-        
+
         console.log('Submitting calculation request with data:', formData);
-        
+
         // Submit data to API
         fetch('/api/quick_calculate', {
             method: 'POST',
@@ -227,13 +227,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Calculation result received:', data);
-            
+
             if (data.error) {
                 console.error('API returned error:', data.error);
                 document.getElementById('results').innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                 return;
             }
-            
+
             // Display results
             const resultsHtml = `
                 <div class="mb-4">

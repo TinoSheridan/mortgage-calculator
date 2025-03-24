@@ -10,7 +10,7 @@
             <div id="notification" class="alert" style="display: none;"></div>
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col-md-12">
             <div class="card">
@@ -21,12 +21,12 @@
                             <i class="fas fa-plus"></i> Add Closing Cost
                         </button>
                     </div>
-                    
+
                     <!-- Debug Info -->
                     <div class="alert alert-info mb-4">
                         <p>Number of closing costs: {{ closing_costs|length }}</p>
                     </div>
-                    
+
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead>
@@ -185,47 +185,47 @@
             }
             return true;
         }
-        
+
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `alert alert-${type} alert-dismissible fade show`;
             notification.style.display = 'block';
-            
+
             // Auto hide after 3 seconds
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 3000);
         }
-        
+
         // Handle add cost form submission
         document.getElementById('addCostForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             if (!this.checkValidity()) {
                 this.classList.add('was-validated');
                 return;
             }
-            
+
             // Get form data
             const formData = new FormData(this);
-            
+
             // Send AJAX request
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/admin/closing-costs', true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
+
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Success
                     showNotification('Closing cost added successfully!', 'success');
-                    
+
                     // Hide modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addCostModal'));
                     modal.hide();
-                    
+
                     // Refresh page after a short delay
                     setTimeout(function() {
                         window.location.reload();
@@ -244,11 +244,11 @@
                     showNotification(errorMsg, 'danger');
                 }
             };
-            
+
             xhr.onerror = function() {
                 showNotification('Network error occurred', 'danger');
             };
-            
+
             // Convert form data to JSON
             const formObject = {};
             for (let pair of formData.entries()) {
@@ -259,14 +259,14 @@
                     formObject[pair[0]] = pair[1];
                 }
             }
-            
+
             // Add debug log to check data
             console.log('Sending data object:', formObject);
-            
+
             // Send as JSON
             xhr.send(JSON.stringify(formObject));
         });
-        
+
         // Edit cost
         function editCost(costId) {
             const row = document.querySelector(`tr[data-cost-id="${costId}"]`);
@@ -275,14 +275,14 @@
             const type = row.cells[2].textContent.trim().toLowerCase(); // 'fixed' or 'percentage'
             const base = row.cells[3].textContent.trim().toLowerCase().replace(/ /g, '_');
             const description = row.cells[4].textContent.trim();
-            
+
             // Clean up amount
             if (amount.endsWith('%')) {
                 amount = amount.slice(0, -1);
             } else if (amount.startsWith('$')) {
                 amount = amount.slice(1);
             }
-            
+
             // Set form values
             document.getElementById('editCostId').value = costId;
             document.getElementById('editCostName').value = costId.replace(/_/g, ' ');
@@ -290,30 +290,30 @@
             document.getElementById('editCostType').value = type;
             document.getElementById('editCostBase').value = base;
             document.getElementById('editCostDescription').value = description;
-            
+
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('editCostModal'));
             modal.show();
         }
-        
+
         // Handle edit cost form submission
         document.getElementById('editCostForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             if (!validateForm(this)) {
                 return;
             }
-            
+
             // Get form data
             const formData = new FormData(this);
             const costId = formData.get('original_name');
-            
+
             // Debug - log form data
             console.log('Submitting form data:');
             for (let pair of formData.entries()) {
                 console.log(pair[0] + ': ' + pair[1]);
             }
-            
+
             // Send AJAX request
             const xhr = new XMLHttpRequest();
             xhr.open('PUT', `/admin/closing-costs/${costId}`, true);
@@ -322,19 +322,19 @@
             // Add CSRF token header
             const csrfToken = document.querySelector('input[name="csrf_token"]').value;
             xhr.setRequestHeader('X-CSRFToken', csrfToken);
-            
+
             xhr.onload = function() {
                 console.log('Response status:', xhr.status);
                 console.log('Response text:', xhr.responseText);
-                
+
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Success
                     showNotification('Closing cost updated successfully!', 'success');
-                    
+
                     // Hide modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editCostModal'));
                     modal.hide();
-                    
+
                     // Refresh page after a short delay
                     setTimeout(function() {
                         window.location.reload();
@@ -353,11 +353,11 @@
                     showNotification(errorMsg, 'danger');
                 }
             };
-            
+
             xhr.onerror = function() {
                 showNotification('Network error occurred', 'danger');
             };
-            
+
             // Convert form data to JSON
             const formObject = {};
             for (let pair of formData.entries()) {
@@ -368,14 +368,14 @@
                     formObject[pair[0]] = pair[1];
                 }
             }
-            
+
             // Add debug log to check data
             console.log('Sending data object:', formObject);
-            
+
             // Send as JSON
             xhr.send(JSON.stringify(formObject));
         });
-        
+
         // Delete cost
         function deleteCost(costId) {
             if (confirm(`Are you sure you want to delete this closing cost?`)) {
@@ -383,12 +383,12 @@
                 xhr.open('POST', `/admin/closing-costs/delete/${costId}`, true);
                 xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                
+
                 xhr.onload = function() {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         // Success
                         showNotification('Closing cost deleted successfully!', 'success');
-                        
+
                         // Refresh page after a short delay
                         setTimeout(function() {
                             window.location.reload();
@@ -407,23 +407,23 @@
                         showNotification(errorMsg, 'danger');
                     }
                 };
-                
+
                 xhr.onerror = function() {
                     showNotification('Network error occurred', 'danger');
                 };
-                
+
                 // Include CSRF token in the request
                 const csrfToken = document.querySelector('input[name="csrf_token"]').value;
                 xhr.send(`csrf_token=${csrfToken}`);
             }
         }
-        
+
         // Reset form on modal close
         document.getElementById('addCostModal').addEventListener('hidden.bs.modal', (e) => {
             e.target.querySelector('form').reset();
             e.target.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
-        
+
         document.getElementById('editCostModal').addEventListener('hidden.bs.modal', (e) => {
             e.target.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });

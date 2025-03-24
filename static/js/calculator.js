@@ -13,7 +13,7 @@ function formatPercentage(number) {
         console.error('formatPercentage called with non-number:', number);
         return '0.000%';
     }
-    
+
     return number.toFixed(3) + '%';
 }
 
@@ -48,30 +48,30 @@ function updateClosingCostsTable(costs) {
         console.error('Closing costs table tbody not found');
         return 0;
     }
-    
+
     // Clear previous content
     tbody.innerHTML = '';
     let total = 0;
-    
+
     // Extract the total directly if it exists
     let serverTotal = 0;
     if (typeof costs === 'object' && costs !== null && 'total' in costs && typeof costs.total === 'number') {
         serverTotal = costs.total;
         console.log(`Found closing costs total in response: ${serverTotal}`);
     }
-    
+
     // Process the line items
     if (typeof costs === 'object' && costs !== null) {
         for (const [key, value] of Object.entries(costs)) {
             if (key !== 'total' && typeof value === 'number') {
                 total += value;
-                
+
                 // Format the item name for display
                 const itemName = key.replace(/_/g, ' ')
                     .split(' ')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td style="font-weight: normal;">${itemName}</td>
@@ -89,18 +89,18 @@ function updateClosingCostsTable(costs) {
         `;
         tbody.appendChild(row);
     }
-    
+
     // If we couldn't calculate a total but have a server-provided total, use that
     if (total === 0 && serverTotal > 0) {
         total = serverTotal;
     }
-    
+
     // Update the total closing costs element
     const totalClosingCostsElement = document.getElementById('totalClosingCosts');
     if (totalClosingCostsElement) {
         totalClosingCostsElement.textContent = formatCurrency(total);
     }
-    
+
     console.log(`Calculated closing costs total: ${total}`);
     return total;
 }
@@ -112,30 +112,30 @@ function updatePrepaidsTable(prepaids) {
         console.error('Prepaids table tbody not found');
         return 0;
     }
-    
+
     // Clear previous content
     tbody.innerHTML = '';
     let total = 0;
-    
+
     // Extract the total directly if it exists
     let serverTotal = 0;
     if (typeof prepaids === 'object' && prepaids !== null && 'total' in prepaids && typeof prepaids.total === 'number') {
         serverTotal = prepaids.total;
         console.log(`Found prepaids total in response: ${serverTotal}`);
     }
-    
+
     // Process the line items
     if (typeof prepaids === 'object' && prepaids !== null) {
         for (const [key, amount] of Object.entries(prepaids)) {
             if (key !== 'total' && typeof amount === 'number') {
                 total += amount;
-                
+
                 // Format the item name for display
                 const itemName = key.replace(/_/g, ' ')
                     .split(' ')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td style="font-weight: normal;">${itemName}</td>
@@ -154,18 +154,18 @@ function updatePrepaidsTable(prepaids) {
         `;
         tbody.appendChild(row);
     }
-    
+
     // If we couldn't calculate a total but have a server-provided total, use that
     if (total === 0 && serverTotal > 0) {
         total = serverTotal;
     }
-    
+
     // Update the total prepaids element
     const totalPrepaidsElement = document.getElementById('totalPrepaids');
     if (totalPrepaidsElement) {
         totalPrepaidsElement.textContent = formatCurrency(total);
     }
-    
+
     console.log(`Calculated prepaids total: ${total}`);
     return total;
 }
@@ -173,28 +173,28 @@ function updatePrepaidsTable(prepaids) {
 // Updates the credits table (seller and lender credits)
 function updateCreditsTable(result) {
     console.log("Starting credit table update...");
-    
+
     // Find the credits table body - NOTE: This was the issue - needed to be more specific with the selector!
     const tbody = document.getElementById('creditsTable');
     if (!tbody) {
         console.error('Credits table tbody not found! Check HTML for element with id="creditsTable"');
         return 0;
     }
-    
+
     console.log("Credits table found:", tbody);
-    
+
     // Clear previous content
     tbody.innerHTML = '';
     console.log("Cleared previous table content");
-    
+
     // Get seller and lender credits from the credits object in the result
     let sellerCredit = 0;
     let lenderCredit = 0;
-    
+
     // Debug the result structure
     console.log("Full API result:", result);
     console.log("Credits section in API result:", result.credits);
-    
+
     if (result.credits && typeof result.credits === 'object') {
         console.log("Credits object found in result.credits");
         sellerCredit = parseFloat(result.credits.seller_credit) || 0;
@@ -202,7 +202,7 @@ function updateCreditsTable(result) {
         console.log("Found credits in result.credits:", result.credits);
     } else {
         console.log("No credits object found in result, checking other locations");
-        
+
         // Alternative locations to check
         if (result.closing_costs && typeof result.closing_costs === 'object') {
             if ('seller_credit' in result.closing_costs) {
@@ -214,7 +214,7 @@ function updateCreditsTable(result) {
                 console.log("Found lender credit in closing_costs:", lenderCredit);
             }
         }
-        
+
         // Last resort - try form input values
         if (sellerCredit === 0) {
             const sellerCreditInput = document.getElementById('seller_credit');
@@ -223,7 +223,7 @@ function updateCreditsTable(result) {
                 console.log("Using seller credit from form input:", sellerCredit);
             }
         }
-        
+
         if (lenderCredit === 0) {
             const lenderCreditInput = document.getElementById('lender_credit');
             if (lenderCreditInput) {
@@ -232,10 +232,10 @@ function updateCreditsTable(result) {
             }
         }
     }
-    
+
     const totalCredits = sellerCredit + lenderCredit;
     console.log(`Credits - Seller: ${sellerCredit}, Lender: ${lenderCredit}, Total: ${totalCredits}`);
-    
+
     // Check if seller credit exceeds maximum allowed
     let maxSellerContribution = 0;
     let sellerCreditExceedsMax = false;
@@ -243,7 +243,7 @@ function updateCreditsTable(result) {
     let vaConcessionsExceedLimit = false;
     let vaConcessionLimit = 0;
     let potentialConcessions = 0;
-    
+
     if (result.loan_details) {
         // Check if this is a VA loan with special handling
         if (result.loan_details.va_concession_limit !== undefined) {
@@ -253,7 +253,7 @@ function updateCreditsTable(result) {
             vaConcessionsExceedLimit = result.loan_details.va_concessions_exceed_limit === true;
             console.log(`VA loan detected - concession limit: ${vaConcessionLimit}, potential concessions: ${potentialConcessions}, exceeds: ${vaConcessionsExceedLimit}`);
         }
-        
+
         // Get general max seller contribution (handle both numeric and special values)
         if (result.loan_details.max_seller_contribution !== undefined) {
             // Check if it's a very large number (our stand-in for infinity in VA loans)
@@ -267,23 +267,23 @@ function updateCreditsTable(result) {
             console.log(`Max seller contribution: ${maxSellerContribution}, Exceeds max: ${sellerCreditExceedsMax}`);
         }
     }
-    
+
     // Only add rows if there are credits (either seller or lender)
     if (sellerCredit > 0 || lenderCredit > 0) {
         // Add seller credit row if it exists
         if (sellerCredit > 0) {
             const sellerCreditRow = document.createElement('tr');
-            
+
             // If seller credit exceeds maximum, add warning
             if (sellerCreditExceedsMax) {
                 if (isVaLoan) {
                     // Special VA loan warning for concessions limit
                     sellerCreditRow.innerHTML = `
                         <td style="font-weight: normal;">
-                            Seller Credit 
+                            Seller Credit
                             <div class="text-danger mt-1">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                Warning: VA loans allow unlimited closing costs coverage, but prepaids and discount points 
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Warning: VA loans allow unlimited closing costs coverage, but prepaids and discount points
                                 (${formatCurrency(potentialConcessions)}) exceed the 4% concession limit: ${formatCurrency(vaConcessionLimit)}
                             </div>
                         </td>
@@ -293,9 +293,9 @@ function updateCreditsTable(result) {
                     // Standard warning for other loan types
                     sellerCreditRow.innerHTML = `
                         <td style="font-weight: normal;">
-                            Seller Credit 
+                            Seller Credit
                             <div class="text-danger mt-1">
-                                <i class="fas fa-exclamation-triangle"></i> 
+                                <i class="fas fa-exclamation-triangle"></i>
                                 Exceeds maximum allowed: ${formatCurrency(maxSellerContribution)}
                             </div>
                         </td>
@@ -310,11 +310,11 @@ function updateCreditsTable(result) {
                     <td style="font-weight: normal;" class="text-end">${formatCurrency(sellerCredit)}</td>
                 `;
             }
-            
+
             tbody.appendChild(sellerCreditRow);
             console.log("Added seller credit row");
         }
-        
+
         // Add lender credit row if it exists
         if (lenderCredit > 0) {
             const lenderCreditRow = document.createElement('tr');
@@ -334,7 +334,7 @@ function updateCreditsTable(result) {
         tbody.appendChild(noCreditsRow);
         console.log("Added 'No Credits' row");
     }
-    
+
     // Make sure the total credits element is updated
     const totalCreditsElement = document.getElementById('totalCredits');
     if (totalCreditsElement) {
@@ -343,7 +343,7 @@ function updateCreditsTable(result) {
     } else {
         console.error("Total credits element not found! Check HTML for element with id='totalCredits'");
     }
-    
+
     return totalCredits;
 }
 
@@ -351,7 +351,7 @@ function updateCreditsTable(result) {
 function updateTotalCashNeeded(result, downPayment, closingCostsTotal, prepaidsTotal, creditsTotal) {
     try {
         let totalCashNeeded = 0;
-        
+
         // Update the down payment in the Cash Needed at Closing section
         const downPaymentElement = document.getElementById('downPayment');
         if (downPaymentElement) {
@@ -360,7 +360,7 @@ function updateTotalCashNeeded(result, downPayment, closingCostsTotal, prepaidsT
         } else {
             console.error('Down payment element not found in Cash Needed section');
         }
-        
+
         // If result contains total_cash_needed, use that
         if (result.total_cash_needed !== undefined) {
             totalCashNeeded = result.total_cash_needed;
@@ -370,13 +370,13 @@ function updateTotalCashNeeded(result, downPayment, closingCostsTotal, prepaidsT
             totalCashNeeded = downPayment + closingCostsTotal + prepaidsTotal - creditsTotal;
             console.log(`Calculated total cash needed: ${totalCashNeeded}`);
         }
-        
+
         // Update the UI
         const element = document.getElementById('totalCashNeeded');
         if (element) {
             element.textContent = formatCurrency(totalCashNeeded);
         }
-        
+
         return totalCashNeeded;
     } catch (e) {
         console.error('Error updating total cash needed:', e);
@@ -390,18 +390,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const mortgageForm = document.getElementById('mortgageForm');
     if (mortgageForm) {
         console.log("Form found, adding submit handler");
-        
+
         // Add click handler for the submit button instead of form submit
         document.querySelector('button[type="submit"]').addEventListener('click', async function(e) {
             // Prevent default button behavior
             e.preventDefault();
             console.log("Submit button clicked, handling form submission manually");
-            
+
             // Show loading spinner, hide results and error
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('resultsSection').style.display = 'none';
             document.getElementById('errorAlert').style.display = 'none';
-            
+
             // Clear any previous errors
             const debugElement = document.getElementById('debugOutput');
             if (debugElement) {
@@ -412,13 +412,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Get form data
                 const formData = new FormData(mortgageForm);
                 const formDataObj = Object.fromEntries(formData.entries());
-                
+
                 // Convert percentage inputs to decimal
                 formDataObj.down_payment_percentage = parseFloat(formDataObj.down_payment_percentage);
                 formDataObj.annual_rate = parseFloat(formDataObj.annual_rate);
                 formDataObj.annual_tax_rate = parseFloat(formDataObj.annual_tax_rate);
                 formDataObj.annual_insurance_rate = parseFloat(formDataObj.annual_insurance_rate);
-                
+
                 // Convert numeric inputs
                 formDataObj.purchase_price = parseFloat(formDataObj.purchase_price);
                 formDataObj.loan_term = parseInt(formDataObj.loan_term);
@@ -426,28 +426,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 formDataObj.seller_credit = parseFloat(formDataObj.seller_credit || 0);
                 formDataObj.lender_credit = parseFloat(formDataObj.lender_credit || 0);
                 formDataObj.discount_points = parseFloat(formDataObj.discount_points || 0);
-                
+
                 // Handle VA loan parameters
                 if (formDataObj.loan_type === 'va') {
                     // Add VA service type
                     formDataObj.va_service_type = document.getElementById('va_service_type').value;
-                    
+
                     // Add VA loan usage
                     formDataObj.va_usage = document.getElementById('va_usage').value;
-                    
+
                     // Add VA disability exemption
                     formDataObj.va_disability_exempt = document.getElementById('va_disability_exempt').checked;
-                    
+
                     addDebug(`VA Parameters: Service Type=${formDataObj.va_service_type}, Usage=${formDataObj.va_usage}, Disability Exempt=${formDataObj.va_disability_exempt}`);
                 }
-                
+
                 // Add debug info
                 addDebug(`Form data: ${JSON.stringify(formDataObj, null, 2)}`);
-                
+
                 // Get CSRF token
                 const csrfToken = document.querySelector('input[name="csrf_token"]').value;
                 console.log("Using CSRF token:", csrfToken);
-                
+
                 // Make API request
                 const response = await fetch('/calculate', {
                     method: 'POST',
@@ -457,21 +457,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify(formDataObj)
                 });
-                
+
                 // Hide loading spinner
                 document.getElementById('loadingSpinner').style.display = 'none';
-                
+
                 // Handle response
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const result = await response.json();
                 console.log("API response:", JSON.stringify(result, null, 2));
-                
+
                 // Show results section
                 document.getElementById('resultsSection').style.display = 'block';
-                
+
                 // Create a complete result object with all needed sections
                 const completeResult = {
                     loan_details: result.loan_details,
@@ -488,31 +488,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     credits: result.credits,  // Make sure credits is included
                     total_cash_needed: result.total_cash_needed
                 };
-                
+
                 console.log("Updating results with:", JSON.stringify(completeResult, null, 2));
                 console.log("Credits object specifically:", JSON.stringify(completeResult.credits, null, 2));
-                
+
                 // Update loan details
                 safelyUpdateElement('purchasePrice', result.loan_details.purchase_price, formatCurrency);
                 safelyUpdateElement('downPaymentAmount', result.loan_details.down_payment, formatCurrency);
-                
+
                 // Format down payment percentage correctly
                 if (document.getElementById('downPaymentPercentage')) {
-                    const downPaymentPercentage = result.loan_details.down_payment_percentage || 
+                    const downPaymentPercentage = result.loan_details.down_payment_percentage ||
                                                  (result.loan_details.down_payment / result.loan_details.purchase_price * 100);
                     document.getElementById('downPaymentPercentage').textContent = downPaymentPercentage.toFixed(3) + '%';
                 }
-                
+
                 safelyUpdateElement('loanAmount', result.loan_details.loan_amount, formatCurrency);
                 safelyUpdateElement('interestRate', result.loan_details.annual_rate, formatPercentage);
-                
+
                 // Update loan term without bold formatting
                 const loanTermElement = document.getElementById('loanTerm');
                 if (loanTermElement) {
                     loanTermElement.textContent = `${result.loan_details.loan_term} years`;
                     loanTermElement.style.fontWeight = 'normal';
                 }
-                
+
                 // Update closing date if available
                 const closingDateElement = document.getElementById('closingDate');
                 if (closingDateElement) {
@@ -523,9 +523,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         closingDateElement.textContent = 'Not specified';
                     }
                 }
-                
+
                 safelyUpdateElement('ltv', result.loan_details.ltv, formatPercentage);
-                
+
                 // Update monthly payment
                 safelyUpdateElement('principalAndInterest', result.monthly_breakdown.principal_interest, formatCurrency);
                 safelyUpdateElement('propertyTax', result.monthly_breakdown.property_tax, formatCurrency);
@@ -533,32 +533,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 safelyUpdateElement('pmi', result.monthly_breakdown.mortgage_insurance, formatCurrency);
                 safelyUpdateElement('hoaFee', result.monthly_breakdown.hoa_fee, formatCurrency);
                 safelyUpdateElement('totalMonthlyPayment', result.monthly_breakdown.total, formatCurrency);
-                
+
                 // Update discount points
                 safelyUpdateElement('discountPoints', formDataObj.discount_points, val => val.toFixed(3));
-                
+
                 // Update closing costs, prepaids, and credits tables
                 const downPayment = result.loan_details.down_payment;
                 const closingCostsTotal = updateClosingCostsTable(result.closing_costs);
                 const prepaidsTotal = updatePrepaidsTable(result.prepaids || result.prepaid_items);
                 const creditsTotal = updateCreditsTable(completeResult);
-                
+
                 // Calculate and display total cash needed
                 updateTotalCashNeeded(completeResult, downPayment, closingCostsTotal, prepaidsTotal, creditsTotal);
-                
+
                 // Show all results cards - this makes them visible
                 const cards = document.querySelectorAll('.results-card');
                 cards.forEach(card => {
                     card.style.display = 'block';
                 });
-                
+
             } catch (error) {
                 console.error('Calculation error:', error);
-                
+
                 // Hide loading spinner and results, show error
                 document.getElementById('loadingSpinner').style.display = 'none';
                 document.getElementById('resultsSection').style.display = 'none';
-                
+
                 const errorAlert = document.getElementById('errorAlert');
                 if (errorAlert) {
                     errorAlert.textContent = `Error: ${error.message || 'Failed to calculate mortgage details.'}`;
@@ -596,7 +596,7 @@ function formatAlignedColumns(label, value, labelWidth = 30) {
         // Pad the label to fixed width
         formattedLabel = label.padEnd(labelWidth);
     }
-    
+
     return `${formattedLabel} ${value}`;
 }
 
@@ -604,77 +604,77 @@ function formatAlignedColumns(label, value, labelWidth = 30) {
 function formatDetailedResultsForClipboard() {
     // Define column width for label alignment
     const LABEL_WIDTH = 30;
-    
+
     let resultsText = "DETAILED MORTGAGE CALCULATION RESULTS\n";
     resultsText += "=====================================\n\n";
-    
+
     // Get all result cards
     const resultCards = document.querySelectorAll('.results-card');
-    
+
     // Track what tables we've already processed to avoid duplication
     const processedTables = new Set();
     const processedCardIds = new Set();
-    
+
     // First, process only the loan details and monthly payment cards
     resultCards.forEach(card => {
         if (card.style.display === 'none') return; // Skip hidden cards
-        
+
         // Get card header/title
         const cardHeader = card.querySelector('.card-header');
         if (cardHeader) {
             const title = cardHeader.textContent.trim();
             // Skip the closing costs, prepaids, and credits cards
-            if (title.toLowerCase().includes("closing cost") || 
-                title.toLowerCase().includes("prepaid") || 
+            if (title.toLowerCase().includes("closing cost") ||
+                title.toLowerCase().includes("prepaid") ||
                 title.toLowerCase().includes("credit") ||
                 title.toLowerCase().includes("cash needed")) {
                 return;
             }
-            
+
             resultsText += `${title.toUpperCase()}\n`;
             resultsText += "".padEnd(title.length, '=') + "\n";
         }
-        
+
         // Get all table rows in this card
         const tables = card.querySelectorAll('table');
         tables.forEach(table => {
             // Mark this table as processed and skip if it's one of our special tables
             // that we'll process separately
-            if (table.id === 'closingCostsTable' || 
-                table.id === 'prepaidsTable' || 
+            if (table.id === 'closingCostsTable' ||
+                table.id === 'prepaidsTable' ||
                 table.id === 'creditsTable') {
                 processedTables.add(table.id);
                 return;
             }
-            
+
             const rows = table.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 const label = row.querySelector('td:first-child');
                 const value = row.querySelector('td:last-child');
-                
+
                 if (label && value) {
                     resultsText += formatAlignedColumns(label.textContent.trim(), value.textContent.trim(), LABEL_WIDTH) + "\n";
                 }
             });
         });
-        
+
         resultsText += "\n"; // Add extra line between cards
     });
-    
-    // Store down payment value 
+
+    // Store down payment value
     let downPaymentValue = "";
     const downPaymentElement = document.getElementById('downPaymentAmount');
     if (downPaymentElement) {
         downPaymentValue = downPaymentElement.textContent;
     }
-    
+
     // Add closing costs table details
     const closingCostsTable = document.getElementById('closingCostsTable');
     let closingCostsTotal = "";
     if (closingCostsTable) {
         resultsText += "CLOSING COSTS BREAKDOWN\n";
         resultsText += "=======================\n";
-        
+
         const rows = closingCostsTable.querySelectorAll('tr');
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
@@ -682,24 +682,24 @@ function formatDetailedResultsForClipboard() {
                 resultsText += formatAlignedColumns(cells[0].textContent.trim(), cells[1].textContent.trim(), LABEL_WIDTH) + "\n";
             }
         });
-        
+
         // Add total closing costs
         const totalClosingCosts = document.getElementById('totalClosingCosts');
         if (totalClosingCosts) {
             closingCostsTotal = totalClosingCosts.textContent;
             resultsText += formatAlignedColumns("Total Closing Costs", closingCostsTotal, LABEL_WIDTH) + "\n";
         }
-        
+
         resultsText += "\n";
     }
-    
+
     // Add prepaids table details
     const prepaidsTable = document.getElementById('prepaidsTable');
     let prepaidsTotal = "";
     if (prepaidsTable) {
         resultsText += "PREPAIDS BREAKDOWN\n";
         resultsText += "==================\n";
-        
+
         const rows = prepaidsTable.querySelectorAll('tr');
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
@@ -707,17 +707,17 @@ function formatDetailedResultsForClipboard() {
                 resultsText += formatAlignedColumns(cells[0].textContent.trim(), cells[1].textContent.trim(), LABEL_WIDTH) + "\n";
             }
         });
-        
+
         // Add total prepaids
         const totalPrepaids = document.getElementById('totalPrepaids');
         if (totalPrepaids) {
             prepaidsTotal = totalPrepaids.textContent;
             resultsText += formatAlignedColumns("Total Prepaids", prepaidsTotal, LABEL_WIDTH) + "\n";
         }
-        
+
         resultsText += "\n";
     }
-    
+
     // Add credits table details
     const creditsTable = document.getElementById('creditsTable');
     let creditsTotal = "";
@@ -725,15 +725,15 @@ function formatDetailedResultsForClipboard() {
     if (creditsTable) {
         resultsText += "CREDITS BREAKDOWN\n";
         resultsText += "=================\n";
-        
+
         const rows = creditsTable.querySelectorAll('tr');
-        
+
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             if (cells.length === 2) {
                 const label = cells[0].textContent.trim();
                 const value = cells[1].textContent.trim();
-                
+
                 // Skip the "No credits applied" row if it's there
                 if (label !== "No credits applied") {
                     resultsText += formatAlignedColumns(label, value, LABEL_WIDTH) + "\n";
@@ -741,7 +741,7 @@ function formatDetailedResultsForClipboard() {
                 }
             }
         });
-        
+
         if (!hasCredits) {
             resultsText += "No credits applied\n";
         } else {
@@ -752,46 +752,46 @@ function formatDetailedResultsForClipboard() {
                 resultsText += formatAlignedColumns("Total Credits", creditsTotal, LABEL_WIDTH) + "\n";
             }
         }
-        
+
         resultsText += "\n";
     }
-    
+
     // Always add the CASH NEEDED AT CLOSING section
     resultsText += "CASH NEEDED AT CLOSING\n";
     resultsText += "======================\n";
-    
+
     // Add down payment
     if (downPaymentValue) {
         resultsText += formatAlignedColumns("Down Payment", downPaymentValue, LABEL_WIDTH) + "\n";
     }
-    
+
     // Add total closing costs as a line item
     if (closingCostsTotal) {
         resultsText += formatAlignedColumns("Closing Costs", closingCostsTotal, LABEL_WIDTH) + "\n";
     }
-    
+
     // Add total prepaids as a line item
     if (prepaidsTotal) {
         resultsText += formatAlignedColumns("Prepaids", prepaidsTotal, LABEL_WIDTH) + "\n";
     }
-    
+
     // Add total credits (as negative) if they exist
     if (creditsTotal && creditsTotal.trim() !== "$0.00") {
         resultsText += formatAlignedColumns("Credits", creditsTotal, LABEL_WIDTH) + "\n";
     }
-    
+
     // Add the total cash needed
     const totalCashNeeded = document.getElementById('totalCashNeeded');
     if (totalCashNeeded) {
         resultsText += formatAlignedColumns("Total Cash to Close", totalCashNeeded.textContent, LABEL_WIDTH) + "\n";
     }
-    
+
     resultsText += "\n";
-    
+
     // Add timestamp
     const now = new Date();
     resultsText += `Generated on: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}\n`;
-    
+
     return resultsText;
 }
 
@@ -799,7 +799,7 @@ function formatDetailedResultsForClipboard() {
 function formatResultsForClipboard() {
     // Define column width for label alignment
     const LABEL_WIDTH = 30;
-    
+
     let resultsText = "MORTGAGE CALCULATION RESULTS\n";
     resultsText += "===========================\n\n";
 
@@ -876,7 +876,7 @@ function formatResultsForClipboard() {
         resultsText += "\nCASH NEEDED:\n";
         resultsText += formatAlignedColumns("Total Cash Needed:", cashNeeded.textContent, LABEL_WIDTH) + "\n";
     }
-    
+
     // Add timestamp
     const now = new Date();
     resultsText += `\nGenerated on: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}\n`;
@@ -890,20 +890,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const copyBtn = document.getElementById('copyResultsBtn');
     if (copyBtn) {
         copyBtn.addEventListener('click', function() {
-            if (!document.getElementById('resultsSection').style.display || 
+            if (!document.getElementById('resultsSection').style.display ||
                 document.getElementById('resultsSection').style.display === 'none') {
                 return; // Don't do anything if results aren't displayed yet
             }
-            
+
             const resultsText = formatResultsForClipboard();
-            
+
             // Use the Clipboard API to copy text
             navigator.clipboard.writeText(resultsText)
                 .then(() => {
                     // Show the success message
                     const copyConfirmation = document.getElementById('copyConfirmation');
                     copyConfirmation.classList.remove('d-none');
-                    
+
                     // Hide the confirmation after 3 seconds
                     setTimeout(() => {
                         copyConfirmation.classList.add('d-none');
@@ -915,25 +915,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
-    
+
     // Setup detailed copy button
     const copyDetailBtn = document.getElementById('copyDetailBtn');
     if (copyDetailBtn) {
         copyDetailBtn.addEventListener('click', function() {
-            if (!document.getElementById('resultsSection').style.display || 
+            if (!document.getElementById('resultsSection').style.display ||
                 document.getElementById('resultsSection').style.display === 'none') {
                 return; // Don't do anything if results aren't displayed yet
             }
-            
+
             const detailedResultsText = formatDetailedResultsForClipboard();
-            
+
             // Use the Clipboard API to copy text
             navigator.clipboard.writeText(detailedResultsText)
                 .then(() => {
                     // Show the success message
                     const copyConfirmation = document.getElementById('copyConfirmation');
                     copyConfirmation.classList.remove('d-none');
-                    
+
                     // Hide the confirmation after 3 seconds
                     setTimeout(() => {
                         copyConfirmation.classList.add('d-none');

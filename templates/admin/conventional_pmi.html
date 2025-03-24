@@ -15,10 +15,10 @@
                         <p class="text-muted small">Configure Private Mortgage Insurance (PMI) rates for conventional loans</p>
                     </div>
                 </div>
-                
+
                 <!-- Status Alert -->
                 <div id="statusAlert" class="alert d-none mb-4" role="alert"></div>
-                
+
                 <!-- Simple Form for Conventional PMI Rates -->
                 <div class="card">
                     <div class="card-header bg-light">
@@ -41,12 +41,12 @@
                                             {% for range, rate in ltv_ranges.items() %}
                                                 <tr>
                                                     <td>
-                                                        <input type="text" class="form-control form-control-sm" 
+                                                        <input type="text" class="form-control form-control-sm"
                                                                name="ltv_range_{{ loop.index }}" value="{{ range }}">
                                                     </td>
                                                     <td>
                                                         <div class="input-group input-group-sm">
-                                                            <input type="number" class="form-control" name="ltv_rate_{{ loop.index }}" 
+                                                            <input type="number" class="form-control" name="ltv_rate_{{ loop.index }}"
                                                                    step="0.001" min="0" max="2" value="{{ '%.3f'|format(rate) }}">
                                                             <span class="input-group-text">%</span>
                                                         </div>
@@ -61,12 +61,12 @@
                                         {% else %}
                                             <tr>
                                                 <td>
-                                                    <input type="text" class="form-control form-control-sm" 
+                                                    <input type="text" class="form-control form-control-sm"
                                                            name="ltv_range_1" placeholder="e.g. 80.01-85">
                                                 </td>
                                                 <td>
                                                     <div class="input-group input-group-sm">
-                                                        <input type="number" class="form-control" name="ltv_rate_1" 
+                                                        <input type="number" class="form-control" name="ltv_rate_1"
                                                                step="0.001" min="0" max="2" value="0.550">
                                                         <span class="input-group-text">%</span>
                                                     </div>
@@ -81,7 +81,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between mt-3">
                                 <button type="button" id="addRowBtn" class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-plus me-1"></i> Add LTV Range
@@ -93,7 +93,7 @@
                         </form>
                     </div>
                 </div>
-                
+
                 <div class="mt-4">
                     <a href="/admin/pmi-rates" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Back to PMI Rates
@@ -111,28 +111,28 @@
     // Simple JavaScript that uses basic form submission
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Conventional PMI rates page loaded');
-        
+
         // Get form elements
         const form = document.getElementById('conventionalPmiForm');
         const addRowBtn = document.getElementById('addRowBtn');
         const ltvRatesTable = document.getElementById('ltvRatesTable');
         const statusAlert = document.getElementById('statusAlert');
-        
+
         // Row counter for generating unique names
         let rowCounter = ltvRatesTable.querySelectorAll('tr').length + 1;
-        
+
         // Add row
         addRowBtn.addEventListener('click', function(e) {
             console.log('Add row button clicked');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>
-                    <input type="text" class="form-control form-control-sm" 
+                    <input type="text" class="form-control form-control-sm"
                            name="ltv_range_${rowCounter}" placeholder="e.g. 80.01-85">
                 </td>
                 <td>
                     <div class="input-group input-group-sm">
-                        <input type="number" class="form-control" name="ltv_rate_${rowCounter}" 
+                        <input type="number" class="form-control" name="ltv_rate_${rowCounter}"
                                step="0.001" min="0" max="2" value="0.000">
                         <span class="input-group-text">%</span>
                     </div>
@@ -144,13 +144,13 @@
                 </td>
             `;
             ltvRatesTable.appendChild(newRow);
-            
+
             // Attach event listener to new remove button
             newRow.querySelector('.remove-row').addEventListener('click', handleRemoveRow);
-            
+
             rowCounter++;
         });
-        
+
         // Remove row handler
         function handleRemoveRow(e) {
             console.log('Remove row button clicked');
@@ -159,24 +159,24 @@
                 row.remove();
             }
         }
-        
+
         // Attach event listeners to existing remove buttons
         document.querySelectorAll('.remove-row').forEach(button => {
             button.addEventListener('click', handleRemoveRow);
         });
-        
+
         // Handle form submission
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             console.log('Form submitted');
-            
+
             // Show processing state
             document.getElementById('saveChangesBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
             document.getElementById('saveChangesBtn').disabled = true;
-            
+
             // Use FormData for simple form submission
             const formData = new FormData(form);
-            
+
             // Send request
             fetch(form.action, {
                 method: 'POST',
@@ -185,11 +185,11 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Response:', data);
-                
+
                 // Reset button
                 document.getElementById('saveChangesBtn').innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
                 document.getElementById('saveChangesBtn').disabled = false;
-                
+
                 // Show success/error message
                 statusAlert.classList.remove('d-none', 'alert-success', 'alert-danger');
                 if (data.success) {
@@ -199,22 +199,22 @@
                     statusAlert.classList.add('alert-danger');
                     statusAlert.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Error: ' + (data.error || 'Could not save PMI rates');
                 }
-                
+
                 // Scroll to alert
                 statusAlert.scrollIntoView({behavior: 'smooth'});
             })
             .catch(error => {
                 console.error('Error:', error);
-                
+
                 // Reset button
                 document.getElementById('saveChangesBtn').innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
                 document.getElementById('saveChangesBtn').disabled = false;
-                
+
                 // Show error message
                 statusAlert.classList.remove('d-none', 'alert-success', 'alert-danger');
                 statusAlert.classList.add('alert-danger');
                 statusAlert.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Error: Could not save PMI rates';
-                
+
                 // Scroll to alert
                 statusAlert.scrollIntoView({behavior: 'smooth'});
             });
