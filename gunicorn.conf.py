@@ -11,8 +11,8 @@ backlog = 2048
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = 'sync'
 worker_connections = 1000
-timeout = 30
-keepalive = 2
+timeout = 120  # Increased from 30 to 120 seconds
+keepalive = 65  # Increased from 2 to 65 seconds
 
 # SSL/TLS Configuration
 keyfile = None  # Handled by Render

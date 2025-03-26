@@ -1,8 +1,11 @@
 import json
 import logging
 import os
+import importlib
+import sys
 from datetime import datetime, timedelta
 from functools import wraps
+import time
 
 from dotenv import load_dotenv
 from flask import (
@@ -26,17 +29,49 @@ from chat_routes import chat_bp
 from config_factory import get_config
 from config_manager import ConfigManager
 from forms import LoginForm
+from health_check import health_bp
 
 # Configure logging early
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info("Application module loading")
 
+def force_reload_version():
+    """
+    Force reload VERSION module to get the correct version
+    This prevents issues with cached versions across different Python installations
+    """
+    try:
+        # Clear any cached version module
+        if 'VERSION' in sys.modules:
+            logger.info("Reloading VERSION module to ensure correct version")
+            importlib.reload(sys.modules['VERSION'])
+        else:
+            logger.info("Importing VERSION module for the first time")
+            import VERSION
+    
+        # Get and log the version number
+        from VERSION import VERSION as app_version
+        logger.info(f"Application version: {app_version}")
+        return app_version
+    except Exception as e:
+        logger.error(f"Error loading version information: {str(e)}")
+        return "unknown"
+
+# Force reload VERSION to ensure we have the correct version
+current_version = force_reload_version()
+
+# Create timestamp for cache busting
+cache_timestamp = int(datetime.now().timestamp())
+
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+app.version = current_version  # Store version in app object for template access
+app.config["VERSION"] = current_version  # Also store in config
+app.config["CACHE_BUSTER"] = f"{current_version}.{cache_timestamp}"  # Create cache buster string
 
 # Load configuration based on environment
 app_config = get_config()
@@ -70,29 +105,39 @@ if hasattr(app_config, "init_app"):
 # Make config settings available to templates
 @app.context_processor
 def inject_config():
-    return {"config": app.config}
+    return {
+        "app_version": app.version,
+        "cache_buster": app.config["CACHE_BUSTER"],
+        "config": app.config
+    }
 
 
 # Add response header to prevent caching
 @app.after_request
 def add_header(response):
-    # Security and caching headers
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    # Force browser to clear cache with stronger headers
+    timestamp = int(time.time())
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
+    response.headers["X-Cache-Bust"] = str(timestamp)
+    
+    # Add clear Site-Data header on main page to force cache reset
+    if request.path == "/":
+        response.headers["Clear-Site-Data"] = '"cache", "cookies", "storage"'
 
     # Add Content Security Policy that allows both cdn.jsdelivr.net and cdnjs.cloudflare.com
     if request.path.startswith("/admin"):
         # Apply stricter CSP for admin routes
         response.headers[
             "Content-Security-Policy"
-        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
+        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
     else:
         # Regular CSP for user-facing routes
         response.headers[
             "Content-Security-Policy"
-        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
-
+        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
+    
     # Set proper referrer policy
     response.headers["Referrer-Policy"] = "same-origin"
 
@@ -361,27 +406,46 @@ def calculate_max_seller_contribution(
             occupancy, []
         )
 
+        app.logger.debug(f"Checking occupancy limits: {occupancy_limits}")
+        app.logger.debug(f"Current LTV ratio: {ltv_ratio:.2f}%")
+
         # Find the applicable limit based on LTV
         for limit in occupancy_limits:
             ltv_range = limit.get("ltv_range", "")
+            app.logger.debug(f"Checking LTV range: {ltv_range}")
+
+            # Handle "Any LTV" case
+            if ltv_range.lower() == "any ltv":
+                max_contribution_pct = limit.get("max_contribution", 0)
+                app.logger.debug(f"Matched 'Any LTV' range, max: {max_contribution_pct}%")
+                break
 
             # Parse LTV range and check if current LTV falls within it
-            if "≤" in ltv_range and ltv_ratio <= float(
-                ltv_range.replace("≤", "").replace("%", "").strip()
-            ):
-                max_contribution_pct = limit.get("max_contribution", 0)
-                break
-            elif ">" in ltv_range and ltv_ratio > float(
-                ltv_range.replace(">", "").replace("%", "").strip()
-            ):
-                max_contribution_pct = limit.get("max_contribution", 0)
-                break
+            if "≤" in ltv_range:
+                # Less than or equal to
+                threshold = float(ltv_range.replace("≤", "").replace("%", "").strip())
+                app.logger.debug(f"Checking if {ltv_ratio:.2f}% ≤ {threshold}%")
+                if ltv_ratio <= threshold:
+                    max_contribution_pct = limit.get("max_contribution", 0)
+                    app.logger.debug(f"Matched ≤ range, max: {max_contribution_pct}%")
+                    break
+            elif ">" in ltv_range:
+                # Greater than
+                threshold = float(ltv_range.replace(">", "").replace("%", "").strip())
+                app.logger.debug(f"Checking if {ltv_ratio:.2f}% > {threshold}%")
+                if ltv_ratio > threshold:
+                    max_contribution_pct = limit.get("max_contribution", 0)
+                    app.logger.debug(f"Matched > range, max: {max_contribution_pct}%")
+                    break
             elif "-" in ltv_range:
+                # Range between two values
                 parts = ltv_range.replace("%", "").split("-")
                 lower = float(parts[0].strip())
                 upper = float(parts[1].strip())
+                app.logger.debug(f"Checking if {lower}% ≤ {ltv_ratio:.2f}% ≤ {upper}%")
                 if lower <= ltv_ratio <= upper:
                     max_contribution_pct = limit.get("max_contribution", 0)
+                    app.logger.debug(f"Matched range {lower}%-{upper}%, max: {max_contribution_pct}%")
                     break
     else:
         # For FHA, USDA, use the all_types category
@@ -399,6 +463,44 @@ def calculate_max_seller_contribution(
     )
 
     return max_contribution_amount
+
+
+# Add a route to calculate maximum seller contribution
+@app.route('/calculate-max-seller-contribution', methods=['POST'])
+def max_seller_contribution_api():
+    """API endpoint to calculate the maximum allowed seller contribution"""
+    try:
+        # Parse input from JSON request
+        data = request.get_json()
+        app.logger.info(f"Max seller contribution request received: {data}")
+        
+        # Extract parameters
+        loan_type = data.get('loan_type', 'conventional')
+        purchase_price = float(data.get('purchase_price', 0))
+        down_payment_amount = float(data.get('down_payment_amount', 0))
+        occupancy = data.get('occupancy', 'primary_residence')
+        
+        app.logger.info(f"Calculating max seller contribution for: loan_type={loan_type}, purchase_price={purchase_price}, down_payment={down_payment_amount}, occupancy={occupancy}")
+        
+        # Calculate maximum seller contribution
+        max_contribution = calculate_max_seller_contribution(
+            loan_type, purchase_price, down_payment_amount, occupancy
+        )
+        
+        app.logger.info(f"Max seller contribution calculated: {max_contribution}")
+        
+        # Return result as JSON
+        return jsonify({
+            'max_contribution': max_contribution,
+            'status': 'success'
+        })
+    
+    except Exception as e:
+        app.logger.error(f"Error calculating max seller contribution: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 400
 
 
 # Configure logging
@@ -426,6 +528,8 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 # Register beta testing blueprint
 app.register_blueprint(beta_bp)
+# Register health check blueprint
+app.register_blueprint(health_bp)
 app.config_manager = config_manager
 
 
@@ -473,7 +577,8 @@ def index():
             "index.html",
             params=params,
             limits=limits,
-            version=getattr(app, "version", "Unknown"),
+            version=app.version,
+            cache_buster=app.config["CACHE_BUSTER"]
         )
     except Exception as e:
         app.logger.error(f"Error in index route: {str(e)}")
