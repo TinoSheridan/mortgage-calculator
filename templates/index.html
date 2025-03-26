@@ -216,7 +216,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Mortgage Calculator <small class="text-muted">v1.9.6</small></h1>
+    <h1 class="text-center mb-4">Mortgage Calculator <small class="text-muted">v{{ app_version }}</small></h1>
 
     <div class="row">
         <!-- Form Column -->
@@ -295,12 +295,12 @@
                         <hr>
                         <div class="form-group mb-1">
                             <label for="annual_tax_rate" class="form-label">Property Tax Rate (%)</label>
-                            <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate" step="0.01" min="0" max="5" value="1.2" required>
+                            <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate" step="0.01" min="0" max="5" value="1.3" required>
                         </div>
 
                         <div class="form-group mb-1">
                             <label for="annual_insurance_rate" class="form-label">Insurance Rate (%)</label>
-                            <input type="number" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate" step="0.01" min="0" max="2" value="0.35" required>
+                            <input type="number" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate" step="0.01" min="0" max="2" value="1.1" required>
                         </div>
 
                         <div class="form-group mb-1">
@@ -328,6 +328,7 @@
                         <div class="form-group mb-1">
                             <label for="seller_credit" class="form-label">Seller Credit ($)</label>
                             <input type="number" class="form-control" id="seller_credit" name="seller_credit" step="100" min="0" value="0">
+                            <small id="maxSellerContribution" class="form-text text-info">Max contribution will be displayed when you calculate results</small>
                         </div>
 
                         <div class="form-group mb-1">
@@ -536,7 +537,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/calculator.js') }}"></script>
+<script src="{{ url_for('static', filename='js/calculator.js') }}?v={{ cache_buster }}"></script>
+<!-- Test script removed after validating abbreviation functionality -->
+<!-- <script src="{{ url_for('static', filename='js/test_abbreviations.js') }}?v=1.0.1"></script> -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const debugToggle = document.getElementById('debugToggle');

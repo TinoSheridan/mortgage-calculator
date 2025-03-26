@@ -1,6 +1,7 @@
 import copy
 import logging
-from calendar import monthrange
+from calendar import monthrange, isleap
+import calendar
 from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Dict, Optional
@@ -1100,8 +1101,17 @@ class MortgageCalculator:
                 monthly_tax * config["months_tax_prepaid"], 2
             )
             prepaid["tax_escrow"] = round(monthly_tax * config["months_tax_escrow"], 2)
+            
+            # Calculate tax escrow adjustment assuming taxes are due in December
+            tax_adjustment = 0
+            if closing_date:
+                tax_adjustment = self._calculate_tax_escrow_adjustment(closing_date, monthly_tax)
+                self.logger.info(f"Tax escrow adjustment calculated: ${tax_adjustment:.2f}")
+                if tax_adjustment != 0:
+                    prepaid["tax_escrow_adjustment"] = tax_adjustment
+            
             self.logger.info(
-                f"Property tax calculations: monthly=${monthly_tax:.2f}, prepaid=${prepaid['prepaid_tax']:.2f}, escrow=${prepaid['tax_escrow']:.2f}"
+                f"Property tax calculations: monthly=${monthly_tax:.2f}, prepaid=${prepaid['prepaid_tax']:.2f}, escrow=${prepaid['tax_escrow']:.2f}, adjustment=${tax_adjustment:.2f}"
             )
 
             # 3. Calculate prepaid homeowner's insurance
@@ -1124,6 +1134,60 @@ class MortgageCalculator:
         except Exception as e:
             self.logger.error(f"Error in calculate_prepaid_items: {str(e)}")
             raise
+
+    def _calculate_tax_escrow_adjustment(self, closing_date, monthly_tax: float) -> float:
+        """
+        Calculate tax escrow adjustment for Georgia properties where taxes are paid in arrears.
+        
+        In Georgia, property taxes are typically paid in arrears (for the previous year).
+        The seller provides the buyer with a credit at closing for the portion of the year 
+        the seller owned the property. This ensures the buyer has funds to pay the full 
+        tax bill when it comes due.
+        
+        Formula: 
+        Property Tax Adjustment = (Annual Property Tax Amount × Days Seller Owned Property in Tax Year ÷ 365) - Any Prepaid Taxes
+        
+        Parameters:
+            closing_date: The closing date of the loan
+            monthly_tax: The monthly tax amount
+        
+        Returns:
+            float: The tax escrow adjustment amount (negative value represents credit to buyer)
+        """
+        try:
+            # If no closing date, no adjustment
+            if not closing_date:
+                return 0
+            
+            # Calculate the annual tax amount
+            annual_tax = monthly_tax * 12
+            
+            # Calculate days in year and days seller owned property
+            days_in_year = 366 if calendar.isleap(closing_date.year) else 365
+            days_seller_owned = closing_date.timetuple().tm_yday
+            
+            # Calculate seller's portion of annual taxes (Georgia formula)
+            seller_tax_responsibility = annual_tax * (days_seller_owned / days_in_year)
+            
+            # In Georgia, this amount becomes a credit to the buyer
+            # A negative value represents a credit to the buyer
+            adjustment = -seller_tax_responsibility
+            
+            # Log the calculation process
+            self.logger.info(
+                f"Tax escrow adjustment calculation (Georgia method): Closing date={closing_date}, "
+                f"Days in year={days_in_year}, Days seller owned={days_seller_owned}, "
+                f"Annual tax amount=${annual_tax:.2f}, "
+                f"Seller tax responsibility=${seller_tax_responsibility:.2f}, "
+                f"Adjustment (credit to buyer)=${adjustment:.2f}"
+            )
+            
+            # Return the rounded adjustment
+            return round(adjustment, 2)
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating tax escrow adjustment: {str(e)}")
+            return 0
 
     def generate_amortization_data(
         self, principal: float, annual_rate: float, years: int
