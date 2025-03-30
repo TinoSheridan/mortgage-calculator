@@ -128,7 +128,7 @@ function updatePrepaidsTable(prepaids) {
     if (typeof prepaids === 'object' && prepaids !== null) {
         // First, add all items except tax_escrow_adjustment (to display it after tax_escrow)
         let taxEscrowAdjustment = null;
-        
+
         for (const [key, amount] of Object.entries(prepaids)) {
             if (key !== 'total' && typeof amount === 'number') {
                 // Handle tax escrow adjustment separately to place it right after tax escrow
@@ -136,7 +136,7 @@ function updatePrepaidsTable(prepaids) {
                     taxEscrowAdjustment = amount;
                     continue;
                 }
-                
+
                 total += amount;
 
                 // Format the item name for display
@@ -151,60 +151,60 @@ function updatePrepaidsTable(prepaids) {
                     <td style="font-weight: normal;">${formatCurrency(amount)}</td>
                 `;
                 tbody.appendChild(row);
-                
+
                 // If this was the tax escrow row and we have an adjustment, add it right after
                 if (key === 'tax_escrow' && taxEscrowAdjustment !== null) {
                     total += taxEscrowAdjustment;
-                    
+
                     let adjustmentLabel = "Tax Escrow Adjustment (Dec)";
                     // If it's negative, it's a credit (seller's tax responsibility)
                     if (taxEscrowAdjustment < 0) {
                         adjustmentLabel = "Tax Escrow Credit (Seller's Portion)";
                     }
-                    
+
                     const adjustmentRow = document.createElement('tr');
                     adjustmentRow.innerHTML = `
                         <td style="font-weight: normal;">${adjustmentLabel}</td>
                         <td style="font-weight: normal;">${formatCurrency(taxEscrowAdjustment)}</td>
                     `;
-                    
+
                     // Add styling based on whether it's a credit or additional payment
                     if (taxEscrowAdjustment < 0) {
                         adjustmentRow.style.backgroundColor = "#e8f5e9"; // Light green for credits
                     } else if (taxEscrowAdjustment > 1000) {
                         adjustmentRow.style.backgroundColor = "#fffde7"; // Light yellow for significant additions
                     }
-                    
+
                     tbody.appendChild(adjustmentRow);
                     taxEscrowAdjustment = null; // Mark as processed
                 }
             }
         }
-        
+
         // If for some reason we didn't process the tax escrow adjustment above (no tax_escrow item),
         // add it at the end
         if (taxEscrowAdjustment !== null) {
             total += taxEscrowAdjustment;
-            
+
             let adjustmentLabel = "Tax Escrow Adjustment (Dec)";
             // If it's negative, it's a credit (seller's tax responsibility)
             if (taxEscrowAdjustment < 0) {
                 adjustmentLabel = "Tax Escrow Credit (Seller's Portion)";
             }
-            
+
             const adjustmentRow = document.createElement('tr');
             adjustmentRow.innerHTML = `
                 <td style="font-weight: normal;">${adjustmentLabel}</td>
                 <td style="font-weight: normal;">${formatCurrency(taxEscrowAdjustment)}</td>
             `;
-            
+
             // Add styling based on whether it's a credit or additional payment
             if (taxEscrowAdjustment < 0) {
                 adjustmentRow.style.backgroundColor = "#e8f5e9"; // Light green for credits
             } else if (taxEscrowAdjustment > 1000) {
                 adjustmentRow.style.backgroundColor = "#fffde7"; // Light yellow for significant additions
             }
-            
+
             tbody.appendChild(adjustmentRow);
         }
     } else if (typeof prepaids === 'number') {
@@ -475,7 +475,7 @@ function updateResults(result) {
 
         // Update cash needed at closing card
         updateCashNeededAtClosing(result);
-        
+
         // Update max seller contribution display
         updateMaxSellerContributionDisplay(result);
 
@@ -495,12 +495,12 @@ function updateMaxSellerContributionDisplay(result) {
     try {
         const maxContributionElement = document.getElementById('maxSellerContribution');
         if (!maxContributionElement) return;
-        
+
         // If we have loan details with max seller contribution
         if (result && result.loan_details && result.loan_details.max_seller_contribution !== undefined) {
             const maxContribution = parseFloat(result.loan_details.max_seller_contribution);
             const purchasePrice = parseFloat(document.getElementById('purchase_price').value) || 0;
-            
+
             // Format as currency
             const formatter = new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -508,7 +508,7 @@ function updateMaxSellerContributionDisplay(result) {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             });
-            
+
             // Special case for VA loans
             if (maxContribution > 999999) {
                 maxContributionElement.textContent = `Max contribution: Unlimited for closing costs, ${formatter.format(purchasePrice * 0.04)} for concessions`;
@@ -516,7 +516,7 @@ function updateMaxSellerContributionDisplay(result) {
                 const percentage = (maxContribution / purchasePrice * 100).toFixed(1);
                 maxContributionElement.textContent = `Max contribution: ${formatter.format(maxContribution)} (${percentage}% of purchase price)`;
             }
-            
+
             // Apply warning class if seller credit exceeds max
             const sellerCreditExceedsMax = result.loan_details.seller_credit_exceeds_max === true;
             if (sellerCreditExceedsMax) {
@@ -526,7 +526,7 @@ function updateMaxSellerContributionDisplay(result) {
                 maxContributionElement.classList.remove('text-danger');
                 maxContributionElement.classList.add('text-info');
             }
-            
+
             // Debug logging
             console.debug(`Max seller contribution updated: ${maxContribution}, Exceeds max: ${sellerCreditExceedsMax}`);
         } else {
@@ -543,7 +543,7 @@ function updateMaxSellerContributionDisplay(result) {
 // Handle form submission and calculate mortgage details
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM loaded, setting up form handlers");
-    
+
     // Setup mortgage form submission
     const mortgageForm = document.getElementById('mortgageForm');
     if (mortgageForm) {
@@ -684,7 +684,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 safelyUpdateElement('ltv', result.loan_details.ltv, formatPercentage);
 
-                // Update monthly payment
+                // Update Loan Type field with user-friendly name
+                const loanTypeElement = document.getElementById('loanType');
+                if (loanTypeElement) {
+                    // Get the raw loan type and format it for display
+                    const rawLoanType = result.loan_details.loan_type || formDataObj.loan_type;
+                    let displayLoanType = 'Not specified';
+
+                    // Convert the loan type to a user-friendly format
+                    if (rawLoanType) {
+                        switch(rawLoanType.toLowerCase()) {
+                            case 'conventional':
+                                displayLoanType = 'Conventional';
+                                break;
+                            case 'fha':
+                                displayLoanType = 'FHA';
+                                break;
+                            case 'va':
+                                displayLoanType = 'VA';
+                                break;
+                            case 'usda':
+                                displayLoanType = 'USDA';
+                                break;
+                            default:
+                                displayLoanType = rawLoanType.charAt(0).toUpperCase() + rawLoanType.slice(1);
+                        }
+                    }
+
+                    loanTypeElement.textContent = displayLoanType;
+                }
+
+                // Update Property Type field with user-friendly name
+                const propertyTypeElement = document.getElementById('propertyType');
+                if (propertyTypeElement) {
+                    // Get the raw property type (occupancy) and format it for display
+                    const rawPropertyType = result.loan_details.occupancy || formDataObj.occupancy;
+                    let displayPropertyType = 'Not specified';
+
+                    // Convert the property type to a user-friendly format
+                    if (rawPropertyType) {
+                        switch(rawPropertyType) {
+                            case 'primary_residence':
+                                displayPropertyType = 'Primary Residence';
+                                break;
+                            case 'second_home':
+                                displayPropertyType = 'Second Home';
+                                break;
+                            case 'investment_property':
+                                displayPropertyType = 'Investment Property';
+                                break;
+                            default:
+                                displayPropertyType = rawPropertyType
+                                    .split('_')
+                                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(' ');
+                        }
+                    }
+
+                    propertyTypeElement.textContent = displayPropertyType;
+                }
+
                 safelyUpdateElement('principalAndInterest', result.monthly_breakdown.principal_interest, formatCurrency);
                 safelyUpdateElement('propertyTax', result.monthly_breakdown.property_tax, formatCurrency);
                 safelyUpdateElement('homeInsurance', result.monthly_breakdown.home_insurance, formatCurrency);
@@ -736,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loanTypeSelect) {
         loanTypeSelect.addEventListener('change', handleLoanTypeChange);
     }
-    
+
     // Initialize UI based on current loan type
     handleLoanTypeChange();
 });
@@ -745,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleLoanTypeChange() {
     const loanTypeSelect = document.getElementById('loan_type');
     if (!loanTypeSelect) return;
-    
+
     const vaOptions = document.getElementById('vaOptions');
     if (vaOptions) {
         if (loanTypeSelect.value === 'va') {
@@ -759,10 +818,10 @@ function handleLoanTypeChange() {
 // Function to abbreviate mortgage labels intelligently
 function abbreviateMortgageLabel(label, maxLength = 25) {
     if (!label) return '';
-    
+
     // Clean the label
     const cleanLabel = label.trim().replace(/:$/, '').toLowerCase();
-    
+
     // Direct abbreviation mapping for common mortgage terms
     if (cleanLabel === 'total monthly payment') return 'Tot Monthly Pmt';
     if (cleanLabel === 'owners title insurance' || cleanLabel === 'owner\'s title insurance') return 'Owner Title Ins';
@@ -788,20 +847,21 @@ function abbreviateMortgageLabel(label, maxLength = 25) {
     if (cleanLabel === 'interest rate') return 'Int Rate';
     if (cleanLabel === 'total prepaids') return 'Tot Prepaids';
     if (cleanLabel === 'total credits') return 'Tot Credits';
-    
+
     // If the label is still too long, truncate it
     if (label.length > maxLength) {
         return label.substring(0, maxLength - 3) + '...';
     }
-    
+
     // If no abbreviation is defined, return the original
     return label;
 }
 
 // Function to format mortgage calculation results for clipboard
 function formatResultsForClipboard() {
-    // Define column width for label alignment
-    const LABEL_WIDTH = 30;
+    // Define column width for label alignment - reduce spacing
+    const LABEL_WIDTH = 25;   // Reduced width for labels
+    const VALUE_WIDTH = 12;   // Width for values
 
     let resultsText = "MORTGAGE CALCULATION SUMMARY\n";
     resultsText += "============================\n\n";
@@ -809,103 +869,108 @@ function formatResultsForClipboard() {
     // Loan details section - directly use abbreviated terms
     resultsText += "LOAN DETAILS\n";
     resultsText += "===========\n";
-    
-    // Get loan details elements and use direct abbreviations
+
+    // Helper function for consistent right-aligned formatting in plain text
+    function formatRow(label, value) {
+        // Ensure the label fits within LABEL_WIDTH
+        let displayLabel = label;
+        if (displayLabel.length > LABEL_WIDTH - 2) {
+            displayLabel = displayLabel.substring(0, LABEL_WIDTH - 2);
+        }
+
+        // Calculate spaces needed for alignment
+        const spaces = LABEL_WIDTH - displayLabel.length;
+
+        // Create the row with proper alignment
+        return `${displayLabel}${' '.repeat(spaces)}${value}\n`;
+    }
+
+    // Get loan details elements using the correct IDs from HTML
     const purchasePrice = document.getElementById('purchasePrice')?.textContent || '';
     const loanAmount = document.getElementById('loanAmount')?.textContent || '';
-    const downPayment = document.getElementById('downPayment')?.textContent || '';
+    const downPayment = document.getElementById('downPaymentAmount')?.textContent || '';
     const interestRate = document.getElementById('interestRate')?.textContent || '';
     const loanTerm = document.getElementById('loanTerm')?.textContent || '';
     const loanType = document.getElementById('loanType')?.textContent || '';
     const propertyType = document.getElementById('propertyType')?.textContent || '';
-    
-    // Use direct abbreviations for loan details
-    resultsText += `Purch Price               ${purchasePrice}\n`;
-    resultsText += `Loan Amt                  ${loanAmount}\n`;
-    resultsText += `Down Pmt                  ${downPayment}\n`;
-    resultsText += `Int Rate                  ${interestRate}\n`;
-    resultsText += `Loan Term                 ${loanTerm}\n`;
-    resultsText += `Loan Type                 ${loanType}\n`;
-    resultsText += `Property Type             ${propertyType}\n\n`;
+
+    // Add loan details section
+    resultsText += formatRow("Purch Price", purchasePrice);
+    resultsText += formatRow("Loan Amt", loanAmount);
+    resultsText += formatRow("Down Pmt", downPayment);
+    resultsText += formatRow("Int Rate", interestRate);
+    resultsText += formatRow("Loan Term", loanTerm);
+    resultsText += formatRow("Loan Type", loanType);
+    resultsText += formatRow("Property Type", propertyType);
+    resultsText += "\n";
 
     // Monthly Payment section - directly use abbreviated terms
     resultsText += "MONTHLY PAYMENT\n";
     resultsText += "==============\n";
-    
-    const principalInterest = document.getElementById('principalInterest')?.textContent || '';
-    const propertyTax = document.getElementById('propertyTax')?.textContent || '';
-    const homeownersInsurance = document.getElementById('homeownersInsurance')?.textContent || '';
-    const mortgageInsurance = document.getElementById('mortgageInsurance')?.textContent || '';
-    const hoa = document.getElementById('hoa')?.textContent || '';
-    const totalMonthlyPayment = document.getElementById('totalMonthlyPayment')?.textContent || '';
-    
-    // Use direct abbreviations for monthly payment
-    resultsText += `P&I                       ${principalInterest}\n`;
-    resultsText += `Prop Tax                  ${propertyTax}\n`;
-    resultsText += `Insurance                 ${homeownersInsurance}\n`;
-    if (mortgageInsurance && mortgageInsurance.trim() !== '$0') {
-        resultsText += `PMI                       ${mortgageInsurance}\n`;
-    }
-    if (hoa && hoa.trim() !== '$0') {
-        resultsText += `HOA                       ${hoa}\n`;
-    }
-    resultsText += `Tot Monthly Pmt           ${totalMonthlyPayment}\n\n`;
 
-    // Cash to Close section - directly use abbreviated terms
-    const downPaymentAmount = document.getElementById('downPaymentAmount')?.textContent || '';
-    const totalClosingCosts = document.getElementById('totalClosingCostsValue')?.textContent || '';
-    const totalCashToClose = document.getElementById('totalCashToClose')?.textContent || '';
-    
+    // Use the correct element IDs from the HTML
+    const principalInterest = document.getElementById('principalAndInterest')?.textContent || '';
+    const propertyTax = document.getElementById('propertyTax')?.textContent || '';
+    const homeownersInsurance = document.getElementById('homeInsurance')?.textContent || '';
+    const mortgageInsurance = document.getElementById('pmi')?.textContent || '';
+    const hoa = document.getElementById('hoaFee')?.textContent || '';
+    const totalMonthlyPayment = document.getElementById('totalMonthlyPayment')?.textContent || '';
+
+    // Add monthly payment section
+    resultsText += formatRow("P&I", principalInterest);
+    resultsText += formatRow("Prop Tax", propertyTax);
+    resultsText += formatRow("Insurance", homeownersInsurance);
+
+    if (mortgageInsurance && mortgageInsurance.trim() !== '$0' && mortgageInsurance.trim() !== '$0.00') {
+        resultsText += formatRow("PMI", mortgageInsurance);
+    }
+
+    if (hoa && hoa.trim() !== '$0' && hoa.trim() !== '$0.00') {
+        resultsText += formatRow("HOA", hoa);
+    }
+
+    resultsText += formatRow("Tot Monthly Pmt", totalMonthlyPayment);
+    resultsText += "\n";
+
+    // Cash to Close section
+    const totalClosingCosts = document.getElementById('totalClosingCosts')?.textContent || '';
+    const totalPrepaids = document.getElementById('totalPrepaids')?.textContent || '';
+    const totalCashToClose = document.getElementById('totalCashNeeded')?.textContent || '';
+
+    // Get credits information
+    const sellerCreditElement = document.querySelector('#creditsTable tr:nth-child(1) td:nth-child(2)');
+    const lenderCreditElement = document.querySelector('#creditsTable tr:nth-child(2) td:nth-child(2)');
+
+    const sellerCredit = sellerCreditElement ? sellerCreditElement.textContent.trim() : '$0.00';
+    const lenderCredit = lenderCreditElement ? lenderCreditElement.textContent.trim() : '$0.00';
+
+    // Format credits with parentheses to indicate negative values
+    const formattedSellerCredit = sellerCredit !== '$0.00' ? `(${sellerCredit})` : sellerCredit;
+    const formattedLenderCredit = lenderCredit !== '$0.00' ? `(${lenderCredit})` : lenderCredit;
+
     resultsText += "CASH TO CLOSE\n";
     resultsText += "============\n";
-    resultsText += `Down Pmt                  ${downPaymentAmount}\n`;
-    resultsText += `Tot Closing               ${totalClosingCosts}\n`;
-    resultsText += `Cash to Close             ${totalCashToClose}\n\n`;
+    resultsText += formatRow("Down Pmt", downPayment);
+    resultsText += formatRow("Closing Costs", totalClosingCosts);
+    resultsText += formatRow("Prepaids", totalPrepaids);
+
+    // Only show credits if they exist
+    if (sellerCredit && sellerCredit !== '$0.00') {
+        resultsText += formatRow("Seller Credit", formattedSellerCredit);
+    }
+
+    if (lenderCredit && lenderCredit !== '$0.00') {
+        resultsText += formatRow("Lender Credit", formattedLenderCredit);
+    }
+
+    resultsText += formatRow("Cash to Close", totalCashToClose);
+    resultsText += "\n";
 
     // Add calculation timestamp
     const date = new Date();
     resultsText += `Calculated on: ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}\n`;
-    
-    return resultsText;
-}
 
-// Function to directly format labels for clipboard with abbreviations
-function formatLabel(label, width = 30) {
-    // Clean the label
-    const cleanLabel = label.trim().replace(/:$/, '').toLowerCase();
-    
-    // Direct abbreviation mapping
-    let abbr = label.trim().replace(/:$/, '');
-    
-    // Map common terms to their abbreviations
-    if (cleanLabel === 'total monthly payment') abbr = 'Tot Monthly Pmt';
-    else if (cleanLabel === 'owners title insurance') abbr = 'Owner Title Ins';
-    else if (cleanLabel === 'owner\'s title insurance') abbr = 'Owner Title Ins';
-    else if (cleanLabel === 'total closing cost' || cleanLabel === 'total closing costs') abbr = 'Tot Closing';
-    else if (cleanLabel === 'total cash to close' || cleanLabel === 'total cash needed') abbr = 'Cash to Close';
-    else if (cleanLabel === 'principal and interest' || cleanLabel === 'principal & interest') abbr = 'P&I';
-    else if (cleanLabel === 'private mortgage insurance') abbr = 'PMI';
-    else if (cleanLabel === 'mortgage insurance') abbr = 'MI';
-    else if (cleanLabel === 'property tax') abbr = 'Prop Tax';
-    else if (cleanLabel === 'homeowner\'s insurance' || cleanLabel === 'home insurance') abbr = 'Insurance';
-    else if (cleanLabel === 'homeowners association' || cleanLabel === 'homeowner\'s association') abbr = 'HOA';
-    else if (cleanLabel === 'processing fee') abbr = 'Proc Fee';
-    else if (cleanLabel === 'recording fee') abbr = 'Rec Fee';
-    else if (cleanLabel === 'application fee') abbr = 'App Fee';
-    else if (cleanLabel === 'administration fee') abbr = 'Admin Fee';
-    else if (cleanLabel === 'document preparation') abbr = 'Doc Prep';
-    else if (cleanLabel === 'underwriting fee') abbr = 'UW Fee';
-    else if (cleanLabel === 'transfer tax') abbr = 'Trans Tax';
-    else if (cleanLabel.includes('lender') && cleanLabel.includes('title insurance')) abbr = 'Lender Title Ins';
-    else if (cleanLabel === 'down payment') abbr = 'Down Pmt';
-    else if (cleanLabel === 'purchase price') abbr = 'Purch Price';
-    else if (cleanLabel === 'loan amount') abbr = 'Loan Amt';
-    else if (cleanLabel === 'interest rate') abbr = 'Int Rate';
-    else if (cleanLabel === 'total prepaids') abbr = 'Tot Prepaids';
-    else if (cleanLabel === 'total credits') abbr = 'Tot Credits';
-    
-    // Pad the label to the desired width
-    return abbr.padEnd(width);
+    return resultsText;
 }
 
 // Function to format detailed mortgage calculation results including all line items
@@ -1066,15 +1131,15 @@ function formatDetailedResultsForClipboard() {
     resultsText += "TOTAL CASH TO CLOSE\n";
     resultsText += "==================\n";
     resultsText += `Down Pmt                  ${downPaymentValue}\n`;
-    
+
     if (closingCostsTotal) {
         resultsText += `Tot Closing               ${closingCostsTotal}\n`;
     }
-    
+
     if (prepaidsTotal) {
         resultsText += `Tot Prepaids              ${prepaidsTotal}\n`;
     }
-    
+
     if (creditsTotal) {
         resultsText += `Tot Credits               ${creditsTotal}\n`;
     }
@@ -1091,6 +1156,45 @@ function formatDetailedResultsForClipboard() {
     return resultsText;
 }
 
+// Function to directly format labels for clipboard with abbreviations
+function formatLabel(label, width = 30) {
+    // Clean the label
+    const cleanLabel = label.trim().replace(/:$/, '').toLowerCase();
+
+    // Direct abbreviation mapping
+    let abbr = label.trim().replace(/:$/, '');
+
+    // Map common terms to their abbreviations
+    if (cleanLabel === 'total monthly payment') abbr = 'Tot Monthly Pmt';
+    else if (cleanLabel === 'owners title insurance') abbr = 'Owner Title Ins';
+    else if (cleanLabel === 'owner\'s title insurance') abbr = 'Owner Title Ins';
+    else if (cleanLabel === 'total closing cost' || cleanLabel === 'total closing costs') abbr = 'Tot Closing';
+    else if (cleanLabel === 'total cash to close' || cleanLabel === 'total cash needed') abbr = 'Cash to Close';
+    else if (cleanLabel === 'principal and interest' || cleanLabel === 'principal & interest') abbr = 'P&I';
+    else if (cleanLabel === 'private mortgage insurance') abbr = 'PMI';
+    else if (cleanLabel === 'mortgage insurance') abbr = 'MI';
+    else if (cleanLabel === 'property tax') abbr = 'Prop Tax';
+    else if (cleanLabel === 'homeowner\'s insurance' || cleanLabel === 'home insurance') abbr = 'Insurance';
+    else if (cleanLabel === 'homeowners association' || cleanLabel === 'homeowner\'s association') abbr = 'HOA';
+    else if (cleanLabel === 'processing fee') abbr = 'Proc Fee';
+    else if (cleanLabel === 'recording fee') abbr = 'Rec Fee';
+    else if (cleanLabel === 'application fee') abbr = 'App Fee';
+    else if (cleanLabel === 'administration fee') abbr = 'Admin Fee';
+    else if (cleanLabel === 'document preparation') abbr = 'Doc Prep';
+    else if (cleanLabel === 'underwriting fee') abbr = 'UW Fee';
+    else if (cleanLabel === 'transfer tax') abbr = 'Trans Tax';
+    else if (cleanLabel.includes('lender') && cleanLabel.includes('title insurance')) abbr = 'Lender Title Ins';
+    else if (cleanLabel === 'down payment') abbr = 'Down Pmt';
+    else if (cleanLabel === 'purchase price') abbr = 'Purch Price';
+    else if (cleanLabel === 'loan amount') abbr = 'Loan Amt';
+    else if (cleanLabel === 'interest rate') abbr = 'Int Rate';
+    else if (cleanLabel === 'total prepaids') abbr = 'Tot Prepaids';
+    else if (cleanLabel === 'total credits') abbr = 'Tot Credits';
+
+    // Pad the label to the desired width
+    return abbr.padEnd(width);
+}
+
 // Initialize the copy to clipboard functionality when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Setup summary copy button
@@ -1099,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         copyButton.addEventListener('click', function() {
             // Generate results text
             const resultsText = formatResultsForClipboard();
-            
+
             // Use the Clipboard API to copy text
             navigator.clipboard.writeText(resultsText)
                 .then(() => {
@@ -1120,14 +1224,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
-    
+
     // Setup detailed results copy button
     const copyDetailedButton = document.getElementById('copyDetailBtn');
     if (copyDetailedButton) {
         copyDetailedButton.addEventListener('click', function() {
             // Generate detailed results text
             const detailedResultsText = formatDetailedResultsForClipboard();
-            
+
             // Use the Clipboard API to copy text
             navigator.clipboard.writeText(detailedResultsText)
                 .then(() => {

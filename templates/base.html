@@ -4,13 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}Enhanced Mortgage Calculator{% endblock %}</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="{{ app_version }}">
+    <meta name="timestamp" content="{{ config.CACHE_BUSTER }}">
+    <title>{% block title %}Enhanced Mortgage Calculator{% endblock %} v2.0.1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/chat.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}?v={{ app_version }}.{{ config.CACHE_BUSTER }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/chat.css') }}?v={{ app_version }}.{{ config.CACHE_BUSTER }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -61,7 +66,7 @@
     <div id="chatToggle" class="chat-toggle">
         <i class="fas fa-comments"></i>
     </div>
-    
+
     <div id="chatPanel" class="chat-panel">
         <div class="chat-header">
             <h5>Support Chat</h5>
@@ -80,14 +85,14 @@
 
     <!-- Core JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- App JavaScript -->
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     {% if session.get('admin_logged_in') %}
         <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
         <script src="{{ url_for('static', filename='js/closing_costs_admin.js') }}"></script>
     {% endif %}
-    
+
     <!-- Beta Testing Feedback Button & Modal -->
     {% if config.get('BETA_ENABLED', False) %}
     <div class="feedback-button position-fixed bottom-0 end-0 m-4">
@@ -131,7 +136,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Beta Feedback JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -140,7 +145,7 @@
                 feedbackForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const formData = new FormData(this);
-                    
+
                     fetch('/beta/feedback', {
                         method: 'POST',
                         body: formData,
@@ -155,7 +160,7 @@
                             this.reset();
                             const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
                             modal.hide();
-                            
+
                             // Show success alert
                             const alertDiv = document.createElement('div');
                             alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
@@ -165,7 +170,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             `;
                             document.body.appendChild(alertDiv);
-                            
+
                             // Auto-dismiss after 5 seconds
                             setTimeout(() => {
                                 alertDiv.remove();
@@ -180,7 +185,7 @@
         });
     </script>
     {% endif %}
-    
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
