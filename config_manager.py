@@ -200,41 +200,37 @@ class ConfigManager:
             self.logger.error(f"Error getting last backup time: {e}")
             return "Error checking backup time"
 
-    def backup_config(self):
-        """Create a backup of all configuration files."""
-        try:
-            backup_dir = os.path.join(self.config_dir, "backups")
-            if not os.path.exists(backup_dir):
-                os.makedirs(backup_dir)
+    def get_closing_costs(self):
+        """Get the closing costs configuration.
 
-            # Create 10 backups in quick succession for testing
-            for i in range(10):
-                timestamp = datetime.now().strftime(f"%Y%m%d_%H%M%S_{i}")
-                backup_file = os.path.join(
-                    backup_dir, f"config_backup_{timestamp}.json"
-                )
+        Returns:
+            list: The closing costs configuration as a list of dictionaries
+        """
+        self.logger.debug("Getting closing costs configuration")
+        closing_costs = self.config.get("closing_costs", [])
 
-                with open(backup_file, "w") as f:
-                    json.dump(self.config, f, indent=4)
+        # Ensure we're returning a list, not a string
+        if isinstance(closing_costs, str):
+            self.logger.error(f"Closing costs config is a string: '{closing_costs}'")
+            # Try to parse it as JSON if it looks like JSON
+            if closing_costs.strip().startswith("[") and closing_costs.strip().endswith(
+                "]"
+            ):
+                try:
+                    import json
 
-                self.add_change(
-                    description="Configuration Backup",
-                    details=f"Created backup: config_backup_{timestamp}.json",
-                    user="system",
-                )
+                    parsed = json.loads(closing_costs)
+                    self.logger.info("Successfully parsed closing costs string as JSON")
+                    return parsed
+                except Exception as e:
+                    self.logger.error(
+                        f"Failed to parse closing costs string as JSON: {e}"
+                    )
+                    return []
+            # Default to empty list if not valid JSON
+            return []
 
-            # Clean up old backups (keep last 10)
-            backup_files = sorted(
-                [f for f in os.listdir(backup_dir) if f.endswith(".json")],
-                key=lambda x: os.path.getctime(os.path.join(backup_dir, x)),
-            )
-            for old_backup in backup_files[:-10]:
-                os.remove(os.path.join(backup_dir, old_backup))
-
-            return True
-        except Exception as e:
-            self.logger.error(f"Error creating backup: {e}")
-            return False
+        return closing_costs
 
     def get_config(self):
         """Get the complete configuration"""
@@ -242,7 +238,30 @@ class ConfigManager:
 
     def get_loan_type_config(self, loan_type):
         """Get configuration for a specific loan type"""
-        return self.config.get("loan_types", {}).get(loan_type.lower(), {})
+        # Ensure loan_type is a string
+        loan_type_str = str(loan_type).lower()
+
+        # Get the loan_types dictionary safely
+        loan_types = self.config.get("loan_types", {})
+
+        # Check if loan_types is actually a dictionary
+        if not isinstance(loan_types, dict):
+            self.logger.error(
+                f"loan_types is not a dictionary: {type(loan_types).__name__}"
+            )
+            return {}
+
+        # Get the specific loan type config safely
+        loan_config = loan_types.get(loan_type_str, {})
+
+        # Ensure we're returning a dictionary
+        if not isinstance(loan_config, dict):
+            self.logger.error(
+                f"Config for loan type '{loan_type_str}' is not a dictionary: {type(loan_config).__name__}"
+            )
+            return {}
+
+        return loan_config
 
     def save_config(self, config=None):
         """Save configuration to files"""
@@ -434,3 +453,39 @@ class ConfigManager:
                 "recent_changes": [],
                 "status": "error",
             }
+
+    def backup_config(self):
+        """Create a backup of all configuration files."""
+        try:
+            backup_dir = os.path.join(self.config_dir, "backups")
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+
+            # Create 10 backups in quick succession for testing
+            for i in range(10):
+                timestamp = datetime.now().strftime(f"%Y%m%d_%H%M%S_{i}")
+                backup_file = os.path.join(
+                    backup_dir, f"config_backup_{timestamp}.json"
+                )
+
+                with open(backup_file, "w") as f:
+                    json.dump(self.config, f, indent=4)
+
+                self.add_change(
+                    description="Configuration Backup",
+                    details=f"Created backup: config_backup_{timestamp}.json",
+                    user="system",
+                )
+
+            # Clean up old backups (keep last 10)
+            backup_files = sorted(
+                [f for f in os.listdir(backup_dir) if f.endswith(".json")],
+                key=lambda x: os.path.getctime(os.path.join(backup_dir, x)),
+            )
+            for old_backup in backup_files[:-10]:
+                os.remove(os.path.join(backup_dir, old_backup))
+
+            return True
+        except Exception as e:
+            self.logger.error(f"Error creating backup: {e}")
+            return False

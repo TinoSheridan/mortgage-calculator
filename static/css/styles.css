@@ -62,8 +62,8 @@ body {
     font-size: 1.1rem;
 }
 
-.form-group { 
-    margin-bottom: 0.75rem; 
+.form-group {
+    margin-bottom: 0.75rem;
 }
 
 .form-label {
@@ -196,7 +196,7 @@ select.form-control {
     margin-bottom: 1rem;
 }
 
-.results-card { 
+.results-card {
     display: none;
     margin-bottom: 1rem;
 }

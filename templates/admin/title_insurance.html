@@ -1,0 +1,174 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Admin - Title Insurance Configuration{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Title Insurance Configuration</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('admin.update_title_insurance_config') }}" method="POST" id="title-config-form">
+        {{ csrf_token() }} {# Include CSRF token if using Flask-WTF CSRFProtect #}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                General Settings
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <label for="simultaneous_issuance_fee" class="col-sm-4 col-form-label">Simultaneous Issuance Flat Fee ($)</label>
+                    <div class="col-sm-8">
+                        <input type="number" step="0.01" class="form-control" id="simultaneous_issuance_fee" name="simultaneous_issuance_fee" value="{{ title_config.simultaneous_issuance_fee | default(150.00, true) }}" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="lender_rate_waiver_multiplier" class="col-sm-4 col-form-label">Lender Rate Waiver Multiplier</label>
+                    <div class="col-sm-8">
+                        <input type="number" step="0.01" class="form-control" id="lender_rate_waiver_multiplier" name="lender_rate_waiver_multiplier" value="{{ title_config.lender_rate_waiver_multiplier | default(1.25, true) }}" required>
+                        <small class="form-text text-muted">Multiplier applied to lender's rate if owner's title is waived (e.g., 1.25 means 25% higher).</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Rate Tiers -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Total Title Insurance Rate Tiers (Based on Purchase Price)
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered" id="total-tiers-table">
+                    <thead>
+                        <tr>
+                            <th>Up To Amount ($)</th>
+                            <th>Rate (%)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tier in title_config.total_rates_tiers | default([], true) %}
+                        <tr class="tier-row">
+                            <td><input type="number" class="form-control form-control-sm up-to-input" name="total_tier_up_to_{{ loop.index0 }}" value="{{ tier.up_to if tier.up_to is not none else '' }}" placeholder="Leave blank for highest tier"></td>
+                            <td><input type="number" step="0.001" class="form-control form-control-sm rate-input" name="total_tier_rate_{{ loop.index0 }}" value="{{ tier.rate_percentage | default(0.0, true) }}" required></td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-tier-btn">Remove</button></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-success btn-sm" id="add-total-tier-btn">Add Tier</button>
+                <small class="form-text text-muted d-block mt-2">Tiers apply up to the specified amount. Leave 'Up To Amount' blank for the final tier covering all higher amounts.</small>
+            </div>
+        </div>
+
+        <!-- Lender Simultaneous Rate Tiers -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Lender's Title Insurance Rate Tiers (Simultaneous Issuance, Based on Loan Amount)
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered" id="lender-tiers-table">
+                    <thead>
+                        <tr>
+                            <th>Up To Amount ($)</th>
+                            <th>Rate (%)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tier in title_config.lender_rates_simultaneous_tiers | default([], true) %}
+                        <tr class="tier-row">
+                            <td><input type="number" class="form-control form-control-sm up-to-input" name="lender_tier_up_to_{{ loop.index0 }}" value="{{ tier.up_to if tier.up_to is not none else '' }}" placeholder="Leave blank for highest tier"></td>
+                            <td><input type="number" step="0.001" class="form-control form-control-sm rate-input" name="lender_tier_rate_{{ loop.index0 }}" value="{{ tier.rate_percentage | default(0.0, true) }}" required></td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-tier-btn">Remove</button></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-success btn-sm" id="add-lender-tier-btn">Add Tier</button>
+                <small class="form-text text-muted d-block mt-2">These rates apply when owner's title insurance is also purchased.</small>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        function addTierRow(tableBodyId, namePrefix) {
+            const tableBody = document.getElementById(tableBodyId);
+            const newIndex = tableBody.querySelectorAll('tr.tier-row').length;
+            const newRow = document.createElement('tr');
+            newRow.classList.add('tier-row');
+            newRow.innerHTML = `
+                <td><input type="number" class="form-control form-control-sm up-to-input" name="${namePrefix}_tier_up_to_${newIndex}" placeholder="Leave blank for highest tier"></td>
+                <td><input type="number" step="0.001" class="form-control form-control-sm rate-input" name="${namePrefix}_tier_rate_${newIndex}" required></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-tier-btn">Remove</button></td>
+            `;
+            tableBody.appendChild(newRow);
+            attachRemoveListener(newRow.querySelector('.remove-tier-btn'));
+            updateIndices(tableBodyId, namePrefix);
+        }
+
+        function removeTierRow(button) {
+            const row = button.closest('tr.tier-row');
+            const tableBody = row.closest('tbody');
+            const namePrefix = tableBody.id === 'total-tiers-table-body' ? 'total' : 'lender'; // Determine prefix based on table ID or other means
+            row.remove();
+            updateIndices(tableBody.id, namePrefix); // Pass the correct prefix
+        }
+
+        function updateIndices(tableBodyId, namePrefix) {
+            const tableBody = document.getElementById(tableBodyId);
+            const rows = tableBody.querySelectorAll('tr.tier-row');
+            rows.forEach((row, index) => {
+                const upToInput = row.querySelector('.up-to-input');
+                const rateInput = row.querySelector('.rate-input');
+                if (upToInput) upToInput.name = `${namePrefix}_tier_up_to_${index}`;
+                if (rateInput) rateInput.name = `${namePrefix}_tier_rate_${index}`;
+            });
+        }
+
+        function attachRemoveListener(button) {
+             button.addEventListener('click', function() {
+                removeTierRow(this);
+            });
+        }
+
+        // Add tier buttons
+        document.getElementById('add-total-tier-btn').addEventListener('click', function() {
+            addTierRow('total-tiers-table > tbody', 'total');
+        });
+
+        document.getElementById('add-lender-tier-btn').addEventListener('click', function() {
+            addTierRow('lender-tiers-table > tbody', 'lender');
+        });
+
+        // Attach initial remove listeners
+        document.querySelectorAll('.remove-tier-btn').forEach(attachRemoveListener);
+
+        // Ensure tbody IDs are present if needed for updateIndices logic
+        // (Adjusted addTierRow to use direct table ID instead)
+        // const totalTbody = document.querySelector('#total-tiers-table tbody');
+        // if (totalTbody) totalTbody.id = 'total-tiers-table-body';
+        // const lenderTbody = document.querySelector('#lender-tiers-table tbody');
+        // if (lenderTbody) lenderTbody.id = 'lender-tiers-table-body';
+
+    });
+</script>
+{% endblock %}

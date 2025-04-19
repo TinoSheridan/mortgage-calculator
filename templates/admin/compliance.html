@@ -18,10 +18,10 @@
                         <i class="fas fa-plus me-2"></i> Add Section
                     </button>
                 </div>
-                
+
                 <!-- Alert for notifications -->
                 <div id="complianceAlert" class="alert d-none" role="alert"></div>
-                
+
                 <div class="accordion" id="complianceAccordion">
                     {% if compliance_text %}
                         {% for section, text in compliance_text.items() %}
@@ -122,7 +122,7 @@ function showNotification(element, message, type = 'success') {
     alert.className = `alert alert-${type}`;
     alert.innerHTML = message;
     alert.classList.remove('d-none');
-    
+
     // Auto hide after 5 seconds for success messages
     if (type === 'success') {
         setTimeout(() => {
@@ -145,20 +145,20 @@ function validateForm(formId) {
 function saveSection(section) {
     const textarea = document.querySelector(`textarea[data-section="${section}"]`);
     const text = textarea.value.trim();
-    
+
     // Validate text
     if (text.length < 10) {
         showNotification('complianceAlert', 'Text content must be at least 10 characters', 'danger');
         return;
     }
-    
+
     // Show loading state
     const sectionContent = textarea.closest('.accordion-body');
     const saveBtn = sectionContent.querySelector('.btn-outline-primary');
     const originalBtnText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     saveBtn.disabled = true;
-    
+
     fetch('/admin/compliance/edit/' + encodeURIComponent(section), {
         method: 'POST',
         headers: {
@@ -173,7 +173,7 @@ function saveSection(section) {
         // Reset button state
         saveBtn.innerHTML = originalBtnText;
         saveBtn.disabled = false;
-        
+
         if (data.success) {
             showNotification('complianceAlert', `"${section.replace('_', ' ').toUpperCase()}" section updated successfully`, 'success');
         } else {
@@ -184,7 +184,7 @@ function saveSection(section) {
         // Reset button state
         saveBtn.innerHTML = originalBtnText;
         saveBtn.disabled = false;
-        
+
         showNotification('complianceAlert', `Error: ${error}`, 'danger');
     });
 }
@@ -209,14 +209,14 @@ function deleteSection(section) {
     .then(data => {
         // Hide delete modal
         bootstrap.Modal.getInstance(document.getElementById('deleteSectionModal')).hide();
-        
+
         if (data.success) {
             showNotification('complianceAlert', `Section deleted successfully`, 'success');
-            
+
             // Remove the section from DOM
             const sectionElement = document.querySelector(`button[data-bs-target="#section${section}"]`).closest('.accordion-item');
             sectionElement.remove();
-            
+
             // Reload after short delay if no sections left
             setTimeout(() => {
                 location.reload();
@@ -228,7 +228,7 @@ function deleteSection(section) {
     .catch(error => {
         // Hide delete modal
         bootstrap.Modal.getInstance(document.getElementById('deleteSectionModal')).hide();
-        
+
         showNotification('complianceAlert', `Error: ${error}`, 'danger');
     });
 }
@@ -237,20 +237,20 @@ function deleteSection(section) {
 function submitSection() {
     // Validate form
     if (!validateForm('addSectionForm')) return;
-    
+
     const form = document.getElementById('addSectionForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Normalize section name - convert to snake_case
     data.section = data.section.trim().toLowerCase().replace(/\s+/g, '_');
-    
+
     // Show loading state on button
     const submitBtn = document.querySelector('#addSectionModal .btn-primary');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Adding...';
     submitBtn.disabled = true;
-    
+
     fetch('/admin/compliance/add', {
         method: 'POST',
         headers: {
@@ -263,18 +263,18 @@ function submitSection() {
         // Reset button state
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
-        
+
         if (data.success) {
             // Hide modal
             bootstrap.Modal.getInstance(document.getElementById('addSectionModal')).hide();
-            
+
             // Show success notification
             showNotification('complianceAlert', `New compliance section added successfully`, 'success');
-            
+
             // Reset form
             form.reset();
             form.classList.remove('was-validated');
-            
+
             // Reload page after delay
             setTimeout(() => {
                 location.reload();
@@ -288,7 +288,7 @@ function submitSection() {
         // Reset button state
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
-        
+
         // Show error in modal
         showNotification('addSectionAlert', `Error: ${error}`, 'danger');
     });

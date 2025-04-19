@@ -77,5 +77,20 @@
         "months_insurance_escrow": 2.0,
         "months_tax_escrow": 2.0,
         "days_interest_prepaid": 30
+    },
+    "title_insurance": {
+        "simultaneous_issuance_fee": 150.00,
+        "lender_rate_waiver_multiplier": 1.25,
+        "comment": "Rates below are illustrative and should be configured.",
+        "total_rates_tiers": [
+            {"up_to": 100000, "rate_percentage": 0.625},
+            {"up_to": 1000000, "rate_percentage": 0.525},
+            {"up_to": null, "rate_percentage": 0.425}
+        ],
+        "lender_rates_simultaneous_tiers": [
+            {"up_to": 100000, "rate_percentage": 0.325},
+            {"up_to": 1000000, "rate_percentage": 0.275},
+            {"up_to": null, "rate_percentage": 0.225}
+        ]
     }
 }

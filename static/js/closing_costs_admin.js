@@ -21,14 +21,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const isPercentage = select.value === 'percentage';
         const input = select.closest('.modal-body').querySelector('.cost-value-input');
         const suffix = select.closest('.modal-body').querySelector('.cost-type-suffix');
-        
+
         if (input) {
             // Update step and value formatting
             input.step = isPercentage ? '0.01' : '1';
-            
+
             // Get current value and convert it
             let currentValue = parseFloat(input.value) || 0;
-            
+
             // Format the value based on type
             if (isPercentage) {
                 input.value = currentValue.toFixed(2);
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.value = Math.round(currentValue);
             }
         }
-        
+
         if (suffix) {
             suffix.textContent = isPercentage ? '%' : '$';
         }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.cost-type-select').forEach(function(select) {
         // Set initial formatting
         updateValueInput(select);
-        
+
         // Handle changes
         select.addEventListener('change', function() {
             updateValueInput(this);

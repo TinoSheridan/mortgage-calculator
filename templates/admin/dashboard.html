@@ -167,36 +167,57 @@
             updateDashboard(data);
             showNotification('Dashboard refreshed successfully', 'success');
         } catch (error) {
+            console.error("Error during refreshDashboard:", error);
             showNotification('Error refreshing dashboard: ' + error.message, 'danger');
         }
     }
-    
+
     // Update dashboard with new data
     function updateDashboard(data) {
+        // Helper to safely update text content
+        function safeSetText(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            } else {
+                console.warn(`Element with ID '${id}' not found in updateDashboard.`);
+            }
+        }
+
         // Update statistics
-        document.getElementById('totalCalculations').textContent = data.stats.total_calculations;
-        document.getElementById('activeCounties').textContent = data.stats.active_counties;
-        document.getElementById('outputTemplates').textContent = data.stats.output_templates;
-        document.getElementById('totalFees').textContent = data.stats.total_fees;
-        
+        safeSetText('totalCalculations', data.stats.total_calculations);
+        safeSetText('activeCounties', data.stats.active_counties);
+        safeSetText('outputTemplates', data.stats.output_templates);
+        safeSetText('totalFees', data.stats.total_fees);
+
         // Update system health
         document.querySelectorAll('.health-status').forEach(status => {
             const key = status.dataset.key;
-            const isHealthy = data.health[key];
-            status.innerHTML = isHealthy ? 
-                '<i class="fas fa-check-circle text-success"></i>' : 
-                '<i class="fas fa-times-circle text-danger"></i>';
+            if (data.health && typeof data.health[key] !== 'undefined') { // Check if key exists in health data
+                const isHealthy = data.health[key];
+                status.innerHTML = isHealthy ?
+                    '<i class="fas fa-check-circle text-success"></i>' :
+                    '<i class="fas fa-times-circle text-danger"></i>';
+            } else {
+                console.warn(`Health status key '${key}' not found in data.`);
+                status.innerHTML = '<i class="fas fa-question-circle text-muted"></i>'; // Indicate missing data
+            }
         });
-        
-        document.getElementById('lastBackup').textContent = data.health.last_backup;
-        
+
+        safeSetText('lastBackup', data.health ? data.health.last_backup : 'N/A'); // Handle potentially missing health object
+
         // Update recent changes
         const changesContainer = document.getElementById('recentChanges');
-        if (data.recent_changes.length === 0) {
+        if (!changesContainer) {
+            console.warn("Element with ID 'recentChanges' not found.");
+            return;
+        }
+
+        if (!data.recent_changes || data.recent_changes.length === 0) { // Check if recent_changes exists
             changesContainer.innerHTML = '<div class="text-center py-3">No recent changes</div>';
             return;
         }
-        
+
         changesContainer.innerHTML = data.recent_changes.map(change => `
             <div class="list-group-item">
                 <div class="d-flex w-100 justify-content-between">
@@ -208,13 +229,13 @@
             </div>
         `).join('');
     }
-    
+
     // Format date helper
     function formatDate(isoString) {
         const date = new Date(isoString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
-    
+
     // Load initial data
     document.addEventListener('DOMContentLoaded', refreshDashboard);
 </script>

@@ -1,10 +1,10 @@
 async function handleLogin(event) {
     event.preventDefault();
-    
+
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const errorAlert = document.getElementById('errorAlert');
-    
+
     try {
         const response = await fetch('/admin/login', {
             method: 'POST',
@@ -13,9 +13,9 @@ async function handleLogin(event) {
             },
             body: JSON.stringify({ username, password })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             window.location.href = data.redirect || '/admin';
         } else {
@@ -34,7 +34,7 @@ async function updateField(field, newValue) {
     const section = field.dataset.section;
     const key = field.dataset.key;
     const parentKey = field.dataset.parentKey;
-    
+
     try {
         const response = await fetch('/admin/update', {
             method: 'POST',
@@ -48,9 +48,9 @@ async function updateField(field, newValue) {
                 value: newValue
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             showToast('Success', 'Value updated successfully', 'success');
             field.textContent = newValue;
@@ -68,7 +68,7 @@ async function updateField(field, newValue) {
 async function saveAllEdits(section) {
     const fields = document.querySelectorAll(`[data-section="${section}"].editing`);
     let success = true;
-    
+
     for (const field of fields) {
         try {
             await updateField(field, field.textContent);
@@ -77,7 +77,7 @@ async function saveAllEdits(section) {
             console.error('Error saving field:', error);
         }
     }
-    
+
     if (success) {
         showToast('Success', 'All changes saved successfully', 'success');
     } else {
@@ -93,7 +93,7 @@ function showToast(title, message, type = 'success') {
         container.className = 'toast-container';
         document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast ${type} show`;
     toast.innerHTML = `
@@ -103,9 +103,9 @@ function showToast(title, message, type = 'success') {
         </div>
         <div class="toast-body">${message}</div>
     `;
-    
+
     document.querySelector('.toast-container').appendChild(toast);
-    
+
     setTimeout(() => {
         toast.remove();
     }, 3000);
@@ -114,7 +114,7 @@ function showToast(title, message, type = 'success') {
 // Make fields editable on click
 document.addEventListener('DOMContentLoaded', () => {
     const editableFields = document.querySelectorAll('.editable-field');
-    
+
     editableFields.forEach(field => {
         field.addEventListener('click', function() {
             if (!this.classList.contains('editing')) {
@@ -123,14 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.focus();
             }
         });
-        
+
         field.addEventListener('blur', function() {
             this.contentEditable = false;
             if (this.classList.contains('editing')) {
                 updateField(this, this.textContent);
             }
         });
-        
+
         field.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();

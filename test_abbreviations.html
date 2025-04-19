@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Abbreviation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .results { margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .success { color: green; }
+        .failure { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Mortgage Label Abbreviation Test</h1>
+
+    <div class="results">
+        <h2>Test Results</h2>
+        <table id="resultsTable">
+            <tr>
+                <th>Original Label</th>
+                <th>Expected Abbreviation</th>
+                <th>Actual Result</th>
+                <th>Status</th>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+    // Direct implementation of the abbreviation function
+    function abbreviateLabel(label, maxLength = 25) {
+        if (!label) return '';
+
+        // Don't abbreviate if already short enough
+        if (label.length <= maxLength) return label;
+
+        // Remove any trailing punctuation like colons
+        const cleanLabel = label.replace(/:$/, '');
+
+        // Common mortgage term abbreviations
+        const abbreviations = {
+            'Principal & Interest': 'P&I',
+            'Principal and Interest': 'P&I',
+            'Property Tax': 'Prop Tax',
+            'Private Mortgage Insurance': 'PMI',
+            'Mortgage Insurance': 'MI',
+            'Homeowner\'s Insurance': 'Insurance',
+            'Home Insurance': 'Insurance',
+            'Homeowners Association': 'HOA',
+            'Homeowner\'s Association': 'HOA',
+            'Loan Amount': 'Loan Amt',
+            'Purchase Price': 'Purch Price',
+            'Interest Rate': 'Int Rate',
+            'Down Payment': 'Down Pmt',
+            'Total Monthly Payment': 'Tot Monthly Pmt',
+            'Total Cash Needed': 'Cash to Close',
+            'Total Cash to Close': 'Cash to Close',
+            'Total Closing Costs': 'Tot Closing',
+            'Total Closing Cost': 'Tot Closing',
+            'Total Prepaids': 'Tot Prepaids',
+            'Total Credits': 'Tot Credits',
+            'Recording Fee': 'Rec Fee',
+            'Processing Fee': 'Proc Fee',
+            'Application Fee': 'App Fee',
+            'Administration Fee': 'Admin Fee',
+            'Document Preparation': 'Doc Prep',
+            'Underwriting Fee': 'UW Fee',
+            'Transfer Tax': 'Trans Tax',
+            'Owners Title Insurance': 'Owner Title Ins',
+            'Owner\'s Title Insurance': 'Owner Title Ins',
+            'Lender\'s Title Insurance': 'Lender Title Ins',
+            'Lenders Title Insurance': 'Lender Title Ins'
+        };
+
+        // Convert input to lowercase for case-insensitive matching
+        const lowerLabel = cleanLabel.toLowerCase();
+
+        // Try exact matching first
+        for (const [fullText, abbr] of Object.entries(abbreviations)) {
+            // Check if strings are exactly equal (case-insensitive)
+            if (lowerLabel === fullText.toLowerCase()) {
+                return abbr;
+            }
+        }
+
+        // Then try startsWith matching
+        for (const [fullText, abbr] of Object.entries(abbreviations)) {
+            // Check if label starts with the full text (case-insensitive)
+            if (lowerLabel.startsWith(fullText.toLowerCase())) {
+                return cleanLabel.replace(new RegExp('^' + fullText, 'i'), abbr);
+            }
+        }
+
+        // Then try partial matching (only for longer strings)
+        for (const [fullText, abbr] of Object.entries(abbreviations)) {
+            // Only use includes for phrases 10+ chars to avoid false positives
+            if (fullText.length >= 10 && lowerLabel.includes(fullText.toLowerCase())) {
+                return cleanLabel.replace(new RegExp(fullText, 'i'), abbr);
+            }
+        }
+
+        // If still too long, use smart truncation
+        return cleanLabel.substring(0, maxLength - 3) + '...';
+    }
+
+    // Test cases with expected results
+    const testCases = [
+        { input: 'Total Monthly Payment', expected: 'Tot Monthly Pmt' },
+        { input: 'Owners Title Insurance', expected: 'Owner Title Ins' },
+        { input: 'Total Closing Cost', expected: 'Tot Closing' },
+        { input: 'Total Cash to Close', expected: 'Cash to Close' },
+        { input: 'Principal and Interest', expected: 'P&I' },
+        { input: 'Private Mortgage Insurance', expected: 'PMI' },
+        { input: 'Processing Fee', expected: 'Proc Fee' },
+        { input: 'This is a very long label that should be truncated', expected: 'This is a very long...' }
+    ];
+
+    // Run tests and display results
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('resultsTable');
+
+        testCases.forEach(test => {
+            const result = abbreviateLabel(test.input);
+            const pass = result === test.expected;
+
+            const row = table.insertRow();
+            row.insertCell(0).textContent = test.input;
+            row.insertCell(1).textContent = test.expected;
+            row.insertCell(2).textContent = result;
+
+            const statusCell = row.insertCell(3);
+            statusCell.textContent = pass ? 'PASS' : 'FAIL';
+            statusCell.className = pass ? 'success' : 'failure';
+        });
+    });
+    </script>
+</body>
+</html>

@@ -200,7 +200,7 @@
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             const data = await response.json();
             if (data.success) {
                 showNotification('Backup created successfully', 'success');
@@ -215,17 +215,17 @@
             showNotification('Error: ' + error.message, 'danger');
         }
     }
-    
+
     // Set up confirmation modal
     function confirmAction(action) {
         const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
         const confirmButton = document.getElementById('confirmButton');
-        
+
         // Configure modal based on action
         switch(action) {
             case 'clear-history':
                 document.getElementById('confirmModalTitle').textContent = 'Clear Calculation History';
-                document.getElementById('confirmModalBody').textContent = 
+                document.getElementById('confirmModalBody').textContent =
                     'Are you sure you want to clear all calculation history? This action cannot be undone.';
                 confirmButton.className = 'btn btn-danger';
                 confirmButton.textContent = 'Clear History';
@@ -233,7 +233,7 @@
                 break;
             case 'export-config':
                 document.getElementById('confirmModalTitle').textContent = 'Export Configuration';
-                document.getElementById('confirmModalBody').textContent = 
+                document.getElementById('confirmModalBody').textContent =
                     'Export all configuration files as a ZIP archive?';
                 confirmButton.className = 'btn btn-primary';
                 confirmButton.textContent = 'Export';
@@ -241,29 +241,29 @@
                 break;
             case 'restore-defaults':
                 document.getElementById('confirmModalTitle').textContent = 'Restore Default Configuration';
-                document.getElementById('confirmModalBody').textContent = 
+                document.getElementById('confirmModalBody').textContent =
                     'Are you sure you want to restore all settings to their default values? This action cannot be undone.';
                 confirmButton.className = 'btn btn-warning';
                 confirmButton.textContent = 'Restore Defaults';
                 confirmButton.onclick = performRestoreDefaults;
                 break;
         }
-        
+
         modal.show();
     }
-    
+
     // Placeholder functions for advanced maintenance actions
     // These would need to be connected to actual API endpoints
     async function performClearHistory() {
         showNotification('This feature is not yet implemented', 'warning');
         bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
     }
-    
+
     async function performExportConfig() {
         showNotification('This feature is not yet implemented', 'warning');
         bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
     }
-    
+
     async function performRestoreDefaults() {
         showNotification('This feature is not yet implemented', 'warning');
         bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();

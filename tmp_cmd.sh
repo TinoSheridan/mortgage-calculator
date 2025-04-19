@@ -14,7 +14,7 @@ cat >> templates/index.html << 'INNER'
                 </div>
             </form>
         </div>
-        
+
         <!-- Results Column -->
         <div class="results-column">
             <!-- Monthly Payment Breakdown Card -->
@@ -53,7 +53,7 @@ cat >> templates/index.html << 'INNER'
                     </table>
                 </div>
             </div>
-            
+
             <!-- Loan Details Card -->
             <div class="card results-card mb-4">
                 <div class="card-header">
@@ -98,7 +98,7 @@ cat >> templates/index.html << 'INNER'
                     </table>
                 </div>
             </div>
-            
+
             <!-- Cash Needed at Closing Card -->
             <div class="card results-card mb-4">
                 <div class="card-header">
@@ -114,7 +114,7 @@ cat >> templates/index.html << 'INNER'
                             </tr>
                         </tbody>
                     </table>
-                    
+
                     <h5 class="section-title">Closing Costs</h5>
                     <table class="table table-sm">
                         <tbody id="closingCostsTable">
@@ -127,7 +127,7 @@ cat >> templates/index.html << 'INNER'
                             </tr>
                         </tfoot>
                     </table>
-                    
+
                     <h5 class="section-title">Prepaid Items</h5>
                     <table class="table table-sm">
                         <tbody id="prepaidsTable">
@@ -140,7 +140,7 @@ cat >> templates/index.html << 'INNER'
                             </tr>
                         </tfoot>
                     </table>
-                    
+
                     <h5 class="section-title">Total Cash Needed</h5>
                     <table class="table table-sm">
                         <tbody>
@@ -152,7 +152,7 @@ cat >> templates/index.html << 'INNER'
                     </table>
                 </div>
             </div>
-            
+
             <!-- Loading Spinner and Error Alert -->
             <div class="my-4 text-center">
                 <div id="loadingSpinner" class="spinner-border text-primary mx-auto d-none" role="status">
@@ -164,7 +164,7 @@ cat >> templates/index.html << 'INNER'
             </div>
         </div>
     </div>
-    
+
     <!-- Debug Section -->
     <div class="mt-5 mb-3">
         <p id="debugToggle" class="text-center">Show/Hide Debug Information</p>

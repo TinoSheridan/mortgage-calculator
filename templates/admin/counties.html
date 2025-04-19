@@ -18,10 +18,10 @@
                         <i class="fas fa-plus me-2"></i> Add County
                     </button>
                 </div>
-                
+
                 <!-- Alert for notifications -->
                 <div id="countyAlert" class="alert d-none" role="alert"></div>
-                
+
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
@@ -144,14 +144,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Property Tax Rate (%) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="edit_property_tax_rate" name="property_tax_rate" 
+                        <input type="number" class="form-control" id="edit_property_tax_rate" name="property_tax_rate"
                                step="0.001" min="0" max="10" required>
                         <div class="invalid-feedback">Property tax rate is required (between 0 and 10%)</div>
                         <div class="form-text">Annual property tax rate as a percentage of property value</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Insurance Rate (%) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="edit_insurance_rate" name="insurance_rate" 
+                        <input type="number" class="form-control" id="edit_insurance_rate" name="insurance_rate"
                                step="0.001" min="0" max="5" required>
                         <div class="invalid-feedback">Insurance rate is required (between 0 and 5%)</div>
                         <div class="form-text">Annual insurance rate as a percentage of property value</div>
@@ -160,7 +160,7 @@
                         <label class="form-label">Minimum HOA Fee</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="edit_min_hoa" name="min_hoa" 
+                            <input type="number" class="form-control" id="edit_min_hoa" name="min_hoa"
                                    step="1" min="0" value="0">
                         </div>
                         <div class="form-text">Typical minimum monthly HOA fee for this county</div>
@@ -169,7 +169,7 @@
                         <label class="form-label">Maximum HOA Fee</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="edit_max_hoa" name="max_hoa" 
+                            <input type="number" class="form-control" id="edit_max_hoa" name="max_hoa"
                                    step="1" min="0" value="0">
                         </div>
                         <div class="form-text">Typical maximum monthly HOA fee for this county</div>
@@ -214,7 +214,7 @@ function showNotification(element, message, type = 'success') {
     alert.className = `alert alert-${type}`;
     alert.innerHTML = message;
     alert.classList.remove('d-none');
-    
+
     // Auto hide after 5 seconds for success messages
     if (type === 'success') {
         setTimeout(() => {
@@ -241,7 +241,7 @@ function editCounty(county) {
         .then(data => {
             if (data[county]) {
                 const countyData = data[county];
-                
+
                 // Populate form fields
                 document.getElementById('edit_county_name').value = county;
                 document.getElementById('edit_county').value = county;
@@ -249,7 +249,7 @@ function editCounty(county) {
                 document.getElementById('edit_insurance_rate').value = countyData.insurance_rate;
                 document.getElementById('edit_min_hoa').value = countyData.min_hoa || 0;
                 document.getElementById('edit_max_hoa').value = countyData.max_hoa || 0;
-                
+
                 // Show modal
                 new bootstrap.Modal(document.getElementById('editCountyModal')).show();
             } else {
@@ -265,18 +265,18 @@ function editCounty(county) {
 function updateCounty() {
     // Validate form
     if (!validateForm('editCountyForm')) return;
-    
+
     const form = document.getElementById('editCountyForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     const county = document.getElementById('edit_county_name').value;
-    
+
     // Convert numeric values
     data.property_tax_rate = parseFloat(data.property_tax_rate);
     data.insurance_rate = parseFloat(data.insurance_rate);
     data.min_hoa = parseFloat(data.min_hoa);
     data.max_hoa = parseFloat(data.max_hoa);
-    
+
     // Send update request
     fetch(`/admin/counties/edit/${county}`, {
         method: 'POST',
@@ -290,10 +290,10 @@ function updateCounty() {
         if (data.success) {
             // Hide modal
             bootstrap.Modal.getInstance(document.getElementById('editCountyModal')).hide();
-            
+
             // Show success notification
             showNotification('countyAlert', `County "${county}" updated successfully`, 'success');
-            
+
             // Reload page after delay
             setTimeout(() => {
                 location.reload();
@@ -328,11 +328,11 @@ function deleteCounty(county) {
     .then(data => {
         // Hide delete modal
         bootstrap.Modal.getInstance(document.getElementById('deleteCountyModal')).hide();
-        
+
         if (data.success) {
             // Show success notification
             showNotification('countyAlert', `County "${county}" deleted successfully`, 'success');
-            
+
             // Reload page after delay
             setTimeout(() => {
                 location.reload();
@@ -345,7 +345,7 @@ function deleteCounty(county) {
     .catch(error => {
         // Hide delete modal
         bootstrap.Modal.getInstance(document.getElementById('deleteCountyModal')).hide();
-        
+
         // Show error notification
         showNotification('countyAlert', `Error: ${error}`, 'danger');
     });
@@ -355,17 +355,17 @@ function deleteCounty(county) {
 function submitCounty() {
     // Validate form
     if (!validateForm('addCountyForm')) return;
-    
+
     const form = document.getElementById('addCountyForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Convert numeric values
     data.property_tax_rate = parseFloat(data.property_tax_rate);
     data.insurance_rate = parseFloat(data.insurance_rate);
     data.min_hoa = parseFloat(data.min_hoa);
     data.max_hoa = parseFloat(data.max_hoa);
-    
+
     fetch('/admin/counties/add', {
         method: 'POST',
         headers: {
@@ -378,14 +378,14 @@ function submitCounty() {
         if (data.success) {
             // Hide modal
             bootstrap.Modal.getInstance(document.getElementById('addCountyModal')).hide();
-            
+
             // Show success notification
             showNotification('countyAlert', `County "${form.county.value}" added successfully`, 'success');
-            
+
             // Reset form
             form.reset();
             form.classList.remove('was-validated');
-            
+
             // Reload page after delay
             setTimeout(() => {
                 location.reload();

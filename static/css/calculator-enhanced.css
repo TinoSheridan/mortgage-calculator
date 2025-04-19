@@ -6,14 +6,14 @@
         float: left;
         padding-right: 15px;
     }
-    
+
     /* The container for all result cards */
     .results-card {
         width: 50%;
         float: right;
         margin-left: 15px;
     }
-    
+
     /* Clear the float after the calculator */
     #debugToggle {
         clear: both;
@@ -174,7 +174,7 @@ tr:has(#totalCashNeeded) {
     .container .card {
         margin-bottom: 1rem;
     }
-    
+
     #mortgageForm .form-group {
         margin-bottom: 0.75rem;
     }

@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -21,10 +21,16 @@ COPY . .
 RUN mkdir -p /app/logs /app/data \
     && chmod -R 755 /app/logs /app/data
 
+# Clear any Python cache files to ensure we use the correct version
+RUN find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /app -name "*.pyc" -delete \
+    && find /app -name "*.pyo" -delete
+
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=testing
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
 # Expose port
 EXPOSE 8000

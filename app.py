@@ -1,34 +1,20 @@
-import json
+"""Flask application entry point for the Mortgage Calculator web app."""
+import importlib
 import logging
 import os
-import importlib
 import sys
 from datetime import datetime, timedelta
-from functools import wraps
-import time
 
 from dotenv import load_dotenv
-from flask import (
-    Flask,
-    flash,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    send_from_directory,
-    session,
-    url_for,
-)
-from flask_cors import CORS
+from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_wtf.csrf import CSRFProtect
 
-from admin_routes import admin_bp, load_closing_costs, save_closing_costs
+from admin_routes import admin_bp
 from beta_routes import beta_bp
 from calculator import MortgageCalculator
 from chat_routes import chat_bp
 from config_factory import get_config
 from config_manager import ConfigManager
-from forms import LoginForm
 from health_check import health_bp
 
 # Configure logging early
@@ -36,27 +22,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info("Application module loading")
 
+
 def force_reload_version():
-    """
-    Force reload VERSION module to get the correct version
-    This prevents issues with cached versions across different Python installations
-    """
+    """Force reload the VERSION module to get the latest version info."""
     try:
         # Clear any cached version module
-        if 'VERSION' in sys.modules:
+        if "VERSION" in sys.modules:
             logger.info("Reloading VERSION module to ensure correct version")
-            importlib.reload(sys.modules['VERSION'])
+            importlib.reload(sys.modules["VERSION"])
         else:
             logger.info("Importing VERSION module for the first time")
             import VERSION
-    
+
         # Get and log the version number
         from VERSION import VERSION as app_version
+
         logger.info(f"Application version: {app_version}")
         return app_version
     except Exception as e:
         logger.error(f"Error loading version information: {str(e)}")
         return "unknown"
+
 
 # Force reload VERSION to ensure we have the correct version
 current_version = force_reload_version()
@@ -71,7 +57,9 @@ load_dotenv()
 app = Flask(__name__)
 app.version = current_version  # Store version in app object for template access
 app.config["VERSION"] = current_version  # Also store in config
-app.config["CACHE_BUSTER"] = f"{current_version}.{cache_timestamp}"  # Create cache buster string
+app.config[
+    "CACHE_BUSTER"
+] = f"{current_version}.{cache_timestamp}"  # Create cache buster string
 
 # Load configuration based on environment
 app_config = get_config()
@@ -83,76 +71,73 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0  # During development
 # Add proper MIME type handling for static files
 @app.route("/static/<path:filename>")
 def serve_static(filename):
+    """Serve static files from the static directory."""
     return send_from_directory(app.static_folder, filename)
 
 
 # Apply configuration from the selected environment
 app.config.from_object(app_config)
 app.secret_key = os.getenv("SECRET_KEY", "default-secret-key")
-app.config["WTF_CSRF_ENABLED"] = False  # Temporarily disable CSRF for debugging
-CORS(app)
-
-# Log app initialization with config details
-app.logger.info(
-    f"Flask app initialized with config: {app.config.get('ENV', 'unknown')}"
+app.config["WTF_CSRF_ENABLED"] = True  # Re-enabled CSRF protection
+app.config["SESSION_TYPE"] = "filesystem"  # Use filesystem sessions for persistence
+app.config["SESSION_PERMANENT"] = True  # Make sessions permanent by default
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)  # Longer session lifetime
+app.config["SESSION_USE_SIGNER"] = True  # Add a signer for security
+app.config["SESSION_FILE_DIR"] = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "flask_session"
 )
-
-# Initialize app with environment-specific settings
-if hasattr(app_config, "init_app"):
-    app_config.init_app(app)
-
-
-# Make config settings available to templates
-@app.context_processor
-def inject_config():
-    return {
-        "app_version": app.version,
-        "cache_buster": app.config["CACHE_BUSTER"],
-        "config": app.config
-    }
+os.makedirs(app.config["SESSION_FILE_DIR"], exist_ok=True)
 
 
 # Add response header to prevent caching
 @app.after_request
 def add_header(response):
-    # Force browser to clear cache with stronger headers
-    timestamp = int(time.time())
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    response.headers["X-Cache-Bust"] = str(timestamp)
-    
-    # Add clear Site-Data header on main page to force cache reset
-    if request.path == "/":
-        response.headers["Clear-Site-Data"] = '"cache", "cookies", "storage"'
+    """Add CORS and security headers to the response."""
+    # Skip adding headers for static files to avoid conflicts
+    if request.path.startswith("/static/") or request.path.startswith("/favicon.ico"):
+        logger.debug(f"Skipping headers for static path: {request.path}")
+        return response
 
-    # Add Content Security Policy that allows both cdn.jsdelivr.net and cdnjs.cloudflare.com
-    if request.path.startswith("/admin"):
-        # Apply stricter CSP for admin routes
-        response.headers[
-            "Content-Security-Policy"
-        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
-    else:
-        # Regular CSP for user-facing routes
-        response.headers[
-            "Content-Security-Policy"
-        ] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob:; connect-src 'self'"
-    
-    # Set proper referrer policy
-    response.headers["Referrer-Policy"] = "same-origin"
+    # Security Headers
+    # Strict-Transport-Security (HSTS) - Only enable if using HTTPS
+    # if app.config.get('SESSION_COOKIE_SECURE'):
+    #     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
-    # Explicitly set MIME types for static files if needed
-    if request.path.startswith("/static/"):
-        file_ext = os.path.splitext(request.path)[1].lower()
-        if file_ext == ".css":
-            response.headers["Content-Type"] = "text/css"
-        elif file_ext == ".js":
-            response.headers["Content-Type"] = "application/javascript"
+    # Content Security Policy (CSP)
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "  # Allow Font Awesome
+        "img-src 'self' data: https:; "
+        "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "  # Allow Font Awesome
+        "connect-src 'self'"
+    )
+    response.headers["Content-Security-Policy"] = csp_policy
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers[
+        "X-Frame-Options"
+    ] = "DENY"  # Changed from SAMEORIGIN for better security unless framing needed
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers[
+        "Referrer-Policy"
+    ] = "strict-origin-when-cross-origin"  # Recommended modern policy
+
+    # Cache-Control Headers
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"  # For HTTP/1.0 compatibility
+    response.headers["Expires"] = "0"  # Proxies
+
+    # Conditionally add CORS header for API routes
+    if request.path.startswith("/api/"):
+        response.headers[
+            "Access-Control-Allow-Origin"
+        ] = "*"  # Adjust as needed for specific origins
 
     return response
 
 
-# Initialize CSRF protection
+# Initialize CSRF protection after CORS initialization
 csrf = CSRFProtect(app)
 
 
@@ -161,7 +146,7 @@ csrf = CSRFProtect(app)
 # Only exempt endpoints that absolutely require it (e.g., API endpoints used by third-party services)
 @app.after_request
 def csrf_exempt_admin_routes(response):
-    # Exclude specific admin endpoints from CSRF protection for AJAX requests
+    """Exclude specific admin endpoints from CSRF protection for AJAX requests."""
     if (
         request.path.startswith("/admin/closing-costs/")
         or request.path == "/admin/pmi-rates/update"
@@ -180,21 +165,38 @@ def csrf_exempt_admin_routes(response):
 def calculate():
     """Main calculation endpoint that returns complete mortgage details."""
     try:
+        app.logger.info(f"Calculate route accessed with method: {request.method}")
         data = request.get_json()
         app.logger.info(f"Received calculation request with data: {data}")
 
-        # Extract parameters
-        purchase_price = float(data.get("purchase_price", 0))
-        down_payment_percentage = float(data.get("down_payment_percentage", 0))
-        annual_rate = float(data.get("annual_rate", 0))
-        loan_term = int(data.get("loan_term", 30))
-        annual_tax_rate = float(data.get("annual_tax_rate", 0))
-        annual_insurance_rate = float(data.get("annual_insurance_rate", 0))
+        # Extract basic loan parameters
+        purchase_price = float(data.get("purchase_price"))
+        down_payment_percentage = float(data.get("down_payment_percentage"))
+        annual_rate = float(data.get("annual_rate"))
+        loan_term = int(data.get("loan_term"))
+        annual_tax_rate = float(data.get("annual_tax_rate"))
+        annual_insurance_rate = float(data.get("annual_insurance_rate"))
         loan_type = data.get("loan_type", "conventional")
         monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
         seller_credit = float(data.get("seller_credit", 0))
         lender_credit = float(data.get("lender_credit", 0))
         discount_points = float(data.get("discount_points", 0))
+
+        # Get title insurance preferences
+        include_owners_title_val = data.get("include_owners_title", "true")
+        # Convert string "true"/"false" to Python boolean - handle various formats
+        if isinstance(include_owners_title_val, bool):
+            include_owners_title = include_owners_title_val
+        else:
+            include_owners_title = str(include_owners_title_val).lower() in [
+                "true",
+                "yes",
+                "1",
+            ]
+
+        app.logger.info(
+            f"Include owner's title insurance: {include_owners_title} (from value: {include_owners_title_val})"
+        )
 
         # Get optional closing date
         closing_date_str = data.get("closing_date")
@@ -202,12 +204,33 @@ def calculate():
         if closing_date_str:
             try:
                 # Parse ISO format date string (YYYY-MM-DD)
-                closing_date = datetime.strptime(closing_date_str, "%Y-%m-%d").date()
-                app.logger.info(f"Using closing date: {closing_date}")
-            except Exception as e:
-                app.logger.warning(
-                    f"Could not parse closing date '{closing_date_str}': {e}"
+                from datetime import datetime
+
+                app.logger.info(
+                    f"Attempting to parse closing date: '{closing_date_str}'"
                 )
+
+                # Handle different possible date formats
+                if "-" in closing_date_str:
+                    # ISO format: YYYY-MM-DD
+                    closing_date = datetime.strptime(
+                        closing_date_str, "%Y-%m-%d"
+                    ).date()
+                elif "/" in closing_date_str:
+                    # US format: MM/DD/YYYY
+                    closing_date = datetime.strptime(
+                        closing_date_str, "%m/%d/%Y"
+                    ).date()
+                else:
+                    app.logger.warning(f"Unknown date format: {closing_date_str}")
+
+                app.logger.info(f"Successfully parsed closing date: {closing_date}")
+            except Exception as e:
+                app.logger.error(
+                    f"Could not parse closing date '{closing_date_str}': {str(e)}"
+                )
+                # Don't set closing date if parsing fails
+                closing_date = None
 
         # Extract specific parameters for different loan types
         va_params = {}
@@ -218,118 +241,99 @@ def calculate():
                 f"disability_exempt={data.get('va_disability_exempt')}"
             )
 
+            # Get VA disability exempt value and convert from string to boolean if needed
+            va_disability_exempt_val = data.get("va_disability_exempt", False)
+            if isinstance(va_disability_exempt_val, bool):
+                va_disability_exempt = va_disability_exempt_val
+            else:
+                va_disability_exempt = str(va_disability_exempt_val).lower() in [
+                    "true",
+                    "yes",
+                    "1",
+                ]
+
+            app.logger.info(
+                f"VA disability exempt: {va_disability_exempt} (from value: {va_disability_exempt_val})"
+            )
+
             va_params = {
                 "va_service_type": data.get("va_service_type", "active"),
                 "va_usage": data.get("va_usage", "first"),
-                "va_disability_exempt": data.get("va_disability_exempt", False),
+                "va_disability_exempt": va_disability_exempt,
             }
 
         # Create a fresh calculator instance with latest config
-        calculator = MortgageCalculator()
-        # Force reload of configuration to ensure latest changes are used
-        calculator.config_manager.load_config()
-        calculator.config = calculator.config_manager.get_config()
+        calculator_instance = MortgageCalculator()
+        calculator_instance.config_manager.load_config()
+        calculator_instance.config = calculator_instance.config_manager.get_config()
         app.logger.info("Using freshly loaded configuration for main calculation")
 
-        # Convert down payment percentage to amount
-        down_payment_amount = purchase_price * (down_payment_percentage / 100)
+        # Log all parameters before calculation
+        app.logger.info(
+            f"Calculating with the following parameters:\n"
+            f"Purchase price: ${purchase_price:,.2f}\n"
+            f"Down payment: {down_payment_percentage}%\n"
+            f"Interest rate: {annual_rate}%\n"
+            f"Loan term: {loan_term} years\n"
+            f"Loan type: {loan_type}\n"
+            f"Property tax rate: {annual_tax_rate}%\n"
+            f"Insurance rate: {annual_insurance_rate}%\n"
+            f"HOA fee: ${monthly_hoa_fee}/mo\n"
+            f"Closing date: {closing_date}\n"
+            f"VA parameters: {va_params}\n"
+            f"Include owner's title: {include_owners_title}\n"
+            f"Seller credit: ${seller_credit}\n"
+            f"Lender credit: ${lender_credit}\n"
+            f"Discount points: {discount_points}%"
+        )
 
-        # Calculate results
-        result = calculator.calculate_all(
+        # Use calculator_instance to perform all calculations
+        result = calculator_instance.calculate_all(
             purchase_price=purchase_price,
-            down_payment=down_payment_amount,
+            down_payment_percentage=down_payment_percentage,
             annual_rate=annual_rate,
             loan_term=loan_term,
+            loan_type=loan_type,
             annual_tax_rate=annual_tax_rate,
             annual_insurance_rate=annual_insurance_rate,
-            loan_type=loan_type,
-            hoa_fee=monthly_hoa_fee,
+            monthly_hoa_fee=monthly_hoa_fee,
             seller_credit=seller_credit,
             lender_credit=lender_credit,
-            discount_points=discount_points,
-            closing_date=closing_date,
-            **va_params,
+            closing_date=closing_date,  # Make sure this is passed
+            include_owners_title=include_owners_title,
+            discount_points=discount_points,  # Pass discount points
+            **va_params,  # Pass VA-specific parameters if applicable
         )
-
-        # Calculate maximum seller contribution based on loan type and LTV
-        max_seller_contribution = calculate_max_seller_contribution(
-            loan_type=loan_type,
-            purchase_price=purchase_price,
-            down_payment_amount=down_payment_amount,
-            occupancy=data.get("occupancy", "primary_residence"),
-        )
-
-        # Add max seller contribution to result
-        if "loan_details" not in result:
-            result["loan_details"] = {}
-        result["loan_details"]["max_seller_contribution"] = max_seller_contribution
-
-        # Special handling for VA loans - check prepaids and discount points against 4% limit
-        if loan_type.lower() == "va":
-            # Get prepaids total from result
-            prepaids_total = 0
-            if "prepaids" in result and "total" in result["prepaids"]:
-                prepaids_total = result["prepaids"]["total"]
-
-            # Get discount points from input
-            discount_points_amount = 0
-            if "discount_points" in result.get("closing_costs", {}):
-                discount_points_amount = result["closing_costs"]["discount_points"]
-
-            # Calculate VA concession limit (4% of purchase price)
-            va_concession_limit = 0.04 * purchase_price
-            result["loan_details"]["va_concession_limit"] = va_concession_limit
-
-            # Calculate potential concessions (prepaids + discount points that would be covered by seller)
-            potential_concessions = min(
-                prepaids_total + discount_points_amount, seller_credit
-            )
-            result["loan_details"]["potential_concessions"] = potential_concessions
-
-            # Check if concessions exceed limit
-            if potential_concessions > va_concession_limit:
-                result["loan_details"]["seller_credit_exceeds_max"] = True
-                result["loan_details"]["va_concessions_exceed_limit"] = True
-            else:
-                result["loan_details"]["seller_credit_exceeds_max"] = False
-                result["loan_details"]["va_concessions_exceed_limit"] = False
-        else:
-            # For non-VA loans, check total seller credit against max contribution
-            if seller_credit > max_seller_contribution:
-                result["loan_details"]["seller_credit_exceeds_max"] = True
-            else:
-                result["loan_details"]["seller_credit_exceeds_max"] = False
 
         # Format the response for the frontend
+        # Build the response
         formatted_result = {
             "success": True,
-            "monthly_payment": result["monthly_payment"]["total"],
+            "monthly_payment": result["monthly_breakdown"]["total"],
             "loan_amount": result["loan_details"]["loan_amount"],
             "down_payment": result["loan_details"]["down_payment"],
-            "monthly_mortgage": result["monthly_payment"]["principal_and_interest"],
-            "monthly_tax": result["monthly_payment"]["property_tax"],
-            "monthly_insurance": result["monthly_payment"]["home_insurance"],
-            "monthly_pmi": result["monthly_payment"]["mortgage_insurance"],
-            "monthly_hoa": result["monthly_payment"]["hoa_fee"],
+            "monthly_mortgage": result["monthly_breakdown"]["principal_interest"],
+            "monthly_tax": result["monthly_breakdown"]["property_tax"],
+            "monthly_insurance": result["monthly_breakdown"]["insurance"],
+            "monthly_pmi": result["monthly_breakdown"]["pmi"],
+            "monthly_hoa": result["monthly_breakdown"]["hoa"],
             "closing_costs": result["closing_costs"],
             "prepaids": result["prepaid_items"],
             "monthly_breakdown": {
-                "principal_interest": result["monthly_payment"][
-                    "principal_and_interest"
-                ],
-                "property_tax": result["monthly_payment"]["property_tax"],
-                "home_insurance": result["monthly_payment"]["home_insurance"],
-                "mortgage_insurance": result["monthly_payment"]["mortgage_insurance"],
-                "hoa_fee": result["monthly_payment"]["hoa_fee"],
-                "total": result["monthly_payment"]["total"],
+                "principal_interest": result["monthly_breakdown"]["principal_interest"],
+                "property_tax": result["monthly_breakdown"]["property_tax"],
+                "home_insurance": result["monthly_breakdown"]["insurance"],
+                "mortgage_insurance": result["monthly_breakdown"]["pmi"],
+                "hoa_fee": result["monthly_breakdown"]["hoa"],
+                "total": result["monthly_breakdown"]["total"],
             },
             "loan_details": result["loan_details"],
             "credits": {
                 "seller_credit": seller_credit,
                 "lender_credit": lender_credit,
-                "total": seller_credit + lender_credit,
+                "total": round(seller_credit + lender_credit, 2),
             },
-            # Calculate total cash needed if not in the result, making sure to subtract credits
+            # Calculate total cash needed if not in the result, making sure to subtract all credits
             "total_cash_needed": result.get(
                 "cash_to_close",
                 result["loan_details"]["down_payment"]
@@ -345,162 +349,36 @@ def calculate():
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         app.logger.error(f"Error in calculate: {e}")
+        # Add extensive error debugging
+        import traceback
+
+        app.logger.error(f"DEBUG: Exception type: {type(e).__name__}")
+        app.logger.error(f"DEBUG: Exception traceback: {traceback.format_exc()}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
-def calculate_max_seller_contribution(
-    loan_type, purchase_price, down_payment_amount, occupancy="primary_residence"
-):
-    """
-    Calculate the maximum allowed seller contribution based on loan type, LTV ratio, and occupancy.
-
-    Args:
-        loan_type (str): Type of loan ('conventional', 'fha', 'va', 'usda')
-        purchase_price (float): Purchase price of the property
-        down_payment_amount (float): Down payment amount
-        occupancy (str): Property occupancy type (primary_residence, second_home, investment_property)
-
-    Returns:
-        float: Maximum allowed seller contribution amount in dollars
-    """
-    # Load seller contributions configuration
-    seller_contributions_file = os.path.join(
-        app.config.get("CONFIG_DIR", "config"), "seller_contributions.json"
-    )
-    seller_contributions = {}
-
-    try:
-        if os.path.exists(seller_contributions_file):
-            with open(seller_contributions_file, "r") as f:
-                seller_contributions = json.load(f)
-    except Exception as e:
-        app.logger.error(f"Error loading seller contributions: {e}")
-        # Default to conservative limits if file can't be loaded
-        return 0.03 * purchase_price
-
-    # Calculate LTV ratio
-    loan_amount = purchase_price - down_payment_amount
-    ltv_ratio = (loan_amount / purchase_price) * 100
-
-    # Special handling for VA loans - sellers can pay all closing costs, but concessions
-    # (prepaids and discount points) are limited to 4% of purchase price
-    if loan_type.lower() == "va":
-        # For VA loans, use a very high number instead of infinity to avoid JSON serialization issues
-        return 999999999.0  # Large value instead of infinity for JSON compatibility
-
-    # Determine max contribution percentage based on loan type and LTV
-    max_contribution_pct = 0
-
-    # Handle conventional loans with different occupancy types
-    if loan_type.lower() == "conventional":
-        # Map occupancy parameter to config structure
-        if occupancy == "primary":
-            occupancy = "primary_residence"
-        elif occupancy == "second":
-            occupancy = "second_home"
-        elif occupancy == "investment":
-            occupancy = "investment_property"
-
-        # Get contribution limits for this occupancy type
-        occupancy_limits = seller_contributions.get("conventional", {}).get(
-            occupancy, []
-        )
-
-        app.logger.debug(f"Checking occupancy limits: {occupancy_limits}")
-        app.logger.debug(f"Current LTV ratio: {ltv_ratio:.2f}%")
-
-        # Find the applicable limit based on LTV
-        for limit in occupancy_limits:
-            ltv_range = limit.get("ltv_range", "")
-            app.logger.debug(f"Checking LTV range: {ltv_range}")
-
-            # Handle "Any LTV" case
-            if ltv_range.lower() == "any ltv":
-                max_contribution_pct = limit.get("max_contribution", 0)
-                app.logger.debug(f"Matched 'Any LTV' range, max: {max_contribution_pct}%")
-                break
-
-            # Parse LTV range and check if current LTV falls within it
-            if "≤" in ltv_range:
-                # Less than or equal to
-                threshold = float(ltv_range.replace("≤", "").replace("%", "").strip())
-                app.logger.debug(f"Checking if {ltv_ratio:.2f}% ≤ {threshold}%")
-                if ltv_ratio <= threshold:
-                    max_contribution_pct = limit.get("max_contribution", 0)
-                    app.logger.debug(f"Matched ≤ range, max: {max_contribution_pct}%")
-                    break
-            elif ">" in ltv_range:
-                # Greater than
-                threshold = float(ltv_range.replace(">", "").replace("%", "").strip())
-                app.logger.debug(f"Checking if {ltv_ratio:.2f}% > {threshold}%")
-                if ltv_ratio > threshold:
-                    max_contribution_pct = limit.get("max_contribution", 0)
-                    app.logger.debug(f"Matched > range, max: {max_contribution_pct}%")
-                    break
-            elif "-" in ltv_range:
-                # Range between two values
-                parts = ltv_range.replace("%", "").split("-")
-                lower = float(parts[0].strip())
-                upper = float(parts[1].strip())
-                app.logger.debug(f"Checking if {lower}% ≤ {ltv_ratio:.2f}% ≤ {upper}%")
-                if lower <= ltv_ratio <= upper:
-                    max_contribution_pct = limit.get("max_contribution", 0)
-                    app.logger.debug(f"Matched range {lower}%-{upper}%, max: {max_contribution_pct}%")
-                    break
-    else:
-        # For FHA, USDA, use the all_types category
-        limits = seller_contributions.get(loan_type.lower(), {}).get("all_types", [])
-        if limits:
-            # These typically have a single limit regardless of LTV
-            max_contribution_pct = limits[0].get("max_contribution", 0)
-
-    # Calculate maximum dollar amount
-    max_contribution_amount = (max_contribution_pct / 100) * purchase_price
-
-    app.logger.debug(
-        f"Max seller contribution for {loan_type} loan with {occupancy} and {ltv_ratio:.2f}% LTV: "
-        f"{max_contribution_pct:.1f}% = ${max_contribution_amount:.2f}"
-    )
-
-    return max_contribution_amount
-
-
-# Add a route to calculate maximum seller contribution
-@app.route('/calculate-max-seller-contribution', methods=['POST'])
+# API endpoint to calculate the maximum allowed seller contribution
+@app.route("/api/max_seller_contribution", methods=["POST"])
+@csrf.exempt
 def max_seller_contribution_api():
     """API endpoint to calculate the maximum allowed seller contribution"""
     try:
-        # Parse input from JSON request
         data = request.get_json()
-        app.logger.info(f"Max seller contribution request received: {data}")
-        
-        # Extract parameters
-        loan_type = data.get('loan_type', 'conventional')
-        purchase_price = float(data.get('purchase_price', 0))
-        down_payment_amount = float(data.get('down_payment_amount', 0))
-        occupancy = data.get('occupancy', 'primary_residence')
-        
-        app.logger.info(f"Calculating max seller contribution for: loan_type={loan_type}, purchase_price={purchase_price}, down_payment={down_payment_amount}, occupancy={occupancy}")
-        
-        # Calculate maximum seller contribution
-        max_contribution = calculate_max_seller_contribution(
-            loan_type, purchase_price, down_payment_amount, occupancy
+        loan_type = data.get("loan_type")
+        purchase_price = float(data.get("purchase_price"))
+        down_payment_amount = float(data.get("down_payment_amount"))
+        # Calculate LTV
+        loan_amount = purchase_price - down_payment_amount
+        ltv_ratio = (loan_amount / purchase_price) * 100
+        # Use MortgageCalculator method
+        calculator_instance = MortgageCalculator()
+        max_contribution = calculator_instance._calculate_max_seller_contribution(
+            loan_type, ltv_ratio, purchase_price
         )
-        
-        app.logger.info(f"Max seller contribution calculated: {max_contribution}")
-        
-        # Return result as JSON
-        return jsonify({
-            'max_contribution': max_contribution,
-            'status': 'success'
-        })
-    
+        return jsonify({"max_seller_contribution": max_contribution})
     except Exception as e:
         app.logger.error(f"Error calculating max seller contribution: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'error': str(e)
-        }), 400
+        return jsonify({"error": str(e)}), 400
 
 
 # Configure logging
@@ -508,10 +386,10 @@ app.permanent_session_lifetime = timedelta(days=5)
 
 # Log application version on startup
 try:
-    from VERSION import LAST_UPDATED, VERSION
+    from VERSION import LAST_UPDATED
 
     app.logger.info(
-        f"Starting Mortgage Calculator version {VERSION} (last updated: {LAST_UPDATED})"
+        f"Starting Mortgage Calculator version {current_version} (last updated: {LAST_UPDATED})"
     )
 except ImportError:
     app.logger.warning("VERSION module not found, version tracking not enabled")
@@ -573,12 +451,17 @@ def index():
             "discount_points": 0,
         }
 
+        # Explicitly fetch the latest version right before rendering
+        latest_version = force_reload_version()
+        # Update cache buster based on potentially reloaded version
+        latest_cache_buster = f"{latest_version}.{int(datetime.now().timestamp())}"
+
         return render_template(
             "index.html",
             params=params,
             limits=limits,
-            version=app.version,
-            cache_buster=app.config["CACHE_BUSTER"]
+            version=latest_version,  # Use the freshly loaded version
+            cache_buster=latest_cache_buster,  # Use updated cache buster
         )
     except Exception as e:
         app.logger.error(f"Error in index route: {str(e)}")
@@ -598,35 +481,32 @@ def catch_all(path):
 def health_check():
     """Get health and version information about the application."""
     try:
-        from VERSION import FEATURES, LAST_UPDATED, VERSION
-    except ImportError:
-        VERSION = "unknown"
-        LAST_UPDATED = "unknown"
-        FEATURES = []
+        from VERSION import FEATURES, LAST_UPDATED
 
-    return jsonify(
-        {
-            "status": "healthy",
-            "version": VERSION,
-            "features": FEATURES,
-            "last_updated": LAST_UPDATED,
-            "environment": os.environ.get("FLASK_ENV", "development"),
-            "timestamp": datetime.now().isoformat(),
-        }
-    )
+        return jsonify(
+            {
+                "status": "healthy",
+                "version": current_version,
+                "features": FEATURES,
+                "last_updated": LAST_UPDATED,
+                "environment": os.environ.get("FLASK_ENV", "development"),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+    except ImportError:
+        return jsonify(
+            {
+                "status": "healthy",
+                "version": current_version,
+                "features": [],
+                "last_updated": "unknown",
+                "environment": os.environ.get("FLASK_ENV", "development"),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
 
 # Main entry point
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Run the Mortgage Calculator Flask app"
-    )
-    parser.add_argument("--port", type=int, default=8080, help="Port to run the app on")
-    parser.add_argument(
-        "--host", type=str, default="0.0.0.0", help="Host to run the app on"
-    )
-    args = parser.parse_args()
-
-    app.run(host=args.host, port=args.port, debug=True)
+    app.logger.info("Starting development server")
+    app.run(debug=True, host="0.0.0.0", port=3333)

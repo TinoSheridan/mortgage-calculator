@@ -29,3 +29,4 @@ Versioning
 Create backups before major changes (as we did with version 1.2)
 Keep track of version changes in a structured way
 Document significant updates to the codebase
+only use python 3.11
