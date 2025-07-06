@@ -8,7 +8,7 @@ services:
       - key: FLASK_ENV
         value: testing
       - key: SECRET_KEY
-        generateValue: true
+        value: "8f42a73f4f56c124c62f5da9e7f2db23a09a5f952b9c42af"
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: PATH
