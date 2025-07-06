@@ -43,9 +43,7 @@ def interactive_calculator():
             "annual_tax_rate": get_float_input("Annual Property Tax Rate (%)", 1.2),
             "annual_insurance_rate": get_float_input("Annual Insurance Rate (%)", 0.5),
             "credit_score": get_int_input("Credit Score", 750),
-            "loan_type": get_str_input(
-                "Loan Type (conventional/fha/va/usda)", "conventional"
-            ),
+            "loan_type": get_str_input("Loan Type (conventional/fha/va/usda)", "conventional"),
             "hoa_fee": get_float_input("Monthly HOA Fee ($)", 0),
             "seller_credit": get_float_input("Seller Credit ($)", 0),
             "lender_credit": get_float_input("Lender Credit ($)", 0),
@@ -55,15 +53,11 @@ def interactive_calculator():
         # Get VA-specific parameters if loan type is VA
         if params["loan_type"].lower() == "va":
             print("\n=== VA Loan Parameters ===")
-            va_service_type = get_str_input(
-                "Service Type (active/reserves)", "active"
-            ).lower()
+            va_service_type = get_str_input("Service Type (active/reserves)", "active").lower()
             va_usage = get_str_input("Loan Usage (first/subsequent)", "first").lower()
 
             # Get disability exempt status (yes/no)
-            disability_exempt_input = get_str_input(
-                "Disability Exempt (yes/no)", "no"
-            ).lower()
+            disability_exempt_input = get_str_input("Disability Exempt (yes/no)", "no").lower()
             va_disability_exempt = (
                 True if disability_exempt_input in ("yes", "y", "true") else False
             )
@@ -106,9 +100,7 @@ def interactive_calculator():
             )
             print(f"Property Tax: ${result['monthly_payment']['property_tax']:,.2f}")
             print(f"Insurance: ${result['monthly_payment']['home_insurance']:,.2f}")
-            print(
-                f"Mortgage Insurance: ${result['monthly_payment']['mortgage_insurance']:,.2f}"
-            )
+            print(f"Mortgage Insurance: ${result['monthly_payment']['mortgage_insurance']:,.2f}")
             print(f"HOA: ${result['monthly_payment']['hoa_fee']:,.2f}")
             print(f"Total Monthly Payment: ${result['monthly_payment']['total']:,.2f}")
 
@@ -119,10 +111,7 @@ def interactive_calculator():
             print(f"Total Cash Needed: ${result['total_cash_needed']:,.2f}")
 
             # VA loans show funding fee information
-            if (
-                params["loan_type"].lower() == "va"
-                and "funding_fee" in result["loan_details"]
-            ):
+            if params["loan_type"].lower() == "va" and "funding_fee" in result["loan_details"]:
                 print(f"VA Funding Fee: ${result['loan_details']['funding_fee']:,.2f}")
 
         except Exception as e:

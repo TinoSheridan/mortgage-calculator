@@ -1,15 +1,27 @@
 # Enhanced Mortgage Calculator
 
-A comprehensive Python-based mortgage calculator that helps users analyze mortgage payments, costs, and amortization schedules. The calculator takes into account various factors including property taxes, PMI, home insurance, and HOA fees.
+**Version 2.6.0** - A comprehensive Python-based mortgage calculator that helps users analyze mortgage payments, costs, and amortization schedules. Features both purchase and refinance calculations with accurate LTV guidance and enhanced refinance logic.
 
 ## Features
 
+### Core Calculations
 - Calculate monthly mortgage payments (Principal & Interest)
 - Include additional costs (Property tax, PMI, Insurance, HOA fees)
-- Support for custom line items and one-time payments
-- JSON-based configuration management
+- Support for multiple loan types (Conventional, FHA, VA, USDA)
 - Detailed payment breakdowns and amortization schedules
-- Data visualization capabilities
+
+### Refinance Capabilities ⭐ ENHANCED in v2.6.0
+- **Accurate LTV Calculations**: Fixed critical frontend override issues for precise appraised value requirements
+- **Dynamic Maximum LTV**: Automatically calculates loan-type-specific maximum LTV targets (97% Conventional, 96.5% FHA, 100% VA)
+- **Enhanced Cash-Out Logic**: Improved cash-out refinance calculations with proper cash received vs. cash needed handling
+- **HOA Fee Integration**: Complete HOA fee support throughout refinance calculations and monthly payment breakdowns
+- **Break-Even Clarity**: Accurate break-even analysis using only P&I + extra savings (excludes HOA/taxes/insurance)
+
+### Advanced Features
+- JSON-based configuration management
+- Admin interface for rate and cost management
+- Multiple closing cost scenarios
+- Seller and lender credit calculations
 
 ## Installation
 

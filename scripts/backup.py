@@ -61,16 +61,12 @@ class BackupManager:
 
         for backup_file in Path(self.config.BACKUP_DIR).glob("*.tar.gz"):
             try:
-                file_date = datetime.datetime.strptime(
-                    backup_file.stem.split("_")[0], "%Y%m%d"
-                )
+                file_date = datetime.datetime.strptime(backup_file.stem.split("_")[0], "%Y%m%d")
                 if file_date < cutoff_date:
                     self.logger.info(f"Removing old backup: {backup_file}")
                     backup_file.unlink()
             except (ValueError, IndexError):
-                self.logger.warning(
-                    f"Skipping file with invalid name format: {backup_file}"
-                )
+                self.logger.warning(f"Skipping file with invalid name format: {backup_file}")
 
     def create_backup(self):
         """Create a new backup."""

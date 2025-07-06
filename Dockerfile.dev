@@ -1,0 +1,37 @@
+# Development Dockerfile with hot reloading and debugging capabilities
+FROM python:3.11-slim
+
+# Install system dependencies for development
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    git \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-dev.txt 2>/dev/null || echo "No dev requirements found"
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/flask_session /app/config/backups
+
+# Set environment variables for development
+ENV FLASK_APP=app_refactored.py \
+    FLASK_ENV=development \
+    FLASK_DEBUG=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+# Expose port
+EXPOSE 3333
+
+# Command for development with auto-reload
+CMD ["python", "app_refactored.py"]

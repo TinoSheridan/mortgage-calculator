@@ -5,147 +5,109 @@ import { addDebug, formatCurrency } from '../utils/formatting.js'; // Assuming a
 
 // Updates the closing costs table with details from the API response
 // Returns the calculated total closing costs
-export function updateClosingCostsTable(costs, formData, completeResult) {
-    const tbody = document.querySelector('#closingCostsTable');
-    if (!tbody) {
-        console.error("Closing costs table body not found!");
-        return 0; // Return 0 if table isn't found
+export function updateClosingCostsTable(closingCosts, formData, calculationResult) {
+    console.log('Updating closing costs table with data:', closingCosts);
+    console.log('Form data used for updating closing costs:', formData);
+    console.log('Full calculation result:', calculationResult);
+
+    const closingCostsTable = document.getElementById('closingCostsTable');
+
+    // Clear existing table first
+    closingCostsTable.innerHTML = '';
+
+    // Get transaction type from API result if available, fallback to form radio button
+    let transactionType = calculationResult?.loan_details?.transaction_type?.toLowerCase() || '';
+    
+    // If transaction type not in API response, use the form's calc_mode radio button
+    if (!transactionType) {
+        const mode = document.querySelector('input[name="calc_mode"]:checked')?.value || 'purchase';
+        transactionType = mode.toLowerCase();
     }
+    
+    console.log(`Current transaction type: ${transactionType}`);
 
-    // Ensure costs is an object, default to empty if not provided or null
-    costs = costs && typeof costs === 'object' ? costs : {};
+    // Show correct closing costs based on transaction type
+    if (transactionType === 'refinance') {
+        console.log('Building refinance-specific closing costs table');
 
-    // Extract the total provided by the server, if available
-    const serverTotal = costs.total || 0;
-    console.log("Found closing costs total in response:", serverTotal);
+        // For refinance, show specific refinance closing costs
+        const refinanceCosts = [
+            { name: 'Appraisal Fee', value: closingCosts.appraisal_fee },
+            { name: 'Credit Report Fee', value: closingCosts.credit_report_fee },
+            { name: 'Processing Fee', value: closingCosts.processing_fee },
+            { name: 'Underwriting Fee', value: closingCosts.underwriting_fee },
+            { name: 'Title Fees', value: closingCosts.title_fees },
+            { name: 'Recording Fee', value: closingCosts.recording_fee },
+            { name: 'Other Fees', value: closingCosts.other_fees }
+        ];
 
-    // Clear previous content
-    tbody.innerHTML = '';
-    let total = 0;
-
-    // --- Always show Origination Fee and Discount Points as the first two rows ---
-    // Origination Fee
-    const origFee = parseFloat(costs.origination_fee) || 0;
-    const origRow = document.createElement('tr');
-    origRow.innerHTML = `
-        <td>Origination Fee</td>
-        <td class="text-end">${formatCurrency(origFee)}</td>
-    `;
-    tbody.appendChild(origRow);
-    if (origFee > 0) total += origFee;
-
-    // Discount Points
-    let pointsValue = 0;
-    if (typeof costs.discount_points !== 'undefined') {
-        pointsValue = parseFloat(costs.discount_points) || 0;
-    } else if (formData && formData.discount_points) {
-        pointsValue = parseFloat(formData.discount_points) || 0;
-    }
-    const pointsRow = document.createElement('tr');
-    pointsRow.innerHTML = `
-        <td>Discount Points${formData && formData.discount_points ? ` (${parseFloat(formData.discount_points).toFixed(3)}%)` : ''}</td>
-        <td class="text-end">${formatCurrency(pointsValue)}</td>
-    `;
-    tbody.appendChild(pointsRow);
-    if (pointsValue > 0) total += pointsValue;
-
-    // --- Ensure both lender's and owner's title insurance are always shown, regardless of value or key variant ---
-    const lenderKeys = ['lender_title_insurance', 'title_insurance'];
-    const ownerKeys = ['owner_title_insurance', 'owners_title_insurance'];
-    // Add lender's title insurance row
-    let lenderFound = false;
-    lenderKeys.forEach(key => {
-        if (costs.hasOwnProperty(key)) {
-            const value = parseFloat(costs[key]) || 0;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>Lender's Title Insurance</td>
-                <td class="text-end">${formatCurrency(value)}</td>
-            `;
-            tbody.appendChild(row);
-            if (value > 0) total += value;
-            lenderFound = true;
-        }
-    });
-    if (!lenderFound) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>Lender's Title Insurance</td>
-            <td class="text-end">$0.00</td>
-        `;
-        tbody.appendChild(row);
-    }
-    // Add owner's title insurance row
-    let ownerFound = false;
-    ownerKeys.forEach(key => {
-        if (costs.hasOwnProperty(key)) {
-            const value = parseFloat(costs[key]) || 0;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>Owner's Title Insurance</td>
-                <td class="text-end">${formatCurrency(value)}</td>
-            `;
-            tbody.appendChild(row);
-            if (value > 0) total += value;
-            ownerFound = true;
-        }
-    });
-    if (!ownerFound) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>Owner's Title Insurance</td>
-            <td class="text-end">$0.00</td>
-        `;
-        tbody.appendChild(row);
-    }
-    // --- End always-show title insurance rows ---
-
-    // Define the order and labels for display
-    const costOrder = [
-        { key: 'processing_fee', label: 'Processing Fee' },
-        { key: 'underwriting_fee', label: 'Underwriting Fee' },
-        { key: 'admin_fee', label: 'Administration Fee' },
-        { key: 'appraisal_fee', label: 'Appraisal Fee' },
-        { key: 'credit_report_fee', label: 'Credit Report Fee' },
-        { key: "attorney's_fee", label: "Attorney's Fee" }, // Corrected key
-        { key: 'recording_fee', label: 'Recording Fee' },
-        { key: 'state_tax_stamp', label: 'State Tax/Stamps' },
-        { key: 'intangible_tax', label: 'Intangible Tax' },
-        { key: 'doc_prep', label: 'Document Preparation' },
-        { key: 'verification_fee', label: 'Verification Fee (VOE/VOM)' },
-        { key: 'third_party_certs', label: 'Flood Cert/Tax Service' },
-        // Discount points are handled separately
-    ];
-
-    // Add rows for each defined cost item found in the response, but skip origination fee, discount points, and title insurances to avoid duplicates
-    costOrder.forEach(item => {
-        if (['origination_fee', 'discount_points'].includes(item.key) || lenderKeys.includes(item.key) || ownerKeys.includes(item.key)) return;
-        if (costs.hasOwnProperty(item.key) && costs[item.key] >= 0) {
-            const value = parseFloat(costs[item.key]);
-            if (value > 0) {
+        // Add each line item to the table
+        refinanceCosts.forEach(cost => {
+            if (cost.value) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.label}</td>
-                    <td class="text-end">${formatCurrency(value)}</td>
+                    <td>${cost.name}</td>
+                    <td class="text-end">${formatCurrency(cost.value)}</td>
                 `;
-                tbody.appendChild(row);
-                total += value;
+                closingCostsTable.appendChild(row);
+            }
+        });
+
+        // Add financed amount row if applicable
+        if (closingCosts.financed_amount > 0) {
+            const financedRow = document.createElement('tr');
+            financedRow.innerHTML = `
+                <td><em>Amount Financed Into Loan</em></td>
+                <td class="text-end"><em>(${formatCurrency(closingCosts.financed_amount)})</em></td>
+            `;
+            closingCostsTable.appendChild(financedRow);
+        }
+
+        // Update the total cell
+        const totalCell = document.getElementById('totalClosingCostsCell');
+        if (totalCell) {
+            totalCell.innerHTML = `<strong>${formatCurrency(closingCosts.total)}</strong>`;
+        }
+
+    } else {
+        // This is purchase mode, show all standard closing costs
+        if (Object.keys(closingCosts).length > 0) {
+            // Skip these keys when rendering
+            const skipKeys = ['total', 'financed_closing_costs', 'financed_amount', 'cash_to_close'];
+
+            // Sort the keys for consistent display
+            const sortedKeys = Object.keys(closingCosts).sort();
+
+            // Add each line item to the table
+            // Define items that should always be shown, even if $0
+            const alwaysShowItems = ['origination_fee', 'discount_points'];
+            
+            for (const key of sortedKeys) {
+                if (!skipKeys.includes(key)) {
+                    const value = closingCosts[key];
+                    // Show item if it has a value > 0 OR if it's in the always-show list
+                    if (value !== 0 || alwaysShowItems.includes(key)) {
+                        // Convert snake_case to Title Case for display
+                        const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${displayName}</td>
+                            <td class="text-end">${formatCurrency(value)}</td>
+                        `;
+                        closingCostsTable.appendChild(row);
+                    }
+                }
+            }
+
+            // Update the total cell
+            const totalCell = document.getElementById('totalClosingCostsCell');
+            if (totalCell) {
+                totalCell.innerHTML = `<strong>${formatCurrency(closingCosts.total)}</strong>`;
             }
         }
-    });
-
-    // Update the total closing costs element in the tfoot
-    const totalClosingCostsElement = document.getElementById('totalClosingCosts');
-    if (totalClosingCostsElement) {
-        totalClosingCostsElement.textContent = formatCurrency(total);
-        // Or use innerHTML if you need bold formatting:
-        // totalClosingCostsElement.innerHTML = `<strong>${formatCurrency(total)}</strong>`;
     }
-
-    console.log(`Calculated closing costs total: ${total}`);
-    return total;
 }
-
 
 // Updates the prepaids table and returns the total
 export function updatePrepaidsTable(prepaids) {
@@ -172,13 +134,14 @@ export function updatePrepaidsTable(prepaids) {
         { key: 'prepaid_interest', label: 'Per Diem Interest' },
         { key: 'insurance_escrow', label: 'Homeowner\'s Insurance Escrow' },
         { key: 'tax_escrow', label: 'Property Tax Escrow' },
-        { key: 'tax_escrow_adjustment', label: 'Tax Escrow Adj +/-' } // Added for adjustment
+        { key: 'tax_escrow_adjustment', label: 'Seller Tax Proration Credit' }, // Renamed for clarity
+        { key: 'borrower_escrow_credit', label: 'Borrower Escrow Payment Credit' } // Added new credit
     ];
 
     // Add rows for each defined prepaid item found in the response
     prepaidOrder.forEach(item => {
-        // Check if the key exists and its value is not zero (or it's the adjustment which can be zero/negative)
-        if (prepaids.hasOwnProperty(item.key) && (prepaids[item.key] !== 0 || item.key === 'tax_escrow_adjustment')) {
+        // Check if the key exists and its value is not zero (or it's an adjustment/credit which can be zero/negative)
+        if (prepaids.hasOwnProperty(item.key) && (prepaids[item.key] !== 0 || item.key === 'tax_escrow_adjustment' || item.key === 'borrower_escrow_credit')) {
             const value = parseFloat(prepaids[item.key]);
             if (!isNaN(value)) {
                 let displayLabel = item.label;
@@ -223,7 +186,114 @@ export function updatePrepaidsTable(prepaids) {
 }
 
 
-// Updates the credits table (seller and lender credits)
+// Function to update the refinance closing costs details table
+function updateRefinanceClosingCostsTable(result) {
+    addDebug("Starting refinance closing costs table update...");
+    const tbody = document.getElementById('refinanceClosingCostsTable');
+    if (!tbody) {
+        console.error("Refinance closing costs table body (tbody) not found!");
+        addDebug("ERROR: Refinance closing costs table body not found!");
+        return 0; // Return 0 if table isn't found
+    }
+    addDebug("Refinance closing costs table found: " + tbody);
+
+    // Clear previous content
+    tbody.innerHTML = '';
+    addDebug("Cleared previous table content");
+
+    // Ensure result.closing_costs_details exists and is an object
+    const closingCostsDetails = (result && result.closing_costs_details && typeof result.closing_costs_details === 'object') ? result.closing_costs_details : {};
+    addDebug("Closing costs details in API result: " + JSON.stringify(closingCostsDetails, null, 2));
+
+    // Skip these keys when rendering
+    const skipKeys = ['total', 'financed_closing_costs', 'financed_amount', 'cash_to_close'];
+    
+    // Sort the keys for consistent display
+    const sortedKeys = Object.keys(closingCostsDetails).sort();
+    
+    // Track if we have any costs to display
+    let hasClosingCosts = false;
+    
+    // Add each line item to the table
+    // Define items that should always be shown, even if $0
+    const alwaysShowItems = ['origination_fee', 'discount_points'];
+    
+    for (const key of sortedKeys) {
+        if (!skipKeys.includes(key)) {
+            const value = closingCostsDetails[key];
+            // Show item if it has a value > 0 OR if it's in the always-show list
+            if (value !== 0 || alwaysShowItems.includes(key)) {
+                hasClosingCosts = true;
+                // Convert snake_case to Title Case for display
+                const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${displayName}</td>
+                    <td class="text-end">${formatCurrency(value)}</td>
+                `;
+                tbody.appendChild(row);
+                addDebug(`Added closing cost: ${displayName} = ${formatCurrency(value)}`);
+            }
+        }
+    }
+
+    // If no closing costs, add a 'No Costs' row
+    if (!hasClosingCosts) {
+        const noClosingCostsRow = document.createElement('tr');
+        noClosingCostsRow.innerHTML = `
+            <td style="font-weight: normal; font-style: italic;" colspan="2">No closing costs details available</td>
+        `;
+        tbody.appendChild(noClosingCostsRow);
+        addDebug("Added 'No Closing Costs' row");
+    }
+
+    // Add total row
+    if (closingCostsDetails.total && closingCostsDetails.total > 0) {
+        const totalRow = document.createElement('tr');
+        totalRow.classList.add('total-row');
+        totalRow.innerHTML = `
+            <td>Total Closing Costs</td>
+            <td class="text-end">${formatCurrency(closingCostsDetails.total)}</td>
+        `;
+        tbody.appendChild(totalRow);
+        addDebug(`Added total row: ${formatCurrency(closingCostsDetails.total)}`);
+        
+        // Add explanation about all costs being financed
+        const explanationRow = document.createElement('tr');
+        explanationRow.innerHTML = `
+            <td colspan="2" class="text-info small fst-italic">All closing costs are financed into your new loan amount.</td>
+        `;
+        tbody.appendChild(explanationRow);
+        addDebug('Added explanation row about financed costs');
+
+        // Add financed amount row if applicable
+        if (closingCostsDetails.financed_amount > 0) {
+            const financedRow = document.createElement('tr');
+            financedRow.innerHTML = `
+                <td><em>Amount Financed Into Loan</em></td>
+                <td class="text-end"><em>(${formatCurrency(closingCostsDetails.financed_amount)})</em></td>
+            `;
+            tbody.appendChild(financedRow);
+            addDebug(`Added financed amount row: ${formatCurrency(closingCostsDetails.financed_amount)}`);
+        }
+
+        // Add cash to close row if applicable
+        if (closingCostsDetails.cash_to_close && closingCostsDetails.cash_to_close > 0) {
+            const cashToCloseRow = document.createElement('tr');
+            cashToCloseRow.classList.add('total-row');
+            cashToCloseRow.innerHTML = `
+                <td>Cash to Close</td>
+                <td class="text-end">${formatCurrency(closingCostsDetails.cash_to_close)}</td>
+            `;
+            tbody.appendChild(cashToCloseRow);
+            addDebug(`Added cash to close row: ${formatCurrency(closingCostsDetails.cash_to_close)}`);
+        }
+    }
+
+    return closingCostsDetails.total || 0;
+}
+
 export function updateCreditsTable(result) {
     addDebug("Starting credit table update...");
     const tbody = document.getElementById('creditsTable');
@@ -323,3 +393,9 @@ export function updateCreditsTable(result) {
     //Return the total credits for use in other calculations
     return totalCredits;
 }
+
+// Expose functions globally for direct access
+window.updateClosingCostsTable = updateClosingCostsTable;
+window.updatePrepaidsTable = updatePrepaidsTable;
+window.updateCreditsTable = updateCreditsTable;
+window.updateRefinanceClosingCostsTable = updateRefinanceClosingCostsTable;

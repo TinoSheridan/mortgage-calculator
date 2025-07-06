@@ -49,13 +49,9 @@ class DevelopmentConfig(TestingConfig):
 
 
 # Import the production config if it exists
-production_config_path = os.path.join(
-    os.path.dirname(__file__), "config", "production.py"
-)
+production_config_path = os.path.join(os.path.dirname(__file__), "config", "production.py")
 if os.path.exists(production_config_path):
-    spec = importlib.util.spec_from_file_location(
-        "production_config", production_config_path
-    )
+    spec = importlib.util.spec_from_file_location("production_config", production_config_path)
     production_config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(production_config)
     ProductionConfig = production_config.ProductionConfig

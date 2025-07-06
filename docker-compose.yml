@@ -1,22 +1,72 @@
 version: '3.8'
 
 services:
-  mortgage-calculator:
-    build: .
-    container_name: mortgage-calculator
+  # Production service
+  mortgage-calc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: mortgage-calc-prod
     ports:
       - "8000:8000"
     environment:
-      - FLASK_ENV=testing
-      - FLASK_APP=app.py
-      - SECRET_KEY=beta-testing-secret-key-change-in-production
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-production-secret-change-me}
+      - LOG_LEVEL=INFO
+      - WTF_CSRF_ENABLED=true
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
+      - mortgage_logs:/app/logs
+      - mortgage_data:/app/data
+      - mortgage_sessions:/app/flask_session
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 40s
+
+  # Development service
+  mortgage-calc-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mortgage-calc-dev
+    ports:
+      - "3333:3333"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SECRET_KEY=dev-secret-key
+      - LOG_LEVEL=DEBUG
+      - ENABLE_DEBUG_MODE=true
+      - WTF_CSRF_ENABLED=false
+    volumes:
+      - .:/app
+      - mortgage_dev_logs:/app/logs
+      - mortgage_dev_data:/app/data
+      - mortgage_dev_sessions:/app/flask_session
+    profiles:
+      - dev
+
+  # Redis service for future caching/session storage
+  redis:
+    image: redis:7-alpine
+    container_name: mortgage-calc-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - mortgage_redis:/data
+    restart: unless-stopped
+    profiles:
+      - with-redis
+
+volumes:
+  mortgage_logs:
+  mortgage_data:
+  mortgage_sessions:
+  mortgage_dev_logs:
+  mortgage_dev_data:
+  mortgage_dev_sessions:
+  mortgage_redis:

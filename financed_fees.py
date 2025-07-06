@@ -3,20 +3,14 @@ import logging
 from typing import Dict
 
 
-def calculate_fha_ufmip(
-    loan_amount: float, fha_config: Dict, logger: logging.Logger
-) -> float:
+def calculate_fha_ufmip(loan_amount: float, fha_config: Dict, logger: logging.Logger) -> float:
     """Calculate FHA Upfront Mortgage Insurance Premium (UFMIP)."""
     try:
         if not fha_config:
-            logger.error(
-                "FHA configuration (pmi_rates.fha) not found for UFMIP calculation"
-            )
+            logger.error("FHA configuration (pmi_rates.fha) not found for UFMIP calculation")
             raise ValueError("FHA configuration not found for UFMIP calculation")
 
-        upfront_mip_rate = (
-            fha_config.get("upfront_mip_rate", 1.75) / 100
-        )  # Default 1.75%
+        upfront_mip_rate = fha_config.get("upfront_mip_rate", 1.75) / 100  # Default 1.75%
         upfront_mip = loan_amount * upfront_mip_rate
         total_financed_fees = round(upfront_mip, 2)
         logger.info(
@@ -39,9 +33,7 @@ def calculate_usda_upfront_fee(
             )
             raise ValueError("USDA configuration not found for upfront fee calculation")
 
-        upfront_fee_rate = (
-            usda_config.get("upfront_fee_rate", 1.0) / 100
-        )  # Default 1.0%
+        upfront_fee_rate = usda_config.get("upfront_fee_rate", 1.0) / 100  # Default 1.0%
         upfront_fee = loan_amount * upfront_fee_rate
         total_financed_fees = round(upfront_fee, 2)
         logger.info(
@@ -104,9 +96,7 @@ def calculate_va_funding_fee(
 
         # Validate service type
         if service_type not in ["active", "reserves"]:
-            logger.warning(
-                f"Invalid service type: {service_type}. Defaulting to 'active'"
-            )
+            logger.warning(f"Invalid service type: {service_type}. Defaulting to 'active'")
             service_type = "active"
 
         # Validate loan usage
@@ -142,9 +132,7 @@ def calculate_va_funding_fee(
         # Get bracket rates
         bracket_rates = service_rates.get(dp_bracket)
         if not bracket_rates:
-            logger.error(
-                f"No funding fee rates found for down payment bracket: {dp_bracket}"
-            )
+            logger.error(f"No funding fee rates found for down payment bracket: {dp_bracket}")
             # Fallback strategy: Use 'less_than_5' if primary bracket not found
             bracket_rates = service_rates.get("less_than_5", {})
             logger.info(f"Falling back to 'less_than_5' bracket rates")
@@ -169,9 +157,7 @@ def calculate_va_funding_fee(
                     f"Could not find VA funding fee rate for usage '{loan_usage}' or fallback 'first'"
                 )
 
-        logger.info(
-            f"Fee rate lookup for {service_type}, {dp_bracket}, {loan_usage}: {fee_rate}"
-        )
+        logger.info(f"Fee rate lookup for {service_type}, {dp_bracket}, {loan_usage}: {fee_rate}")
 
         # Calculate fee
         fee = loan_amount * (fee_rate / 100)
@@ -191,13 +177,9 @@ def calculate_va_funding_fee(
         # only if not disability exempt
         if not disability_exempt:
             default_fee = loan_amount * 0.023
-            logger.warning(
-                f"Using default fee calculation due to error: ${default_fee:.2f} (2.3%)"
-            )
+            logger.warning(f"Using default fee calculation due to error: ${default_fee:.2f} (2.3%)")
             return round(default_fee, 2)
         else:
             # Should have been caught earlier, but safety check
-            logger.info(
-                "VA Funding Fee is 0 due to disability exemption (error fallback check)."
-            )
+            logger.info("VA Funding Fee is 0 due to disability exemption (error fallback check).")
             return 0.0

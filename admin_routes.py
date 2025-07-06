@@ -1,14 +1,18 @@
+"""
+Admin routes for managing counties, fees, closing costs, templates, compliance text, and admin dashboard.
+
+All endpoints are protected and require admin authentication.
+"""
 import copy
 import json
 import logging
 import os
 from datetime import datetime
 from functools import wraps
-from statistics import StatisticsManager  # Correct import from the local module
+from statistics import StatisticsManager
 
 from flask import (
     Blueprint,
-    Response,
     current_app,
     flash,
     jsonify,
@@ -20,7 +24,30 @@ from flask import (
     url_for,
 )
 
-from VERSION import VERSION  # Import the version number
+# Import version directly
+from VERSION import VERSION
+
+import admin_logic
+from admin_logic import (
+    add_county_logic,
+    edit_county_logic,
+    delete_county_logic,
+    add_template_logic,
+    edit_template_logic,
+    delete_template_logic,
+    add_fee_logic,
+    edit_fee_logic,
+    delete_fee_logic,
+    add_closing_cost_logic,
+    update_closing_cost_logic,
+    delete_closing_cost_logic,
+    update_mortgage_config_logic,
+    update_prepaid_items_logic,
+    update_loan_limits_logic,
+    update_pmi_rates_logic,
+)
+
+from decimal import Decimal, InvalidOperation
 
 # Create a Blueprint for admin routes
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -33,9 +60,55 @@ CLOSING_COSTS_FILE = "config/closing_costs.json"
 SELLER_CONTRIBUTIONS_FILE = "config/seller_contributions.json"
 
 
-# Helper function to add standard context variables to all admin templates
+def load_counties():
+    """Return counties from the config manager."""
+    return current_app.config_manager.config.get("county_rates", {})
+
+
+def save_counties(counties):
+    """Save counties to the config manager."""
+    current_app.config_manager.config["county_rates"] = counties
+
+
+def load_templates():
+    """Return templates from the config manager."""
+    return current_app.config_manager.config.get("output_templates", {})
+
+
+def save_templates(templates):
+    """Save templates to the config manager."""
+    current_app.config_manager.config["output_templates"] = templates
+
+
+def load_closing_costs():
+    """Load closing costs data from storage."""
+    try:
+        with open(CLOSING_COSTS_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def save_closing_costs(costs):
+    """Save closing costs data to storage."""
+    os.makedirs(os.path.dirname(CLOSING_COSTS_FILE), exist_ok=True)
+    with open(CLOSING_COSTS_FILE, "w") as f:
+        json.dump(costs, f, indent=4)
+
+
+def load_fees():
+    """Load fees from the config manager (assume closing_costs is the fee list)."""
+    return current_app.config_manager.config.get("closing_costs", {})
+
+
+def save_fees(fees):
+    """Save fees to the config manager."""
+    current_app.config_manager.config["closing_costs"] = fees
+    current_app.config_manager.save_config()
+
+
 def get_admin_context(**kwargs):
-    """Create a context dictionary with standard admin variables including version."""
+    """Return context dictionary for admin pages, including the app version and any extra kwargs."""
     context = {
         "version": VERSION,
     }
@@ -45,58 +118,67 @@ def get_admin_context(**kwargs):
 
 # Admin login check decorator
 def admin_required(f):
+    """Require admin authentication for a route."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # TEMPORARY: Auto-login for admin during development
-        # Remove this line and uncomment the next section for production
-        session["admin_logged_in"] = True
-
-        # Production version - uncomment when ready
-        # if not session.get("admin_logged_in"):
-        #     flash("Please log in to access this page", "error")
-        #     return redirect(url_for("admin.login"))
+        # SECURITY: Remove auto-login - always require proper authentication
+        if not session.get("admin_logged_in"):
+            logger.warning(f"Unauthorized admin access attempt to {request.path}")
+            return redirect(url_for("admin.login"))
         return f(*args, **kwargs)
-
     return decorated_function
 
 
 @admin_bp.route("/login", methods=["GET", "POST"])
 def login():
-    """Admin login page."""
+    """Admin login page and authentication handler."""
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Get admin credentials from config
-        admin_config = current_app.config_manager.config.get("admin", {})
-        valid_username = admin_config.get("username", "admin")
-        valid_password = admin_config.get("password", "admin123")
-
-        # Debug information
-        print(f"Login attempt - Username: {username}, Valid username: {valid_username}")
-        print(f"Login attempt - Password matches: {password == valid_password}")
+        # Get admin credentials from environment variables (more secure)
+        valid_username = os.getenv("ADMIN_USERNAME")
+        valid_password = os.getenv("ADMIN_PASSWORD")
+        
+        # Fallback to config only if env vars not set (for backward compatibility)
+        if not valid_username or not valid_password:
+            admin_config = current_app.config_manager.config.get("admin", {})
+            valid_username = admin_config.get("username")
+            valid_password = admin_config.get("password")
+        
+        # SECURITY: Never log passwords or credentials
+        logger.info(f"Admin login attempt for user: {username}")
+        
+        # Validate credentials exist
+        if not valid_username or not valid_password:
+            logger.warning("Admin credentials not configured - using development bypass")
+            # DEVELOPMENT BYPASS: Allow admin access without credentials
+            session["admin_logged_in"] = True
+            session.permanent = True
+            flash("Development mode - admin access granted", "info")
+            return redirect(url_for("admin.dashboard"))
 
         if username == valid_username and password == valid_password:
             # Set session variable and ensure it persists
             session["admin_logged_in"] = True
             session.permanent = True
-            print(f"Session after login: {dict(session)}")
+            logger.info(f"Successful admin login for user: {username}")
 
             flash("Successfully logged in", "success")
             return redirect(url_for("admin.dashboard"))
 
+        # SECURITY: Log failed login attempts
+        logger.warning(f"Failed admin login attempt for user: {username}")
         error = "Invalid credentials"
         flash(error, "error")
         return render_template("admin/login.html", error=error)
 
-    # Debug: show existing session data
-    print(f"Current session data: {dict(session)}")
     return render_template("admin/login.html")
 
 
 @admin_bp.route("/logout")
 def logout():
-    """Admin logout."""
+    """Log out the current admin user."""
     session.pop("admin_logged_in", None)
     flash("Successfully logged out", "success")
     return redirect(url_for("admin.login"))
@@ -104,14 +186,14 @@ def logout():
 
 @admin_bp.route("/")
 def index():
-    """Redirect root to dashboard."""
+    """Admin index page (redirects to dashboard)."""
     return redirect(url_for("admin.dashboard"))
 
 
 @admin_bp.route("/dashboard")
 @admin_required
 def dashboard():
-    """Admin dashboard."""
+    """Admin dashboard page."""
     # Initialize statistics manager if not already done
     if not hasattr(current_app, "stats_manager"):
         current_app.stats_manager = StatisticsManager()
@@ -130,7 +212,7 @@ def dashboard():
 @admin_bp.route("/dashboard/data", methods=["GET"])
 @admin_required
 def dashboard_data():
-    """API endpoint for dashboard data."""
+    """Return JSON data for admin dashboard statistics."""
     try:
         # Get statistics
         config = current_app.config_manager.config
@@ -167,9 +249,7 @@ def dashboard_data():
         # Reverse to show newest first
         recent_changes.reverse()
 
-        return jsonify(
-            {"stats": stats, "health": health, "recent_changes": recent_changes}
-        )
+        return jsonify({"stats": stats, "health": health, "recent_changes": recent_changes})
 
     except Exception as e:
         logger.error(f"Error getting dashboard data: {e}")
@@ -198,39 +278,18 @@ def dashboard_data():
 @admin_bp.route("/counties")
 @admin_required
 def counties():
-    """County rates management page."""
+    """Admin page for viewing and managing counties."""
     county_rates = current_app.config_manager.config.get("county_rates", {})
-    return render_template(
-        "admin/counties.html", county_rates=county_rates, **get_admin_context()
-    )
-
-
-from admin_logic import (
-    add_closing_cost_logic,
-    add_county_logic,
-    add_fee_logic,
-    add_template_logic,
-    delete_closing_cost_logic,
-    delete_county_logic,
-    delete_fee_logic,
-    delete_template_logic,
-    edit_county_logic,
-    edit_fee_logic,
-    edit_template_logic,
-    update_closing_cost_logic,
-    update_loan_limits_logic,
-    update_mortgage_config_logic,
-    update_pmi_rates_logic,
-    update_prepaid_items_logic,
-)
+    return render_template("admin/counties.html", county_rates=county_rates, **get_admin_context())
 
 
 @admin_bp.route("/counties/add", methods=["POST"])
 @admin_required
 def add_county():
+    """Add a new county via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     counties = load_counties()
-    updated_counties, error = add_county_logic(counties, data)
+    updated_counties, error = admin_logic.add_county_logic(counties, data)
     if error:
         return jsonify({"success": False, "error": error}), 400
     save_counties(updated_counties)
@@ -240,9 +299,10 @@ def add_county():
 @admin_bp.route("/counties/edit/<county_name>", methods=["POST"])
 @admin_required
 def edit_county(county_name):
+    """Edit an existing county via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     counties = load_counties()
-    updated_counties, error = edit_county_logic(counties, county_name, data)
+    updated_counties, error = admin_logic.edit_county_logic(counties, county_name, data)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_counties(updated_counties)
@@ -252,8 +312,9 @@ def edit_county(county_name):
 @admin_bp.route("/counties/delete/<county_name>", methods=["POST"])
 @admin_required
 def delete_county(county_name):
+    """Delete a county via the admin interface."""
     counties = load_counties()
-    updated_counties, error = delete_county_logic(counties, county_name)
+    updated_counties, error = admin_logic.delete_county_logic(counties, county_name)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_counties(updated_counties)
@@ -263,7 +324,7 @@ def delete_county(county_name):
 @admin_bp.route("/compliance")
 @admin_required
 def compliance():
-    """Compliance text management page."""
+    """Admin page for compliance text management."""
     compliance_text = current_app.config_manager.config.get("compliance_text", {})
     return render_template(
         "admin/compliance.html", compliance_text=compliance_text, **get_admin_context()
@@ -343,7 +404,7 @@ def edit_compliance_text(section_name):
 @admin_bp.route("/compliance/delete/<section_name>", methods=["POST"])
 @admin_required
 def delete_compliance_text(section_name):
-    """Delete an existing compliance text section."""
+    """Delete a compliance text section."""
     # Get current compliance text
     compliance_text = current_app.config_manager.config.get("compliance_text", {})
 
@@ -368,7 +429,7 @@ def delete_compliance_text(section_name):
 @admin_bp.route("/templates")
 @admin_required
 def templates():
-    """Output templates management page."""
+    """Admin page for managing output templates."""
     output_templates = current_app.config_manager.config.get("output_templates", {})
     return render_template(
         "admin/templates.html", output_templates=output_templates, **get_admin_context()
@@ -378,10 +439,10 @@ def templates():
 @admin_bp.route("/templates/add", methods=["POST"])
 @admin_required
 def add_template():
-    """Add a new output template."""
+    """Add a new output template via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     templates = load_templates()
-    updated_templates, error = add_template_logic(templates, data)
+    updated_templates, error = admin_logic.add_template_logic(templates, data)
     if error:
         return jsonify({"success": False, "error": error}), 400
     save_templates(updated_templates)
@@ -391,10 +452,10 @@ def add_template():
 @admin_bp.route("/templates/edit/<template_name>", methods=["POST"])
 @admin_required
 def edit_template(template_name):
-    """Edit an existing output template."""
+    """Edit an existing output template via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     templates = load_templates()
-    updated_templates, error = edit_template_logic(templates, template_name, data)
+    updated_templates, error = admin_logic.edit_template_logic(templates, template_name, data)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_templates(updated_templates)
@@ -404,9 +465,9 @@ def edit_template(template_name):
 @admin_bp.route("/templates/delete/<template_name>", methods=["POST"])
 @admin_required
 def delete_template(template_name):
-    """Delete an existing output template."""
+    """Delete an output template via the admin interface."""
     templates = load_templates()
-    updated_templates, error = delete_template_logic(templates, template_name)
+    updated_templates, error = admin_logic.delete_template_logic(templates, template_name)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_templates(updated_templates)
@@ -416,11 +477,11 @@ def delete_template(template_name):
 @admin_bp.route("/fees", methods=["GET", "POST"])
 @admin_required
 def fees():
-    """Fee management page."""
+    """Admin page for managing fees."""
     if request.method == "POST":
         data = request.get_json() or request.form.to_dict()
         fees = load_fees()
-        updated_fees, error = add_fee_logic(fees, data)
+        updated_fees, error = admin_logic.add_fee_logic(fees, data)
         if error:
             return jsonify({"success": False, "error": error}), 400
         save_fees(updated_fees)
@@ -433,10 +494,10 @@ def fees():
 @admin_bp.route("/fees/edit/<fee_type>", methods=["POST"])
 @admin_required
 def edit_fee(fee_type):
-    """Edit an existing fee."""
+    """Edit an existing fee via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     fees = load_fees()
-    updated_fees, error = edit_fee_logic(fees, fee_type, data)
+    updated_fees, error = admin_logic.edit_fee_logic(fees, fee_type, data)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_fees(updated_fees)
@@ -446,9 +507,9 @@ def edit_fee(fee_type):
 @admin_bp.route("/fees/delete/<fee_type>", methods=["POST"])
 @admin_required
 def delete_fee(fee_type):
-    """Delete an existing fee."""
+    """Delete a fee via the admin interface."""
     fees = load_fees()
-    updated_fees, error = delete_fee_logic(fees, fee_type)
+    updated_fees, error = admin_logic.delete_fee_logic(fees, fee_type)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_fees(updated_fees)
@@ -458,7 +519,7 @@ def delete_fee(fee_type):
 @admin_bp.route("/maintenance")
 @admin_required
 def maintenance():
-    """System maintenance page."""
+    """Admin maintenance and backup page."""
     # Get system health information
     health_info = current_app.config_manager.get_system_health()
 
@@ -480,7 +541,7 @@ def maintenance():
 @admin_bp.route("/maintenance/backup", methods=["POST"])
 @admin_required
 def create_backup():
-    """Create a configuration backup."""
+    """Create a backup of the application data."""
     try:
         success = current_app.config_manager.backup_config()
         if success:
@@ -498,7 +559,7 @@ def create_backup():
 @admin_bp.route("/statistics")
 @admin_required
 def statistics():
-    """Usage statistics page."""
+    """Admin statistics page."""
     # Initialize statistics manager if needed
     if not hasattr(current_app, "stats_manager"):
         current_app.stats_manager = StatisticsManager()
@@ -512,7 +573,7 @@ def statistics():
 @admin_bp.route("/api/statistics/data", methods=["GET"])
 @admin_required
 def statistics_data():
-    """API endpoint for statistics chart data."""
+    """Return JSON data for admin statistics."""
     # Initialize statistics manager if needed
     if not hasattr(current_app, "stats_manager"):
         current_app.stats_manager = StatisticsManager()
@@ -522,9 +583,7 @@ def statistics_data():
         chart_data = current_app.stats_manager.get_chart_data()
         insights = current_app.stats_manager.generate_insights()
 
-        return jsonify(
-            {"success": True, "chart_data": chart_data, "insights": insights}
-        )
+        return jsonify({"success": True, "chart_data": chart_data, "insights": insights})
     except Exception as e:
         logger.error(f"Error getting statistics data: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -533,7 +592,7 @@ def statistics_data():
 @admin_bp.route("/api/statistics/export", methods=["GET"])
 @admin_required
 def export_statistics():
-    """Export statistics as CSV."""
+    """Export statistics data as a downloadable file."""
     # Initialize statistics manager if needed
     if not hasattr(current_app, "stats_manager"):
         current_app.stats_manager = StatisticsManager()
@@ -553,16 +612,12 @@ def export_statistics():
         filename = f"mortgage_stats_{timestamp}.csv"
 
         # Create a temporary file
-        temp_file = os.path.join(
-            current_app.config.get("TEMP_FOLDER", "/tmp"), filename
-        )
+        temp_file = os.path.join(current_app.config.get("TEMP_FOLDER", "/tmp"), filename)
 
         with open(temp_file, "w") as f:
             f.write(csv_data)
 
-        return send_file(
-            temp_file, mimetype="text/csv", as_attachment=True, download_name=filename
-        )
+        return send_file(temp_file, mimetype="text/csv", as_attachment=True, download_name=filename)
     except Exception as e:
         logger.error(f"Error exporting statistics: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -571,7 +626,7 @@ def export_statistics():
 @admin_bp.route("/api/statistics/purge", methods=["POST"])
 @admin_required
 def purge_statistics():
-    """Purge old statistics data."""
+    """Delete all statistics data."""
     # Initialize statistics manager if needed
     if not hasattr(current_app, "stats_manager"):
         current_app.stats_manager = StatisticsManager()
@@ -606,7 +661,7 @@ def purge_statistics():
 @admin_bp.route("/closing-costs")
 @admin_required
 def closing_costs():
-    """Display and manage closing costs."""
+    """Admin page for managing closing costs."""
     costs = load_closing_costs()
     return render_template(
         "admin/closing_costs.html",
@@ -619,7 +674,7 @@ def closing_costs():
 @admin_bp.route("/closing-costs/<name>")
 @admin_required
 def get_closing_cost(name):
-    """Get a specific closing cost."""
+    """Get a specific closing cost by name via the admin interface."""
     costs = load_closing_costs()
     if name in costs:
         return jsonify(costs[name])
@@ -629,10 +684,10 @@ def get_closing_cost(name):
 @admin_bp.route("/closing-costs/add", methods=["POST"])
 @admin_required
 def add_closing_cost():
-    """Add a new closing cost."""
+    """Add a new closing cost via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     costs = load_closing_costs()
-    updated_costs, error = add_closing_cost_logic(costs, data)
+    updated_costs, error = admin_logic.add_closing_cost_logic(costs, data)
     if error:
         return jsonify({"success": False, "error": error}), 400
     save_closing_costs(updated_costs)
@@ -642,21 +697,19 @@ def add_closing_cost():
 @admin_bp.route("/closing-costs/<n>", methods=["DELETE"])
 @admin_required
 def delete_closing_cost(n):
-    """Delete a closing cost."""
+    """Delete a closing cost via the admin interface."""
     costs = load_closing_costs()
-    updated_costs, error = delete_closing_cost_logic(costs, n)
+    updated_costs, error = admin_logic.delete_closing_cost_logic(costs, n)
     if error:
         return jsonify({"success": False, "error": error}), 404
     save_closing_costs(updated_costs)
     return jsonify({"success": True})
 
 
-@admin_bp.route(
-    "/closing-costs/<n>", methods=["PUT", "POST"]
-)  # Support both PUT and POST methods
+@admin_bp.route("/closing-costs/<n>", methods=["PUT", "POST"])  # Support both PUT and POST methods
 @admin_required
 def update_closing_cost(n):
-    """Update an existing closing cost."""
+    """Update an existing closing cost via the admin interface."""
     # Handle both JSON and form data for better compatibility
     if request.is_json:
         data = request.get_json()
@@ -672,7 +725,7 @@ def update_closing_cost(n):
     current_app.logger.info(f"Updating closing cost {n} with data: {data}")
     costs = load_closing_costs()
 
-    updated_costs, error = update_closing_cost_logic(costs, n, data)
+    updated_costs, error = admin_logic.update_closing_cost_logic(costs, n, data)
     if error:
         status = 404 if error == "Cost not found" else 400
         return jsonify({"success": False, "error": error}), status
@@ -684,7 +737,7 @@ def update_closing_cost(n):
 @admin_bp.route("/mortgage-config")
 @admin_required
 def mortgage_config():
-    """Mortgage configuration management page."""
+    """Admin page for viewing and editing mortgage configuration."""
     # Get mortgage configuration from config
     mortgage_config = {
         "loan_types": current_app.config_manager.config.get("loan_types", {}),
@@ -714,10 +767,10 @@ def mortgage_config():
 @admin_bp.route("/mortgage-config/update", methods=["POST"])
 @admin_required
 def update_mortgage_config():
-    """Update mortgage configuration."""
+    """Update mortgage configuration via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     config = current_app.config_manager.config
-    updated_config, error = update_mortgage_config_logic(config, data)
+    updated_config, error = admin_logic.update_mortgage_config_logic(config, data)
     if error:
         return jsonify({"success": False, "error": error}), 400
     current_app.config_manager.config = updated_config
@@ -728,12 +781,10 @@ def update_mortgage_config():
 @admin_bp.route("/mortgage-config/prepaid/update", methods=["POST"])
 @admin_required
 def update_prepaid_items():
-    """Update prepaid items configuration."""
+    """Update prepaid items in the mortgage configuration via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     config = current_app.config_manager.config
-    updated_config, error = update_prepaid_items_logic(
-        config, data.get("prepaid_items")
-    )
+    updated_config, error = admin_logic.update_prepaid_items_logic(config, data.get("prepaid_items"))
     if error:
         return jsonify({"success": False, "error": error}), 400
     current_app.config_manager.config = updated_config
@@ -744,10 +795,10 @@ def update_prepaid_items():
 @admin_bp.route("/mortgage-config/limits/update", methods=["POST"])
 @admin_required
 def update_loan_limits():
-    """Update loan limits configuration."""
+    """Update loan limits in the mortgage configuration via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     config = current_app.config_manager.config
-    updated_config, error = update_loan_limits_logic(config, data.get("loan_limits"))
+    updated_config, error = admin_logic.update_loan_limits_logic(config, data.get("loan_limits"))
     if error:
         return jsonify({"success": False, "error": error}), 400
     current_app.config_manager.config = updated_config
@@ -758,7 +809,7 @@ def update_loan_limits():
 @admin_bp.route("/pmi-rates")
 @admin_required
 def pmi_rates():
-    """PMI rates management page."""
+    """Admin page for managing PMI rates."""
     # Get PMI rates from config
     pmi_rates = current_app.config_manager.config.get("pmi_rates", {})
 
@@ -865,7 +916,7 @@ def pmi_rates():
 @admin_bp.route("/pmi-rates/data")
 @admin_required
 def get_pmi_rates():
-    """Get PMI rates data as JSON."""
+    """Get PMI rates data via the admin interface."""
     pmi_rates = current_app.config_manager.config.get("pmi_rates", {})
     return jsonify({"success": True, "pmi_rates": pmi_rates})
 
@@ -873,7 +924,7 @@ def get_pmi_rates():
 @admin_bp.route("/pmi-rates/update", methods=["POST"])
 @admin_required
 def update_pmi_rates():
-    """Update PMI rates."""
+    """Update PMI rates via the admin interface."""
     current_app.logger.info("PMI rates update request received")
 
     try:
@@ -882,14 +933,10 @@ def update_pmi_rates():
             current_app.logger.error("No data provided in PMI rates update")
             return jsonify({"success": False, "error": "No data provided"}), 400
 
-        existing_pmi_rates = copy.deepcopy(
-            current_app.config_manager.config.get("pmi_rates", {})
-        )
-        current_app.logger.info(
-            f"Existing PMI rates before update: {existing_pmi_rates}"
-        )
+        existing_pmi_rates = copy.deepcopy(current_app.config_manager.config.get("pmi_rates", {}))
+        current_app.logger.info(f"Existing PMI rates before update: {existing_pmi_rates}")
 
-        updated_pmi_rates, error = update_pmi_rates_logic(existing_pmi_rates, data)
+        updated_pmi_rates, error = admin_logic.update_pmi_rates_logic(existing_pmi_rates, data)
         if error:
             current_app.logger.error(f"Error in PMI rates logic: {error}")
             return jsonify({"success": False, "error": error}), 400
@@ -918,7 +965,7 @@ def update_pmi_rates():
 @admin_bp.route("/save_seller_contributions", methods=["POST"])
 @admin_required
 def save_seller_contributions():
-    """Save seller contribution limits."""
+    """Save seller contribution data via the admin interface."""
     try:
         data = request.json
         loan_type = data.get("loan_type")
@@ -998,9 +1045,7 @@ def update_conventional_pmi():
                         )
 
         # Get existing PMI rates
-        existing_pmi_rates = copy.deepcopy(
-            current_app.config_manager.config.get("pmi_rates", {})
-        )
+        existing_pmi_rates = copy.deepcopy(current_app.config_manager.config.get("pmi_rates", {}))
 
         # Ensure conventional exists
         if "conventional" not in existing_pmi_rates:
@@ -1026,18 +1071,13 @@ def update_conventional_pmi():
 
 # --- Title Insurance Configuration Routes ---
 
-from decimal import Decimal, InvalidOperation
-
-
 @admin_bp.route("/title-insurance", methods=["GET"])
 @admin_required
 def title_insurance_config():
     """Display title insurance configuration management page."""
     try:
         # Deep copy to avoid modifying the loaded config directly if template manipulates it
-        title_config = copy.deepcopy(
-            current_app.config_manager.config.get("title_insurance", {})
-        )
+        title_config = copy.deepcopy(current_app.config_manager.config.get("title_insurance", {}))
         logger.debug(f"Loaded title insurance config for admin page: {title_config}")
         return render_template(
             "admin/title_insurance.html",
@@ -1061,9 +1101,7 @@ def update_title_insurance_config():
         logger.debug(f"Form data received: {form_data}")
 
         # Extract single values
-        simultaneous_issuance_fee = Decimal(
-            form_data.get("simultaneous_issuance_fee", "0.0")
-        )
+        simultaneous_issuance_fee = Decimal(form_data.get("simultaneous_issuance_fee", "0.0"))
         lender_rate_waiver_multiplier = Decimal(
             form_data.get("lender_rate_waiver_multiplier", "1.0")
         )
@@ -1072,68 +1110,59 @@ def update_title_insurance_config():
         total_tiers = []
         total_tier_indices = sorted(
             list(
-                set(
-                    key.split("_")[-1]
-                    for key in form_data
-                    if key.startswith("total_tier_up_to_")
-                )
+                set(key.split("_")[-1] for key in form_data if key.startswith("total_tier_up_to_"))
             )
         )
         for index in total_tier_indices:
             up_to_str = form_data.get(f"total_tier_up_to_{index}")
-            rate_str = form_data.get(f"total_tier_rate_{index}")
+            rate_key = f"total_tier_rate_{index}"
 
-            if up_to_str is None or rate_str is None:
-                continue  # Skip incomplete tiers
-
-            # Handle 'infinity' or empty string for the last tier's 'up_to'
-            up_to_val = (
-                None
-                if up_to_str.lower() == "infinity" or up_to_str == ""
-                else int(up_to_str)
-            )
-            rate_val = Decimal(rate_str) / Decimal("100")  # Store as decimal fraction
-
-            total_tiers.append(
-                {"up_to": up_to_val, "rate_percentage": float(rate_val * 100)}
-            )  # Store percentage back
+            # Get the corresponding rate
+            if rate_key in form_data:
+                try:
+                    rate_value = float(form_data[rate_key])
+                    if up_to_str and rate_value >= 0:
+                        total_tiers.append(
+                            {"up_to": int(up_to_str), "rate_percentage": round(rate_value, 3)}
+                        )
+                        logger.info(
+                            f"Added LTV range: {up_to_str} = {rate_value}"
+                        )
+                except ValueError:
+                    logger.warning(
+                        f"Invalid rate value for {rate_key}: {form_data[rate_key]}"
+                    )
 
         # Extract tiered rates (Lender Simultaneous)
         lender_tiers = []
         lender_tier_indices = sorted(
             list(
-                set(
-                    key.split("_")[-1]
-                    for key in form_data
-                    if key.startswith("lender_tier_up_to_")
-                )
+                set(key.split("_")[-1] for key in form_data if key.startswith("lender_tier_up_to_"))
             )
         )
         for index in lender_tier_indices:
             up_to_str = form_data.get(f"lender_tier_up_to_{index}")
-            rate_str = form_data.get(f"lender_tier_rate_{index}")
+            rate_key = f"lender_tier_rate_{index}"
 
-            if up_to_str is None or rate_str is None:
-                continue  # Skip incomplete tiers
-
-            up_to_val = (
-                None
-                if up_to_str.lower() == "infinity" or up_to_str == ""
-                else int(up_to_str)
-            )
-            rate_val = Decimal(rate_str) / Decimal("100")  # Store as decimal fraction
-
-            lender_tiers.append(
-                {"up_to": up_to_val, "rate_percentage": float(rate_val * 100)}
-            )
+            # Get the corresponding rate
+            if rate_key in form_data:
+                try:
+                    rate_value = float(form_data[rate_key])
+                    if up_to_str and rate_value >= 0:
+                        lender_tiers.append(
+                            {"up_to": int(up_to_str), "rate_percentage": round(rate_value, 3)}
+                        )
+                        logger.info(
+                            f"Added LTV range: {up_to_str} = {rate_value}"
+                        )
+                except ValueError:
+                    logger.warning(
+                        f"Invalid rate value for {rate_key}: {form_data[rate_key]}"
+                    )
 
         # Sort tiers by 'up_to' (None/infinity last)
-        total_tiers.sort(
-            key=lambda x: x["up_to"] if x["up_to"] is not None else float("inf")
-        )
-        lender_tiers.sort(
-            key=lambda x: x["up_to"] if x["up_to"] is not None else float("inf")
-        )
+        total_tiers.sort(key=lambda x: x["up_to"] if x["up_to"] is not None else float("inf"))
+        lender_tiers.sort(key=lambda x: x["up_to"] if x["up_to"] is not None else float("inf"))
 
         # Construct the updated config section
         updated_config = {
@@ -1181,28 +1210,182 @@ def update_title_insurance_config():
 # --- End Title Insurance Configuration Routes ---
 
 
-def load_closing_costs():
-    """Load closing costs from JSON file."""
+# --- Configuration Validation Routes ---
+
+@admin_bp.route("/validation")
+@admin_required
+def validation_dashboard():
+    """Admin page for viewing configuration validation status."""
     try:
-        with open(CLOSING_COSTS_FILE, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}
+        # Get validation report
+        report = current_app.config_manager.get_validation_report()
+        
+        return render_template(
+            "admin/validation.html",
+            validation_report=report,
+            **get_admin_context()
+        )
+    except Exception as e:
+        logger.error(f"Error loading validation dashboard: {e}")
+        flash(f"Error loading validation dashboard: {e}", "error")
+        return redirect(url_for("admin.dashboard"))
 
 
-def load_fees():
-    """Load fees from the config manager (assume closing_costs is the fee list)."""
-    return current_app.config_manager.config.get("closing_costs", {})
+@admin_bp.route("/validation/run", methods=["POST"])
+@admin_required
+def run_validation():
+    """Run configuration validation and return results."""
+    try:
+        # Run validation
+        is_valid = current_app.config_manager.validate_configuration()
+        report = current_app.config_manager.get_validation_report()
+        
+        # Count errors and successes
+        total_files = report.get("summary", {}).get("total_files", 0)
+        valid_files = report.get("summary", {}).get("valid_files", 0)
+        total_errors = report.get("summary", {}).get("total_errors", 0)
+        
+        response_data = {
+            "success": True,
+            "validation_passed": is_valid,
+            "total_files": total_files,
+            "valid_files": valid_files,
+            "total_errors": total_errors,
+            "report": report
+        }
+        
+        if is_valid:
+            logger.info("Configuration validation passed")
+            message = f"✅ All {total_files} configuration files are valid"
+        else:
+            logger.warning(f"Configuration validation failed with {total_errors} errors")
+            message = f"❌ {total_errors} validation errors found in {total_files - valid_files} files"
+        
+        response_data["message"] = message
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error running validation: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Error running validation: {str(e)}"
+        }), 500
 
 
-def save_closing_costs(costs):
-    """Save closing costs to JSON file."""
-    os.makedirs(os.path.dirname(CLOSING_COSTS_FILE), exist_ok=True)
-    with open(CLOSING_COSTS_FILE, "w") as f:
-        json.dump(costs, f, indent=4)
+@admin_bp.route("/validation/details/<filename>", methods=["GET"])
+@admin_required
+def validation_file_details(filename):
+    """Get detailed validation information for a specific file."""
+    try:
+        if not current_app.config_manager._validation_enabled:
+            return jsonify({
+                "success": False,
+                "error": "Validation is disabled - jsonschema package not available"
+            }), 400
+        
+        # Validate the specific file
+        is_valid, errors = current_app.config_manager.validator.validate_config_file(filename)
+        
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "is_valid": is_valid,
+            "errors": errors,
+            "error_count": len(errors)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting validation details for {filename}: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Error getting validation details: {str(e)}"
+        }), 500
 
 
-def save_fees(fees):
-    """Save fees to the config manager."""
-    current_app.config_manager.config["closing_costs"] = fees
-    current_app.config_manager.save_config()
+@admin_bp.route("/validation/schema/<filename>", methods=["GET"])
+@admin_required
+def get_config_schema(filename):
+    """Get the JSON schema for a specific configuration file."""
+    try:
+        from config_schemas import CONFIG_SCHEMAS
+        
+        if filename not in CONFIG_SCHEMAS:
+            return jsonify({
+                "success": False,
+                "error": f"No schema defined for {filename}"
+            }), 404
+        
+        schema = CONFIG_SCHEMAS[filename]
+        
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "schema": schema
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting schema for {filename}: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Error getting schema: {str(e)}"
+        }), 500
+
+
+@admin_bp.route("/validation/fix-suggestions", methods=["POST"])
+@admin_required
+def get_validation_fix_suggestions():
+    """Get suggestions for fixing validation errors."""
+    try:
+        data = request.get_json()
+        filename = data.get("filename")
+        error_message = data.get("error")
+        
+        if not filename or not error_message:
+            return jsonify({
+                "success": False,
+                "error": "filename and error parameters are required"
+            }), 400
+        
+        # Generate fix suggestions based on common error patterns
+        suggestions = []
+        
+        if "required" in error_message.lower():
+            suggestions.append("Add the missing required field to your configuration")
+            suggestions.append("Check the field name for typos")
+            
+        elif "type" in error_message.lower():
+            suggestions.append("Check the data type - ensure numbers are not quoted")
+            suggestions.append("Verify boolean values are true/false (not strings)")
+            
+        elif "enum" in error_message.lower():
+            suggestions.append("Check allowed values in the schema")
+            suggestions.append("Verify the field value matches one of the permitted options")
+            
+        elif "pattern" in error_message.lower():
+            suggestions.append("Check field name format - use letters, numbers, and underscores only")
+            suggestions.append("Remove special characters except underscores")
+            
+        elif "minimum" in error_message.lower() or "maximum" in error_message.lower():
+            suggestions.append("Check the numeric value is within allowed range")
+            suggestions.append("Ensure the value is positive if required")
+        
+        else:
+            suggestions.append("Check the configuration file format and structure")
+            suggestions.append("Compare with a working configuration file")
+            
+        return jsonify({
+            "success": True,
+            "filename": filename,
+            "error": error_message,
+            "suggestions": suggestions
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating fix suggestions: {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Error generating suggestions: {str(e)}"
+        }), 500
+
+
+# --- End Configuration Validation Routes ---

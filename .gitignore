@@ -82,5 +82,22 @@ npm-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# Project-specific directories to exclude
+# Project-specific directories to exclude  
 /chats/
+/backups/
+/config/backups/
+/versions/
+
+# Backup and temporary files
+*.bak
+*.backup
+*2.json
+*2.html
+*2.js
+*2.py
+current_*
+tmp_*
+nohup.out
+
+# Runtime session files
+flask_session/

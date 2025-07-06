@@ -1,8 +1,12 @@
+"""
+Admin logic functions for managing fees, counties, closing costs, templates, and configuration.
+
+Each function returns a tuple of (updated_data, error_message) or (updated_data, None) on success.
+"""
+
+
 def update_closing_cost_logic(costs, n, data):
-    """
-    Update an existing closing cost in the costs dict.
-    Returns (updated_costs, error_message)
-    """
+    """Update an existing closing cost in the costs dict. Returns (updated_costs, error_message)."""
     if n not in costs:
         return costs, "Cost not found"
 
@@ -23,9 +27,7 @@ def update_closing_cost_logic(costs, n, data):
 
 
 def update_pmi_rates_logic(existing_pmi_rates, data):
-    """
-    Update PMI rates structure in memory. Returns (updated_pmi_rates, error_message).
-    """
+    """Update PMI rates structure in memory. Returns (updated_pmi_rates, error_message)."""
     # Extract loan_type from the request - this is now a required field
     loan_type = data.get("loan_type")
     if not loan_type:
@@ -61,6 +63,7 @@ def update_pmi_rates_logic(existing_pmi_rates, data):
 
 
 def add_fee_logic(fees, data):
+    """Add a new fee to the fees dict. Returns (updated_fees, error_message)."""
     name = data["name"].lower().replace(" ", "_")
     if name in fees:
         return fees, "Fee already exists"
@@ -74,6 +77,7 @@ def add_fee_logic(fees, data):
 
 
 def edit_fee_logic(fees, fee_type, data):
+    """Edit an existing fee in the fees dict. Returns (updated_fees, error_message)."""
     if fee_type not in fees:
         return fees, "Fee not found"
     fees[fee_type].update(
@@ -88,6 +92,7 @@ def edit_fee_logic(fees, fee_type, data):
 
 
 def delete_fee_logic(fees, fee_type):
+    """Delete a fee from the fees dict. Returns (updated_fees, error_message)."""
     if fee_type not in fees:
         return fees, "Fee not found"
     fees.pop(fee_type)
@@ -95,6 +100,7 @@ def delete_fee_logic(fees, fee_type):
 
 
 def add_closing_cost_logic(costs, data):
+    """Add a new closing cost to the costs dict. Returns (updated_costs, error_message)."""
     name = data["name"].lower().replace(" ", "_")
     if name in costs:
         return costs, "Closing cost already exists"
@@ -108,6 +114,7 @@ def add_closing_cost_logic(costs, data):
 
 
 def delete_closing_cost_logic(costs, name):
+    """Delete a closing cost from the costs dict. Returns (updated_costs, error_message)."""
     if name not in costs:
         return costs, "Closing cost not found"
     costs.pop(name)
@@ -115,6 +122,7 @@ def delete_closing_cost_logic(costs, name):
 
 
 def add_county_logic(counties, data):
+    """Add a new county to the counties dict. Returns (updated_counties, error_message)."""
     name = data["name"].lower().replace(" ", "_")
     if name in counties:
         return counties, "County already exists"
@@ -127,6 +135,7 @@ def add_county_logic(counties, data):
 
 
 def edit_county_logic(counties, county_name, data):
+    """Edit an existing county in the counties dict. Returns (updated_counties, error_message)."""
     if county_name not in counties:
         return counties, "County not found"
     counties[county_name].update(
@@ -140,6 +149,7 @@ def edit_county_logic(counties, county_name, data):
 
 
 def delete_county_logic(counties, county_name):
+    """Delete a county from the counties dict. Returns (updated_counties, error_message)."""
     if county_name not in counties:
         return counties, "County not found"
     counties.pop(county_name)
@@ -147,6 +157,7 @@ def delete_county_logic(counties, county_name):
 
 
 def add_template_logic(templates, data):
+    """Add a new template to the templates dict. Returns (updated_templates, error_message)."""
     name = data["name"].lower().replace(" ", "_")
     if name in templates:
         return templates, "Template already exists"
@@ -158,6 +169,7 @@ def add_template_logic(templates, data):
 
 
 def edit_template_logic(templates, template_name, data):
+    """Edit an existing template in the templates dict. Returns (updated_templates, error_message)."""
     if template_name not in templates:
         return templates, "Template not found"
     templates[template_name].update(
@@ -170,6 +182,7 @@ def edit_template_logic(templates, template_name, data):
 
 
 def delete_template_logic(templates, template_name):
+    """Delete a template from the templates dict. Returns (updated_templates, error_message)."""
     if template_name not in templates:
         return templates, "Template not found"
     templates.pop(template_name)
@@ -177,6 +190,7 @@ def delete_template_logic(templates, template_name):
 
 
 def update_mortgage_config_logic(config, data):
+    """Update allowed fields in the mortgage config dict. Returns (updated_config, error_message)."""
     # Example: update allowed fields only
     allowed_fields = [
         "max_loan_amount",
@@ -191,10 +205,12 @@ def update_mortgage_config_logic(config, data):
 
 
 def update_prepaid_items_logic(config, prepaid_items):
+    """Update prepaid items in the config dict. Returns (updated_config, error_message)."""
     config["prepaid_items"] = prepaid_items
     return config, None
 
 
 def update_loan_limits_logic(config, loan_limits):
+    """Update loan limits in the config dict. Returns (updated_config, error_message)."""
     config["loan_limits"] = loan_limits
     return config, None

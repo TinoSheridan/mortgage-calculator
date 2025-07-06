@@ -1,4 +1,12 @@
+import logging
 from calculator import MortgageCalculator
+
+# Configure logging for debug script
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def debug_fha_mip():
@@ -46,21 +54,27 @@ def debug_fha_mip():
     result = calc.calculate_all(**params)
     calc_monthly_mip = result["monthly_payment"]["mortgage_insurance"]
 
-    # Print results
-    print("=== FHA MIP Debug ===")
-    print(f"Base loan amount: ${base_loan:,.2f}")
-    print(f"Upfront MIP rate: {upfront_mip_rate*100:.2f}%")
-    print(f"Upfront MIP: ${upfront_mip:,.2f}")
-    print(f"Total loan amount: ${total_loan:,.2f}")
-    print(f"Annual MIP rate: {annual_mip_rate*100:.2f}%")
-    print(f"Monthly MIP (calculated manually): ${monthly_mip:,.2f}")
-    print(f"Monthly MIP (from calculator): ${calc_monthly_mip:,.2f}")
-    print(f"Difference: ${calc_monthly_mip - monthly_mip:,.2f}")
+    # Log results
+    logger.info("=== FHA MIP Debug ===")
+    logger.info(f"Base loan amount: ${base_loan:,.2f}")
+    logger.info(f"Upfront MIP rate: {upfront_mip_rate*100:.2f}%")
+    logger.info(f"Upfront MIP: ${upfront_mip:,.2f}")
+    logger.info(f"Total loan amount: ${total_loan:,.2f}")
+    logger.info(f"Annual MIP rate: {annual_mip_rate*100:.2f}%")
+    logger.info(f"Monthly MIP (calculated manually): ${monthly_mip:,.2f}")
+    logger.info(f"Monthly MIP (from calculator): ${calc_monthly_mip:,.2f}")
+    
+    # Log difference with appropriate level
+    difference = calc_monthly_mip - monthly_mip
+    if abs(difference) < 0.01:
+        logger.info(f"Difference: ${difference:,.2f} (within tolerance)")
+    else:
+        logger.warning(f"Difference: ${difference:,.2f} (exceeds tolerance)")
 
-    # Check full result structure
-    print("\nFull monthly payment structure:")
+    # Log full result structure
+    logger.info("\nFull monthly payment structure:")
     for key, value in result["monthly_payment"].items():
-        print(f"  {key}: ${value:,.2f}")
+        logger.info(f"  {key}: ${value:,.2f}")
 
 
 if __name__ == "__main__":

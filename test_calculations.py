@@ -3,9 +3,7 @@ from typing import Any, Dict
 from calculator import MortgageCalculator
 
 
-def calculate_and_print(
-    calc: MortgageCalculator, params: Dict[str, Any], scenario_name: str
-):
+def calculate_and_print(calc: MortgageCalculator, params: Dict[str, Any], scenario_name: str):
     """Calculate and print mortgage details for a given scenario."""
     print(f"\n=== {scenario_name} ===")
     try:
@@ -30,18 +28,14 @@ def calculate_and_print(
         print(f"LTV: {result['loan_details']['ltv']}%")
 
         print(f"\nMonthly Payments:")
-        print(
-            f"Principal & Interest: ${result['monthly_payment']['principal_and_interest']:,.2f}"
-        )
+        print(f"Principal & Interest: ${result['monthly_payment']['principal_and_interest']:,.2f}")
         print(f"Property Tax: ${result['monthly_payment']['property_tax']:,.2f}")
         print(f"Insurance: ${result['monthly_payment']['home_insurance']:,.2f}")
-        print(
-            f"Mortgage Insurance: ${result['monthly_payment']['mortgage_insurance']:,.2f}"
-        )
+        print(f"Mortgage Insurance: ${result['monthly_payment']['mortgage_insurance']:,.2f}")
         print(f"HOA: ${result['monthly_payment']['hoa_fee']:,.2f}")
         print(f"Total Monthly Payment: ${result['monthly_payment']['total']:,.2f}")
 
-        print(f"\nClosing Costs and Cash Required:")
+        print("\nClosing Costs and Cash Required:")
         print(f"Total Closing Costs: ${result['closing_costs']['total']:,.2f}")
         print(f"Total Prepaid Items: ${result['prepaid_items']['total']:,.2f}")
         print(f"Total Credits: ${result['credits']['total']:,.2f}")
@@ -107,9 +101,7 @@ def test_mortgage_scenarios():
         "lender_credit": 2500,  # $2,500 lender credit
         "discount_points": 2.0,  # 2 points to lower rate
     }
-    calculate_and_print(
-        calc, conventional_points, "Conventional Loan - 10% Down with Points"
-    )
+    calculate_and_print(calc, conventional_points, "Conventional Loan - 10% Down with Points")
 
     # Scenario 4: Test validation - Should fail (purchase price too low)
     invalid_price = {

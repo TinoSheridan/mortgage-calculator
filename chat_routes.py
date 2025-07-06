@@ -108,9 +108,7 @@ def handle_message():
     chat_data = load_chat_session(session_id)
 
     # Add the new message
-    chat_data["messages"].append(
-        {"user": user, "text": message, "timestamp": timestamp}
-    )
+    chat_data["messages"].append({"user": user, "text": message, "timestamp": timestamp})
 
     # Get automatic response if available
     auto_response = get_auto_response(message)
@@ -164,9 +162,7 @@ def get_updates():
 
     # Filter messages newer than last_timestamp
     new_messages = [
-        msg
-        for msg in chat_data.get("messages", [])
-        if msg.get("timestamp", "") > last_timestamp
+        msg for msg in chat_data.get("messages", []) if msg.get("timestamp", "") > last_timestamp
     ]
 
     return jsonify({"messages": new_messages})

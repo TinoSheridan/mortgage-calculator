@@ -99,9 +99,7 @@ def test_va_loan_parameters():
             if "mortgage_insurance" not in monthly_payment:
                 logger.error("Key 'mortgage_insurance' missing from monthly payment")
             else:
-                logger.info(
-                    f"Mortgage insurance amount: ${monthly_payment['mortgage_insurance']}"
-                )
+                logger.info(f"Mortgage insurance amount: ${monthly_payment['mortgage_insurance']}")
 
             # Check funding fee if applicable
             loan_details = result.get("loan_details", {})
@@ -127,9 +125,7 @@ def test_va_loan_parameters():
             print(f"VA funding fee: ${loan_details.get('funding_fee', 0):,.2f}")
             print(f"Final loan amount: ${loan_details.get('loan_amount', 0):,.2f}")
             print(f"Monthly payment: ${monthly_payment.get('total', 0):,.2f}")
-            print(
-                f"Mortgage insurance: ${monthly_payment.get('mortgage_insurance', 0):,.2f}"
-            )
+            print(f"Mortgage insurance: ${monthly_payment.get('mortgage_insurance', 0):,.2f}")
 
         except Exception as e:
             logger.error(f"Test failed: {e}")

@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.1.0"  # New version: always show origination fee, discount points, and both title insurance rows in closing costs
+VERSION = "2.6.0"  # Fixed LTV target calculations and enhanced refinance accuracy
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 4, 19)  # Updated date
+LAST_UPDATED = date(2025, 1, 6)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "UI refactor: Always show Origination Fee, Discount Points, Lender's and Owner's Title Insurance in closing costs table, even if zero. Improved order and clarity."
+UPDATE_DESCRIPTION = "Fixed LTV target calculations to use accurate backend values, improved cash-out refinance logic, enhanced LTV targets display with proper maximum LTV calculations, and refined UI labels for better clarity."
 
 
 def get_version_info():
@@ -47,4 +47,14 @@ FEATURES = [
     "updated_default_rates",
     "enhanced_summary_formatting",
     "dynamic_prepaid_tax_calculation",
+    "refinance_ltv_fix",  # v2.5.0: Fixed LTV > 80% validation that incorrectly blocked refinances
+    "ltv_information_card",  # v2.5.0: Comprehensive LTV guidance with accurate appraised value targets
+    "zero_cash_ltv_calculations",  # v2.5.0: LTV calculations based on new loan amount including costs
+    "actual_current_balance_integration",  # v2.5.0: Uses calculated current balance for 99.9% accuracy
+    "conservative_ltv_rounding",  # v2.5.0: Rounds appraised values up to nearest thousand
+    "accurate_ltv_backend_calculations",  # v2.6.0: Fixed frontend LTV calculations to use backend values
+    "dynamic_max_ltv_targets",  # v2.6.0: Calculates maximum LTV based on loan type and refinance type
+    "enhanced_cash_out_refinance_logic",  # v2.6.0: Improved cash-out refinance calculations
+    "hoa_fee_integration",  # v2.6.0: Added HOA fee input and calculation integration
+    "refined_ui_labels",  # v2.6.0: Improved LTV targets table labels and formatting
 ]

@@ -2,11 +2,19 @@ import json
 import logging
 import os
 from datetime import datetime
+from typing import Dict, Any, Optional
+
+# Import validation components
+try:
+    from config_validator import ConfigValidator, validate_config_on_startup
+    HAS_VALIDATION = True
+except ImportError:
+    HAS_VALIDATION = False
 
 
 class ConfigManager:
     def __init__(self):
-        """Initialize ConfigManager."""
+        """Initialize ConfigManager with caching and validation support."""
         self.config = {}
         self.logger = logging.getLogger(__name__)
         self.config_dir = os.path.join(os.path.dirname(__file__), "config")
@@ -15,73 +23,186 @@ class ConfigManager:
         self.max_recent_changes = 50
         self.calculation_history = []
         self.recent_changes = []
+        
+        # Caching support
+        self._config_cache: Dict[str, Any] = {}
+        self._file_mod_times: Dict[str, float] = {}
+        self._cache_enabled = True
+        
+        # Validation support
+        self.validator = None
+        self._validation_enabled = HAS_VALIDATION
+        if HAS_VALIDATION:
+            self.validator = ConfigValidator(self.config_dir)
+            self.logger.info("Configuration validation enabled")
+        else:
+            self.logger.warning("Configuration validation disabled - jsonschema package not available")
 
         # Load configuration and history
         self.load_config()
         self.load_history()
 
-    def load_config(self):
-        """Load all configuration files"""
+    def _get_file_mod_time(self, file_path: str) -> float:
+        """Get file modification time."""
         try:
-            # Load mortgage configuration
-            mortgage_config_path = os.path.join(self.config_dir, "mortgage_config.json")
-            self.logger.info(f"Loading mortgage config from: {mortgage_config_path}")
-            with open(mortgage_config_path, "r") as f:
-                self.config.update(json.load(f))
-                self.logger.info("Loaded mortgage configuration")
+            return os.path.getmtime(file_path)
+        except OSError:
+            return 0.0
 
-            # Load PMI rates
-            pmi_rates_path = os.path.join(self.config_dir, "pmi_rates.json")
-            self.logger.info(f"Loading PMI rates from: {pmi_rates_path}")
-            with open(pmi_rates_path, "r") as f:
-                self.config["pmi_rates"] = json.load(f)
-                self.logger.info("Loaded PMI rates")
+    def _is_cache_valid(self, file_path: str) -> bool:
+        """Check if cached data is still valid for a file."""
+        if not self._cache_enabled or file_path not in self._config_cache:
+            return False
+        
+        current_mod_time = self._get_file_mod_time(file_path)
+        cached_mod_time = self._file_mod_times.get(file_path, 0.0)
+        
+        return current_mod_time == cached_mod_time
 
-            # Load closing costs
-            closing_costs_path = os.path.join(self.config_dir, "closing_costs.json")
-            self.logger.info(f"Loading closing costs from: {closing_costs_path}")
-            with open(closing_costs_path, "r") as f:
-                self.config["closing_costs"] = json.load(f)
-                self.logger.info("Loaded closing costs")
+    def _load_json_file_cached(self, file_path: str, config_key: str) -> Optional[Dict[str, Any]]:
+        """Load JSON file with caching support."""
+        # Check if cache is valid
+        if self._is_cache_valid(file_path):
+            self.logger.debug(f"Using cached config for {config_key}")
+            return self._config_cache[file_path]
+        
+        # Load from file
+        try:
+            if not os.path.exists(file_path):
+                return None
+                
+            with open(file_path, "r") as f:
+                data = json.load(f)
+                
+            # Cache the data
+            if self._cache_enabled:
+                self._config_cache[file_path] = data
+                self._file_mod_times[file_path] = self._get_file_mod_time(file_path)
+                self.logger.debug(f"Cached config for {config_key}")
+            
+            return data
+            
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            self.logger.error(f"Error loading {config_key} from {file_path}: {e}")
+            return None
 
-            # Load county rates (optional)
-            county_rates_path = os.path.join(self.config_dir, "county_rates.json")
-            if os.path.exists(county_rates_path):
-                self.logger.info(f"Loading county rates from: {county_rates_path}")
-                with open(county_rates_path, "r") as f:
-                    self.config["county_rates"] = json.load(f)
-                    self.logger.info("Loaded county rates")
-            else:
-                self.config["county_rates"] = {}
-                self.logger.info(
-                    "No county rates file found, using empty configuration"
-                )
+    def clear_cache(self):
+        """Clear the configuration cache."""
+        self._config_cache.clear()
+        self._file_mod_times.clear()
+        self.logger.info("Configuration cache cleared")
 
-            # Load compliance text (optional)
-            compliance_path = os.path.join(self.config_dir, "compliance_text.json")
-            if os.path.exists(compliance_path):
-                self.logger.info(f"Loading compliance text from: {compliance_path}")
-                with open(compliance_path, "r") as f:
-                    self.config["compliance_text"] = json.load(f)
-                    self.logger.info("Loaded compliance text")
-            else:
-                self.config["compliance_text"] = {}
-                self.logger.info(
-                    "No compliance text file found, using empty configuration"
-                )
+    def disable_cache(self):
+        """Disable caching (useful for testing)."""
+        self._cache_enabled = False
+        self.clear_cache()
 
-            # Load output templates (optional)
-            templates_path = os.path.join(self.config_dir, "output_templates.json")
-            if os.path.exists(templates_path):
-                self.logger.info(f"Loading output templates from: {templates_path}")
-                with open(templates_path, "r") as f:
-                    self.config["output_templates"] = json.load(f)
-                    self.logger.info("Loaded output templates")
-            else:
-                self.config["output_templates"] = {}
-                self.logger.info(
-                    "No output templates file found, using empty configuration"
-                )
+    def enable_cache(self):
+        """Enable caching."""
+        self._cache_enabled = True
+    
+    def validate_configuration(self) -> bool:
+        """Validate all configuration files.
+        
+        Returns:
+            True if all configurations are valid, False otherwise
+        """
+        if not self._validation_enabled:
+            self.logger.warning("Configuration validation is disabled")
+            return True
+        
+        is_valid, errors = self.validator.validate_all_configs()
+        
+        if not is_valid:
+            self.logger.error("Configuration validation failed:")
+            for error in errors:
+                self.logger.error(f"  - {error}")
+        
+        return is_valid
+    
+    def get_validation_report(self) -> Dict[str, Any]:
+        """Get a comprehensive validation report.
+        
+        Returns:
+            Dictionary containing validation results
+        """
+        if not self._validation_enabled:
+            return {
+                "validation_enabled": False,
+                "warning": "jsonschema package not available"
+            }
+        
+        return self.validator.get_validation_report()
+    
+    def validate_config_data(self, filename: str, config_data: Dict[str, Any]) -> bool:
+        """Validate configuration data before saving.
+        
+        Args:
+            filename: Name of the configuration file
+            config_data: Configuration data to validate
+            
+        Returns:
+            True if valid, False otherwise
+        """
+        if not self._validation_enabled:
+            return True
+        
+        is_valid, errors = self.validator.validate_config_data(filename, config_data)
+        
+        if not is_valid:
+            self.logger.error(f"Validation failed for {filename}:")
+            for error in errors:
+                self.logger.error(f"  - {error}")
+        
+        return is_valid
+
+    def load_config(self):
+        """Load all configuration files with caching and validation support."""
+        try:
+            # Validate configurations first (if validation is enabled)
+            if self._validation_enabled and self.validator:
+                self.logger.info("Validating configuration files before loading...")
+                is_valid, errors = self.validator.validate_all_configs()
+                if not is_valid:
+                    self.logger.warning("Configuration validation failed, but proceeding with load:")
+                    for error in errors:
+                        self.logger.warning(f"  - {error}")
+                else:
+                    self.logger.info("All configuration files passed validation")
+            
+            # Define configuration files to load
+            config_files = [
+                ("mortgage_config.json", "mortgage_config", True),  # (filename, config_key, required)
+                ("pmi_rates.json", "pmi_rates", True),
+                ("closing_costs.json", "closing_costs", True),
+                ("county_rates.json", "county_rates", False),
+                ("compliance_text.json", "compliance_text", False),
+                ("output_templates.json", "output_templates", False),
+            ]
+            
+            for filename, config_key, required in config_files:
+                file_path = os.path.join(self.config_dir, filename)
+                self.logger.info(f"Loading {config_key} from: {file_path}")
+                
+                # Load with caching
+                data = self._load_json_file_cached(file_path, config_key)
+                
+                if data is not None:
+                    if config_key == "mortgage_config":
+                        # Merge mortgage config into main config
+                        self.config.update(data)
+                    else:
+                        # Store as separate key
+                        self.config[config_key] = data
+                    self.logger.info(f"Loaded {config_key}")
+                    
+                elif required:
+                    # Required file is missing
+                    raise FileNotFoundError(f"Required configuration file not found: {file_path}")
+                else:
+                    # Optional file is missing
+                    self.config[config_key] = {}
+                    self.logger.info(f"No {filename} file found, using empty configuration")
 
         except FileNotFoundError as e:
             self.logger.error(f"Configuration file not found: {e}")
@@ -138,9 +259,7 @@ class ConfigManager:
         }
         self.calculation_history.append(calculation)
         if len(self.calculation_history) > self.max_history_items:
-            self.calculation_history = self.calculation_history[
-                -self.max_history_items :
-            ]
+            self.calculation_history = self.calculation_history[-self.max_history_items :]
         self.save_history()
 
     def get_calculation_history(self):
@@ -171,11 +290,7 @@ class ConfigManager:
         """Get the recent configuration changes."""
         if not hasattr(self, "recent_changes"):
             self.load_history()
-        return (
-            self.recent_changes[-self.max_recent_changes :]
-            if self.recent_changes
-            else []
-        )
+        return self.recent_changes[-self.max_recent_changes :] if self.recent_changes else []
 
     def get_last_backup_time(self):
         """Get the timestamp of the last configuration backup."""
@@ -213,9 +328,7 @@ class ConfigManager:
         if isinstance(closing_costs, str):
             self.logger.error(f"Closing costs config is a string: '{closing_costs}'")
             # Try to parse it as JSON if it looks like JSON
-            if closing_costs.strip().startswith("[") and closing_costs.strip().endswith(
-                "]"
-            ):
+            if closing_costs.strip().startswith("[") and closing_costs.strip().endswith("]"):
                 try:
                     import json
 
@@ -223,9 +336,7 @@ class ConfigManager:
                     self.logger.info("Successfully parsed closing costs string as JSON")
                     return parsed
                 except Exception as e:
-                    self.logger.error(
-                        f"Failed to parse closing costs string as JSON: {e}"
-                    )
+                    self.logger.error(f"Failed to parse closing costs string as JSON: {e}")
                     return []
             # Default to empty list if not valid JSON
             return []
@@ -246,9 +357,7 @@ class ConfigManager:
 
         # Check if loan_types is actually a dictionary
         if not isinstance(loan_types, dict):
-            self.logger.error(
-                f"loan_types is not a dictionary: {type(loan_types).__name__}"
-            )
+            self.logger.error(f"loan_types is not a dictionary: {type(loan_types).__name__}")
             return {}
 
         # Get the specific loan type config safely
@@ -264,10 +373,29 @@ class ConfigManager:
         return loan_config
 
     def save_config(self, config=None):
-        """Save configuration to files"""
+        """Save configuration to files with validation"""
         try:
             if config:
                 self.config.update(config)
+
+            # Validate configuration before saving (if validation is enabled)
+            if self._validation_enabled and self.validator:
+                self.logger.info("Validating configuration before saving...")
+                
+                # Validate mortgage config data
+                mortgage_config = {
+                    k: v for k, v in self.config.items()
+                    if k not in ["pmi_rates", "closing_costs", "county_rates", "compliance_text", "output_templates"]
+                }
+                if not self.validate_config_data("mortgage_config.json", mortgage_config):
+                    raise ValueError("Mortgage configuration validation failed")
+                
+                # Validate other configs
+                if "pmi_rates" in self.config and not self.validate_config_data("pmi_rates.json", self.config["pmi_rates"]):
+                    raise ValueError("PMI rates configuration validation failed")
+                
+                if "closing_costs" in self.config and not self.validate_config_data("closing_costs.json", self.config["closing_costs"]):
+                    raise ValueError("Closing costs configuration validation failed")
 
             # Create config directory if it doesn't exist
             os.makedirs(self.config_dir, exist_ok=True)
@@ -316,12 +444,8 @@ class ConfigManager:
                     backup_dir = os.path.join(self.config_dir, "backups")
                     os.makedirs(backup_dir, exist_ok=True)
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    backup_file = os.path.join(
-                        backup_dir, f"pmi_rates_backup_{timestamp}.json"
-                    )
-                    with open(pmi_rates_path, "r") as src, open(
-                        backup_file, "w"
-                    ) as dst:
+                    backup_file = os.path.join(backup_dir, f"pmi_rates_backup_{timestamp}.json")
+                    with open(pmi_rates_path, "r") as src, open(backup_file, "w") as dst:
                         dst.write(src.read())
                     self.logger.info(f"Created backup of PMI rates at {backup_file}")
 
@@ -404,15 +528,11 @@ class ConfigManager:
                 "mortgage_config": os.path.exists(
                     os.path.join(self.config_dir, "mortgage_config.json")
                 ),
-                "pmi_rates": os.path.exists(
-                    os.path.join(self.config_dir, "pmi_rates.json")
-                ),
+                "pmi_rates": os.path.exists(os.path.join(self.config_dir, "pmi_rates.json")),
                 "closing_costs": os.path.exists(
                     os.path.join(self.config_dir, "closing_costs.json")
                 ),
-                "county_rates": os.path.exists(
-                    os.path.join(self.config_dir, "county_rates.json")
-                ),
+                "county_rates": os.path.exists(os.path.join(self.config_dir, "county_rates.json")),
                 "compliance_text": os.path.exists(
                     os.path.join(self.config_dir, "compliance_text.json")
                 ),
@@ -464,9 +584,7 @@ class ConfigManager:
             # Create 10 backups in quick succession for testing
             for i in range(10):
                 timestamp = datetime.now().strftime(f"%Y%m%d_%H%M%S_{i}")
-                backup_file = os.path.join(
-                    backup_dir, f"config_backup_{timestamp}.json"
-                )
+                backup_file = os.path.join(backup_dir, f"config_backup_{timestamp}.json")
 
                 with open(backup_file, "w") as f:
                     json.dump(self.config, f, indent=4)

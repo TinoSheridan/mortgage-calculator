@@ -3,90 +3,105 @@
         "type": "percentage",
         "value": 0.0,
         "calculation_base": "loan_amount",
-        "description": "Fee charged by the lender"
+        "description": "Fee charged by the lender",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "appraisal_fee": {
         "type": "fixed",
         "value": 675.0,
         "calculation_base": "fixed",
-        "description": "Fee for professional property appraisal"
+        "description": "Fee for professional property appraisal",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "credit_report_fee": {
         "type": "fixed",
         "value": 249.0,
         "calculation_base": "fixed",
-        "description": "Fee for pulling credit reports"
+        "description": "Fee for pulling credit reports",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "title_insurance": {
         "type": "percentage",
         "value": 0.3,
         "calculation_base": "purchase_price",
-        "description": "Insurance protecting against property title issues"
+        "description": "Insurance protecting against property title issues",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "verification_fee": {
         "type": "fixed",
         "value": 150.0,
         "calculation_base": "fixed",
-        "description": "Verification Fee"
+        "description": "Verification Fee",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "processing_fee": {
         "type": "fixed",
         "value": 575.0,
         "calculation_base": "fixed",
-        "description": "Processing Fee"
+        "description": "Processing Fee",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "underwriting_fee": {
         "type": "fixed",
         "value": 675.0,
         "calculation_base": "fixed",
-        "description": "Underwriting Fee"
+        "description": "Underwriting Fee",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "owners_title_insurance": {
         "type": "percentage",
         "value": 0.3,
         "calculation_base": "purchase_price",
-        "description": "Owners Title Insurance"
+        "description": "Owners Title Insurance",
+        "applies_to": ["Purchase"]
     },
     "intangible_tax": {
         "type": "percentage",
         "value": 0.3,
         "calculation_base": "loan_amount",
-        "description": "Intangible Tax"
+        "description": "Intangible Tax",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "doc_prep": {
         "type": "fixed",
         "value": 115.0,
         "calculation_base": "fixed",
-        "description": "Closing Documents"
+        "description": "Closing Documents",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "attorney's_fee": {
         "type": "fixed",
         "value": 1200.0,
         "calculation_base": "fixed",
-        "description": "Attorney's Fee"
+        "description": "Attorney's Fee",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "recording_fee": {
         "type": "fixed",
         "value": 60.0,
         "calculation_base": "fixed",
-        "description": "Recording Fee"
+        "description": "Recording Fee",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "admin_fee": {
         "type": "fixed",
         "value": 125.0,
         "calculation_base": "fixed",
-        "description": "closing the mortgage"
+        "description": "closing the mortgage",
+        "applies_to": ["Purchase", "Refinance"]
     },
     "state_tax_stamp": {
         "type": "percentage",
         "value": 0.1,
         "calculation_base": "purchase_price",
-        "description": "State Tax Stamp"
+        "description": "State Tax Stamp",
+        "applies_to": ["Purchase"]
     },
     "third_party_certs": {
         "type": "fixed",
         "value": 55.0,
         "calculation_base": "fixed",
-        "description": "Third Party Certs"
+        "description": "Third Party Certs",
+        "applies_to": ["Purchase", "Refinance"]
     }
 }

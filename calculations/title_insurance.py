@@ -7,18 +7,14 @@ logger = logging.getLogger(__name__)
 def calculate_total_title_insurance(purchase_price: float, title_config: dict) -> float:
     """Calculate total title insurance premium using tiered rates from config."""
     try:
-        logger.info(
-            f"Calculating total title insurance for purchase price: ${purchase_price:,.2f}"
-        )
+        logger.info(f"Calculating total title insurance for purchase price: ${purchase_price:,.2f}")
         purchase_price_d = Decimal(str(purchase_price))
         rate = Decimal("0.0")  # Default rate
 
         # Get rates from config, sort by 'up_to' threshold
         rate_tiers = sorted(
             title_config.get("total_rates_tiers", []),
-            key=lambda x: x.get("up_to")
-            if x.get("up_to") is not None
-            else float("inf"),
+            key=lambda x: x.get("up_to") if x.get("up_to") is not None else float("inf"),
         )
 
         if not rate_tiers:
@@ -34,9 +30,7 @@ def calculate_total_title_insurance(purchase_price: float, title_config: dict) -
                 break
         else:
             # If purchase price exceeds all defined 'up_to' values, use the last tier's rate
-            rate = Decimal(str(rate_tiers[-1].get("rate_percentage", 0))) / Decimal(
-                "100"
-            )
+            rate = Decimal(str(rate_tiers[-1].get("rate_percentage", 0))) / Decimal("100")
 
         base_premium_d = purchase_price_d * rate
 
@@ -50,9 +44,7 @@ def calculate_total_title_insurance(purchase_price: float, title_config: dict) -
         )
 
         # Round to 2 decimal places
-        rounded_premium = float(
-            total_premium_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        )
+        rounded_premium = float(total_premium_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         return rounded_premium
 
     except Exception as e:
@@ -81,15 +73,11 @@ def calculate_lenders_title_insurance(
         # Assumes structure like: title_config['lender_rates_simultaneous_tiers']
         rate_tiers = sorted(
             title_config.get("lender_rates_simultaneous_tiers", []),
-            key=lambda x: x.get("up_to")
-            if x.get("up_to") is not None
-            else float("inf"),
+            key=lambda x: x.get("up_to") if x.get("up_to") is not None else float("inf"),
         )
 
         if not rate_tiers:
-            logger.warning(
-                "No lender_rates_simultaneous_tiers found in title_insurance config."
-            )
+            logger.warning("No lender_rates_simultaneous_tiers found in title_insurance config.")
             # Fallback to simpler logic or return 0? For now, return 0.
             return 0.0
 
@@ -102,9 +90,7 @@ def calculate_lenders_title_insurance(
                 break
         else:
             # If loan amount exceeds all defined 'up_to' values, use the last tier's rate
-            rate_d = Decimal(str(rate_tiers[-1].get("rate_percentage", 0))) / Decimal(
-                "100"
-            )
+            rate_d = Decimal(str(rate_tiers[-1].get("rate_percentage", 0))) / Decimal("100")
 
         # If owner's title is not included, apply the waiver multiplier from config
         if not include_owners_title:
@@ -119,9 +105,7 @@ def calculate_lenders_title_insurance(
         lenders_title_d = loan_amount_d * rate_d
 
         # Round to 2 decimal places
-        rounded_premium = float(
-            lenders_title_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        )
+        rounded_premium = float(lenders_title_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
         logger.info(
             f"Lender's title insurance: ${rounded_premium:.2f} (rate={rate_d:.5f}, "
@@ -156,9 +140,7 @@ def calculate_owners_title_insurance(
 
         # Owner's title is the difference between total title and lender's title (with discount)
         # Use Decimal for intermediate calculations
-        total_title_d = Decimal(
-            str(calculate_total_title_insurance(purchase_price, title_config))
-        )
+        total_title_d = Decimal(str(calculate_total_title_insurance(purchase_price, title_config)))
         # Ensure we calculate lender's title *with* the discount applied for this calculation
         lenders_title_discounted_d = Decimal(
             str(
@@ -174,9 +156,7 @@ def calculate_owners_title_insurance(
         owners_title_d = max(Decimal("0.0"), owners_title_d)
 
         # Round to 2 decimal places
-        rounded_premium = float(
-            owners_title_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        )
+        rounded_premium = float(owners_title_d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
         logger.info(
             f"Owner's title insurance: ${rounded_premium:.2f} (from total ${total_title_d:.2f} - discounted lender's ${lenders_title_discounted_d:.2f})"

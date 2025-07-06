@@ -2,10 +2,18 @@
 """
 Debug script to test prepaid interest calculation
 """
+import logging
 from calendar import monthrange
 from datetime import date, datetime
 
 from calculator import MortgageCalculator
+
+# Configure logging for debug script
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -16,21 +24,21 @@ def main():
 
     # Parse closing date
     closing_date = datetime.strptime(closing_date_str, "%Y-%m-%d").date()
-    print(f"Closing date: {closing_date}")
+    logger.info(f"Closing date: {closing_date}")
 
     # Calculate daily interest
     daily_interest = (loan_amount * annual_rate / 100) / 360
-    print(f"Daily interest: ${daily_interest:.2f}")
+    logger.info(f"Daily interest: ${daily_interest:.2f}")
 
     # Calculate days to end of month
     _, last_day = monthrange(closing_date.year, closing_date.month)
     last_date = date(closing_date.year, closing_date.month, last_day)
     days = (last_date - closing_date).days + 1
-    print(f"Days from {closing_date} to {last_date}: {days}")
+    logger.info(f"Days from {closing_date} to {last_date}: {days}")
 
     # Calculate expected prepaid interest
     expected_interest = daily_interest * days
-    print(f"Expected prepaid interest: ${expected_interest:.2f}")
+    logger.info(f"Expected prepaid interest: ${expected_interest:.2f}")
 
     # Use the calculator to compute prepaid interest
     calculator = MortgageCalculator()
@@ -42,20 +50,18 @@ def main():
         closing_date=closing_date,
     )
 
-    print(
-        f"\nActual prepaid interest from calculator: ${prepaid_items['prepaid_interest']:.2f}"
-    )
+    logger.info(f"\nActual prepaid interest from calculator: ${prepaid_items['prepaid_interest']:.2f}")
 
     # Calculate difference
     difference = abs(prepaid_items["prepaid_interest"] - expected_interest)
     if difference < 0.01:
-        print("\n✓ MATCHES: The calculated value matches the expected value!")
+        logger.info("\n✓ MATCHES: The calculated value matches the expected value!")
     else:
-        print(f"\n✗ DOESN'T MATCH: There's a difference of ${difference:.2f}")
+        logger.warning(f"\n✗ DOESN'T MATCH: There's a difference of ${difference:.2f}")
 
     # Print calculator config
-    print("\nCalculator prepaid_items config:")
-    print(calculator.config["prepaid_items"])
+    logger.info("\nCalculator prepaid_items config:")
+    logger.info(calculator.config["prepaid_items"])
 
 
 if __name__ == "__main__":

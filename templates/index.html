@@ -3,6 +3,7 @@
 {% block title %}Mortgage Calculator{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-optimized.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calculator-enhanced.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/two-column-layout.css') }}">
@@ -37,6 +38,11 @@
 
     .progress-bar {
         transition: width 1s;
+    }
+
+    /* Ensure elements with this class are always visible */
+    .always-visible {
+        display: block !important;
     }
 
     /* Enhanced styling for mortgage calculator */
@@ -230,12 +236,6 @@
         .results-card, .card {
             margin-bottom: 2rem;
         }
-        #calculateBtn {
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
-            width: 100%;
-        }
     }
     /* Larger, more readable font for key results */
     #totalMonthlyPayment, #totalCashNeeded {
@@ -269,27 +269,47 @@
 {% endblock %}
 
 {% block content %}
+<main role="main" aria-label="Mortgage Calculator Application">
 <h1 class="text-center mb-4">Mortgage Calculator <small class="text-muted">v{{ version }}</small></h1>
 
 <div class="row">
     <!-- Form Column -->
     <div class="col-md-5">
-        <form id="mortgageForm" method="post">
+        <section aria-label="Loan Input Form" role="form">
+        <h2 class="visually-hidden">Loan Input Form</h2>
+
+        <!-- SCENARIO TOGGLE: Place outside all forms at the very top -->
+        <fieldset class="mb-3 p-3 border rounded bg-light" id="scenarioToggleRow">
+            <legend class="fw-bold me-3" style="font-size:1.1rem;">Choose Scenario:</legend>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="calc_mode" id="mode_purchase" value="purchase" checked aria-describedby="mode_purchase_desc">
+                <label class="form-check-label" for="mode_purchase">Purchase</label>
+                <span id="mode_purchase_desc" class="visually-hidden">Calculate mortgage for purchasing a new home</span>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="calc_mode" id="mode_refinance" value="refinance" aria-describedby="mode_refinance_desc">
+                <label class="form-check-label" for="mode_refinance">Refinance</label>
+                <span id="mode_refinance_desc" class="visually-hidden">Calculate savings from refinancing existing mortgage</span>
+            </div>
+        </fieldset>
+
+        <form id="mortgageForm" method="post" style="display:block;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <div class="card mb-4">
+            <div class="card mb-4" id="loanInfoCard">
                 <div class="card-header">
                     <h4 class="mb-0">Loan Information</h4>
                 </div>
                 <div class="card-body">
                     <div class="form-group mb-1">
                         <label for="loan_type" class="form-label">Loan Type</label>
-                        <select class="form-select" id="loan_type" name="loan_type">
+                        <select class="form-select" id="loan_type" name="loan_type" aria-describedby="loan_type_desc">
                             <option value="conventional">Conventional</option>
                             <option value="fha">FHA</option>
                             <option value="va">VA</option>
                             <option value="usda">USDA</option>
                         </select>
+                        <span id="loan_type_desc" class="visually-hidden">Select the type of mortgage loan</span>
                     </div>
 
                     <!-- VA Loan Options (hidden by default) -->
@@ -320,19 +340,22 @@
                     <div class="form-group mb-1">
                         <label for="purchase_price" class="form-label">Purchase Price ($)</label>
                         <input type="number" class="form-control" id="purchase_price" name="purchase_price" step="1000"
-                            min="0" value="300000" required>
+                            min="0" value="300000" required aria-describedby="purchase_price_desc">
+                        <span id="purchase_price_desc" class="visually-hidden">Enter the total purchase price of the home in dollars</span>
                     </div>
 
                     <div class="form-group mb-1">
                         <label for="down_payment_percentage" class="form-label">Down Payment (%)</label>
                         <input type="number" class="form-control" id="down_payment_percentage"
-                            name="down_payment_percentage" step="0.5" min="0" max="100" value="20" required>
+                            name="down_payment_percentage" step="0.5" min="0" max="100" value="20" required aria-describedby="down_payment_desc">
+                        <span id="down_payment_desc" class="visually-hidden">Enter down payment as percentage of purchase price, between 0 and 100</span>
                     </div>
 
                     <div class="form-group mb-1">
                         <label for="annual_rate" class="form-label">Interest Rate (%)</label>
                         <input type="number" class="form-control" id="annual_rate" name="annual_rate" step="0.125"
-                            min="0" max="15" value="6.5" required>
+                            min="0" max="15" value="6.5" required aria-describedby="annual_rate_desc">
+                        <span id="annual_rate_desc" class="visually-hidden">Enter the annual interest rate as a percentage between 0 and 15</span>
                     </div>
 
                     <div class="form-group mb-1">
@@ -343,24 +366,55 @@
 
                     <div class="form-group mb-1">
                         <label for="loan_term" class="form-label">Loan Term (years)</label>
-                        <select class="form-select" id="loan_term" name="loan_term">
+                        <select class="form-select" id="loan_term" name="loan_term" aria-describedby="loan_term_desc">
                             <option value="30">30 Years</option>
                             <option value="20">20 Years</option>
                             <option value="15">15 Years</option>
                             <option value="10">10 Years</option>
                         </select>
+                        <span id="loan_term_desc" class="visually-hidden">Select the loan term in years</span>
                     </div>
                     <hr>
                     <div class="form-group mb-1">
-                        <label for="annual_tax_rate" class="form-label">Property Tax Rate (%)</label>
-                        <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate"
-                            step="0.01" min="0" max="5" value="1.3" required>
+                        <label for="annual_tax_rate" class="form-label">Property Tax</label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <input type="radio" class="form-check-input" name="tax_method" value="percentage" id="tax_percentage" checked>
+                                <label class="form-check-label ms-1" for="tax_percentage">%</label>
+                            </div>
+                            <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate"
+                                step="0.01" min="0" max="5" value="1.3" required>
+                        </div>
+                        <div class="input-group mt-1">
+                            <div class="input-group-text">
+                                <input type="radio" class="form-check-input" name="tax_method" value="amount" id="tax_amount">
+                                <label class="form-check-label ms-1" for="tax_amount">$</label>
+                            </div>
+                            <input type="number" class="form-control" id="annual_tax_amount" name="annual_tax_amount"
+                                step="100" min="0" value="0" disabled>
+                        </div>
+                        <small class="form-text text-muted">Choose percentage of purchase price or enter actual annual amount</small>
                     </div>
 
                     <div class="form-group mb-1">
-                        <label for="annual_insurance_rate" class="form-label">Insurance Rate (%)</label>
-                        <input type="number" class="form-control" id="annual_insurance_rate"
-                            name="annual_insurance_rate" step="0.01" min="0" max="2" value="1.1" required>
+                        <label for="annual_insurance_rate" class="form-label">Homeowners Insurance</label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <input type="radio" class="form-check-input" name="insurance_method" value="percentage" id="insurance_percentage" checked>
+                                <label class="form-check-label ms-1" for="insurance_percentage">%</label>
+                            </div>
+                            <input type="number" class="form-control" id="annual_insurance_rate"
+                                name="annual_insurance_rate" step="0.01" min="0" max="2" value="1.1" required>
+                        </div>
+                        <div class="input-group mt-1">
+                            <div class="input-group-text">
+                                <input type="radio" class="form-check-input" name="insurance_method" value="amount" id="insurance_amount">
+                                <label class="form-check-label ms-1" for="insurance_amount">$</label>
+                            </div>
+                            <input type="number" class="form-control" id="annual_insurance_amount" name="annual_insurance_amount"
+                                step="100" min="0" value="0" disabled>
+                        </div>
+                        <small class="form-text text-muted">Choose percentage of loan amount or enter actual annual amount</small>
                     </div>
 
                     <div class="form-group mb-1">
@@ -412,45 +466,403 @@
                         <div class="form-text text-info">Waiving owner's title insurance will increase lender's title insurance costs but may reduce total closing costs.</div>
                     </div>
 
-                    <div class="mt-3">
-                        <button type="button" id="calculateBtn" class="btn btn-primary d-block w-100">Calculate</button>
+                    <!-- Only show these fields for refinance mode -->
+                    <div id="refinanceClosingCostsFields" style="display:none;">
+                        <div class="form-group mb-1">
+                            <label for="financed_closing_costs" class="form-label">Financed Closing Costs ($)</label>
+                            <input type="number" class="form-control" id="financed_closing_costs" name="financed_closing_costs" step="0.01" min="0" value="0" />
+                            <div class="form-text text-info">Enter the portion of closing costs to be financed in the new loan. The remainder will be due at closing.</div>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="total_closing_costs" class="form-label">Total Closing Costs (estimated) ($)</label>
+                            <input type="number" class="form-control" id="total_closing_costs" name="total_closing_costs" step="0.01" min="0" value="0" readonly />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Calculate Button: Placed at the end of the form -->
+            <div class="mt-3 mb-4" id="calculateBtnContainer">
+                <button type="button" id="calculateBtn" class="btn btn-primary btn-lg d-block w-100" aria-describedby="calc_btn_desc">
+                    <i class="bi bi-calculator" aria-hidden="true"></i> Calculate Payment
+                </button>
+                <span id="calc_btn_desc" class="visually-hidden">Calculate mortgage payment and closing costs for purchase</span>
+            </div>
+
+        </form>
+
+        <!-- Separate form for refinance mode (hidden by default) -->
+        <form id="refinanceForm" method="post" style="display:none;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="calc_mode" value="refinance">
+            <div id="refinanceFields">
+                <div class="card mb-4" id="refinanceDetailsCard">
+                    <div class="card-header">
+                        <h4 class="mb-0">Refinance Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="refinance_loan_type" class="form-label">Current Loan Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="refinance_loan_type" name="loan_type" required>
+                                        <option value="">Select Loan Type</option>
+                                        <option value="conventional" selected>Conventional</option>
+                                        <option value="fha">FHA</option>
+                                        <option value="va">VA</option>
+                                        <option value="usda">USDA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="refinance_type" class="form-label">Refinance Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="refinance_type" name="refinance_type" required>
+                                        <option value="">Select Refinance Type</option>
+                                        <option value="rate_term" selected>Rate & Term</option>
+                                        <option value="cash_out">Cash-Out</option>
+                                        <option value="streamline">Streamline/IRRRL</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="appraised_value" class="form-label">Appraised Value ($) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="appraised_value" name="appraised_value" step="1000" min="0" value="404000" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="original_loan_balance" class="form-label">Original Loan Balance ($) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="original_loan_balance" name="original_loan_balance" step="1000" min="0" value="320000" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="original_interest_rate" class="form-label">Original Interest Rate (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="original_interest_rate" name="original_interest_rate" step="0.125" min="0" max="15" value="7.25" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="original_loan_term" class="form-label">Original Loan Term (years)</label>
+                            <select class="form-select" id="original_loan_term" name="original_loan_term">
+                                <option value="30">30 Years</option>
+                                <option value="20">20 Years</option>
+                                <option value="15">15 Years</option>
+                                <option value="10">10 Years</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="original_closing_date" class="form-label">Original Closing Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="original_closing_date" name="original_closing_date" required>
+                        </div>
+
+                        <!-- Current Balance Override -->
+                        <div class="form-group mb-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="use_manual_balance" name="use_manual_balance">
+                                <label class="form-check-label" for="use_manual_balance">
+                                    Override current balance calculation
+                                </label>
+                            </div>
+                            <div class="form-text text-muted">Check this if you've made extra payments and know the exact current balance</div>
+                        </div>
+                        <div class="form-group mb-1" id="manual_balance_group" style="display: none;">
+                            <label for="manual_current_balance" class="form-label">Current Loan Balance ($) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="manual_current_balance" name="manual_current_balance" step="100" min="0" placeholder="Enter actual current balance">
+                            <div class="form-text text-muted">Enter the exact current balance from your loan statement</div>
+                        </div>
+                        <!-- New loan amount is calculated automatically and not shown as an input field -->
+                        <div class="form-group mb-1">
+                            <label for="new_interest_rate" class="form-label">New Interest Rate (%) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="new_interest_rate" name="new_interest_rate" step="0.125" min="0" max="15" value="5.5" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="new_discount_points" class="form-label">New Discount Points</label>
+                            <input type="number" class="form-control" id="new_discount_points" name="new_discount_points" step="0.125" min="0" max="5" value="0">
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="new_loan_term" class="form-label">New Loan Term (years) <span class="text-danger">*</span></label>
+                            <select class="form-select" id="new_loan_term" name="new_loan_term" required>
+                                <option value="30">30 Years</option>
+                                <option value="20">20 Years</option>
+                                <option value="15">15 Years</option>
+                                <option value="10">10 Years</option>
+                            </select>
+                        </div>
+                        <!-- Closing costs will be calculated automatically based on the loan amount -->
+
+                        <h6 class="mt-3 mb-2 text-primary">Prepaid Items Calculation</h6>
+                        <div class="form-group mb-1">
+                            <label for="new_closing_date" class="form-label">New Closing Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="new_closing_date" name="new_closing_date" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="annual_taxes" class="form-label">Annual Property Taxes <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="annual_taxes" name="annual_taxes" step="100" min="0" value="5200" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="annual_insurance" class="form-label">Annual Homeowner's Insurance <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="annual_insurance" name="annual_insurance" step="50" min="0" value="1500" required>
+                        </div>
+                        <div class="form-group mb-1">
+                            <label for="monthly_hoa_fee" class="form-label">Monthly HOA Fee</label>
+                            <input type="number" class="form-control" id="monthly_hoa_fee" name="monthly_hoa_fee" step="25" min="0" placeholder="0" value="0">
+                            <div class="form-text text-muted">Enter 0 if no HOA (Homeowner's Association) fees</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="tax_escrow_months" class="form-label">Tax Escrow Months</label>
+                                    <select class="form-select" id="tax_escrow_months" name="tax_escrow_months">
+                                        <option value="1">1 Month</option>
+                                        <option value="2">2 Months</option>
+                                        <option value="3" selected>3 Months</option>
+                                        <option value="4">4 Months</option>
+                                        <option value="5">5 Months</option>
+                                        <option value="6">6 Months</option>
+                                        <option value="7">7 Months</option>
+                                        <option value="8">8 Months</option>
+                                        <option value="9">9 Months</option>
+                                        <option value="10">10 Months</option>
+                                        <option value="11">11 Months</option>
+                                        <option value="12">12 Months</option>
+                                        <option value="13">13 Months</option>
+                                        <option value="14">14 Months</option>
+                                    </select>
+                                    <div class="form-text text-muted">Months of property tax for escrow</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="insurance_escrow_months" class="form-label">Insurance Escrow Months</label>
+                                    <select class="form-select" id="insurance_escrow_months" name="insurance_escrow_months">
+                                        <option value="1">1 Month</option>
+                                        <option value="2" selected>2 Months</option>
+                                        <option value="3">3 Months</option>
+                                        <option value="4">4 Months</option>
+                                        <option value="5">5 Months</option>
+                                        <option value="6">6 Months</option>
+                                        <option value="7">7 Months</option>
+                                        <option value="8">8 Months</option>
+                                        <option value="9">9 Months</option>
+                                        <option value="10">10 Months</option>
+                                        <option value="11">11 Months</option>
+                                        <option value="12">12 Months</option>
+                                        <option value="13">13 Months</option>
+                                        <option value="14">14 Months</option>
+                                    </select>
+                                    <div class="form-text text-muted">Months of insurance for escrow</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-3 mb-2 text-primary">Credits</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="extra_monthly_savings" class="form-label">Extra Monthly Savings</label>
+                                    <input type="number" class="form-control" id="extra_monthly_savings" name="extra_monthly_savings" step="1" min="0" placeholder="0" value="0">
+                                    <div class="form-text text-muted">Additional monthly savings (e.g., eliminated MI: $50)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label for="refinance_lender_credit" class="form-label">Lender Credit</label>
+                                    <input type="number" class="form-control" id="refinance_lender_credit" name="refinance_lender_credit" step="100" min="0" placeholder="0" value="0">
+                                    <div class="form-text text-muted">Credit from lender toward closing costs</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-3 mb-2 text-primary">Cash to Closing Options</h6>
+                        <div class="form-group mb-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="cash_option" value="finance_all" id="finance_all" checked>
+                                <label class="form-check-label" for="finance_all">
+                                    Finance all costs (standard refinance)
+                                </label>
+                            </div>
+                            <div class="form-text text-muted ms-4 mb-2">Roll all closing costs and prepaids into the loan</div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="cash_option" value="target_ltv" id="target_ltv">
+                                <label class="form-check-label" for="target_ltv">
+                                    Target specific LTV (bring cash to reduce loan amount)
+                                </label>
+                            </div>
+                            <div class="form-text text-muted ms-4 mb-2">Ideal for eliminating mortgage insurance at 80% LTV</div>
+
+                        </div>
+
+                        <!-- Target LTV Input -->
+                        <div class="form-group mb-1" id="target_ltv_group" style="display: none;">
+                            <label for="target_ltv_value" class="form-label">Target LTV (%)</label>
+                            <input type="number" class="form-control" id="target_ltv_value" name="target_ltv_value" step="0.1" min="50" max="100" placeholder="80">
+                            <div class="form-text text-muted">Enter your desired loan-to-value ratio (80% eliminates mortgage insurance)</div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+
+            <!-- Refinance Calculate Buttons -->
+            <div class="mt-3 mb-4">
+                <button type="button" id="refinanceCalculateBtn" class="btn btn-primary btn-lg d-block w-100 mb-2" aria-describedby="refinance_calc_btn_desc">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Calculate Refinance
+                </button>
+                <span id="refinance_calc_btn_desc" class="visually-hidden">Calculate refinance using selected cash option above</span>
+                <div class="form-text text-muted mb-2">
+                    <small>Uses the cash option selected above (finance all costs or target LTV)</small>
+                </div>
+                <button type="button" id="refinanceZeroCashBtn" class="btn btn-success btn-lg d-block w-100" aria-describedby="zero_cash_btn_desc">
+                    <i class="bi bi-cash-coin" aria-hidden="true"></i> Zero Cash to Close
+                </button>
+                <span id="zero_cash_btn_desc" class="visually-hidden">Calculate refinance with all costs rolled into the loan amount</span>
+                <div class="form-text text-muted mt-1">
+                    <small>Zero cash option overrides settings above and adds all closing costs and prepaids to your loan amount</small>
+                </div>
+            </div>
+
         </form>
+
+        <!-- LTV Information Card for Refinance -->
+        <div class="card mb-4 refinance-only border-info" id="refinanceLtvInfoCard" style="display:none;">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Appraised Values for LTV Targets
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3" id="ltvCardDescription">
+                    Based on your estimated new loan amount of <strong id="currentLoanBalanceDisplay">$0</strong> (including closing costs and prepaids), here are the appraised values needed to achieve different LTV ratios:
+                </p>
+                <div class="alert alert-info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small><strong>New Loan Amount Breakdown:</strong></small>
+                        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#loanBreakdown" aria-expanded="false" aria-controls="loanBreakdown" aria-label="Toggle loan breakdown details">
+                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="collapse mt-2" id="loanBreakdown">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td>Original loan balance (input):</td>
+                                <td class="text-end" id="breakdownOriginal">$0</td>
+                            </tr>
+                            <tr>
+                                <td>Est. current payoff (90% of original):</td>
+                                <td class="text-end" id="breakdownCurrent">$0</td>
+                            </tr>
+                            <tr>
+                                <td>+ Estimated closing costs:</td>
+                                <td class="text-end" id="breakdownClosingCosts">$0</td>
+                            </tr>
+                            <tr>
+                                <td>+ Estimated prepaids:</td>
+                                <td class="text-end" id="breakdownPrepaids">$0</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>= New loan amount:</strong></td>
+                                <td class="text-end"><strong id="breakdownTotal">$0</strong></td>
+                            </tr>
+                        </table>
+                        <small class="text-muted">
+                            <em>These are estimates based on typical costs. Get an accurate payoff quote from your current lender for precise calculations.</em>
+                        </small>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped" role="table" aria-label="LTV scenarios comparison">
+                        <caption class="visually-hidden">LTV scenarios showing appraisal values and cash requirements for different loan-to-value ratios</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">LTV Target</th>
+                                <th scope="col">Appraised Value</th>
+                                <th scope="col">Benefit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-success">
+                                <td><strong>≤ 80%</strong></td>
+                                <td class="text-end" id="ltv80ValueZeroCash">$0</td>
+                                <td><small class="text-success">No PMI required</small></td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>≤ 90%</strong></td>
+                                <td class="text-end" id="ltv90ValueZeroCash">$0</td>
+                                <td><small class="text-warning">Lower PMI rate</small></td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>≤ 95%</strong></td>
+                                <td class="text-end" id="ltv95ValueZeroCash">$0</td>
+                                <td><small class="text-info">Standard PMI rate</small></td>
+                            </tr>
+                            <tr class="table-secondary">
+                                <td><strong>Maximum LTV</strong></td>
+                                <td class="text-end" id="maxLtvValueZeroCash">$0</td>
+                                <td><small class="text-muted" id="maxLtvText">Varies by loan type</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <small class="text-muted">
+                        <strong>Appraised Value:</strong> The minimum appraised value needed to achieve each LTV target while financing all closing costs and prepaids in your loan (zero cash scenario).
+                    </small>
+                </div>
+
+                <div class="alert alert-light mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-lightbulb"></i>
+                        <strong>Tip:</strong> LTV (Loan-to-Value) = New Loan Amount ÷ Appraised Value × 100.
+                        Appraised values are rounded up to the nearest thousand for conservative guidance.
+                        Values update automatically when you run a calculation for maximum accuracy.
+                        A higher appraised value results in a lower LTV and can help you avoid or reduce mortgage insurance costs.
+                        The actual appraised value will be determined by a professional appraisal.
+                    </small>
+                </div>
+            </div>
+        </div>
+        </section>
+
     </div>
 
     <!-- Results Column -->
     <div class="col-md-7">
+        <section aria-label="Calculation Results" role="region">
+        <h2 class="visually-hidden">Calculation Results</h2>
         <!-- Loading Spinner and Error Alert -->
         <div class="my-4 text-center">
             <div id="loadingSpinner" class="spinner-border text-primary mx-auto d-none" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+            <div id="errorAlert" class="alert alert-danger d-none" role="alert" aria-live="assertive" aria-atomic="true">
                 An error occurred during calculation. Please try again.
             </div>
-            <div id="validationAlert" class="alert alert-warning d-none" role="alert">
+            <div id="validationAlert" class="alert alert-warning d-none" role="alert" aria-live="polite" aria-atomic="true">
                 Please check your inputs and try again.
             </div>
         </div>
 
         <div id="resultsSection">
+            <!-- Mobile Results Summary (shown only on mobile) -->
+            <div id="mobileResultsSummary" class="d-md-none"></div>
+
             <!-- Copy Buttons -->
             <div class="mb-3 text-end">
-                <button id="copyResultsBtn" class="btn btn-lg" type="button">
-                    <i class="bi bi-clipboard"></i> Copy Summary
+                <button id="copyResultsBtn" class="btn btn-primary btn-lg" type="button" aria-describedby="copy_summary_desc">
+                    <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary
                 </button>
-                <button id="copyDetailBtn" class="btn btn-lg ms-2" type="button">
-                    <i class="bi bi-clipboard-data"></i> Copy Detail
+                <span id="copy_summary_desc" class="visually-hidden">Copy calculation summary to clipboard</span>
+                <button id="copyDetailBtn" class="btn btn-outline-primary btn-lg ms-2" type="button" aria-describedby="copy_detail_desc">
+                    <i class="bi bi-clipboard-data" aria-hidden="true"></i> Copy Detail
                 </button>
-                <span id="copyConfirmation" class="text-success d-none ms-2">
-                    <i class="bi bi-check-circle"></i> Copied!
+                <span id="copy_detail_desc" class="visually-hidden">Copy detailed calculation breakdown to clipboard</span>
+                <span id="copyConfirmation" class="text-success d-none ms-2" aria-live="polite" aria-atomic="true">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i> Copied!
                 </span>
             </div>
 
             <!-- Loan Details Card -->
-            <div class="card results-card mb-4" id="loanDetailsCard">
+            <div class="card results-card mb-4 purchase-only" id="loanDetailsCard">
                 <div class="card-header">
                     <h4 class="mb-0">Loan Details</h4>
                 </div>
@@ -477,10 +889,6 @@
                             <tr>
                                 <td>Interest Rate:</td>
                                 <td class="text-end" id="interestRate">0.00%</td>
-                            </tr>
-                            <tr>
-                                <td>Discount Points:</td>
-                                <td class="text-end" id="discountPoints">0.000</td>
                             </tr>
                             <tr>
                                 <td>Loan Term:</td>
@@ -510,7 +918,14 @@
                     <h4 class="mb-0">Monthly Payment</h4>
                 </div>
                 <div class="card-body">
-                    <table class="table table-sm">
+                    <table class="table table-sm" role="table" aria-label="Monthly payment breakdown">
+                        <caption class="visually-hidden">Breakdown of monthly mortgage payment components including principal, interest, taxes, insurance, PMI, and HOA fees</caption>
+                        <thead class="visually-hidden">
+                            <tr>
+                                <th scope="col">Payment Component</th>
+                                <th scope="col">Amount</th>
+                            </tr>
+                        </thead>
                         <tbody id="monthlyBreakdownTable">
                             <tr>
                                 <td>Principal & Interest:</td>
@@ -532,11 +947,241 @@
                                 <td>HOA Fee:</td>
                                 <td class="text-end" id="hoaFee">$0.00</td>
                             </tr>
-                            <tr class="total-row table-primary">
+                        </tbody>
+                        <tfoot id="monthlyTotalRow" class="total-row">
+                            <tr>
                                 <td><strong>Total Monthly Payment:</strong></td>
                                 <td class="text-end" id="totalMonthlyPayment"><strong>$0.00</strong></td>
                             </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refinance Results Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-success" id="refinanceResultsCard" style="display: none;">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="bi bi-arrow-repeat display-6 me-2"></i>
+                    <h4 class="mb-0">Refinance Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success mb-3">
+                        <strong>Your new loan amount:</strong> <span id="refinance_new_loan_amount">$0.00</span>
+                    </div>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>Current Loan Balance:</td>
+                                <td class="text-end" id="currentBalance">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>New Loan Amount:</td>
+                                <td class="text-end" id="newLoanAmount">$0.00</td>
+                            </tr>
+                            <tr id="loanIncreaseSection" class="d-none">
+                                <td><em>Amount Added to Loan:</em></td>
+                                <td class="text-end text-info" id="loanIncrease">$0.00</td>
+                            </tr>
+                            <tr id="financedClosingCostsSection" class="d-none">
+                                <td><em>Closing Costs Financed:</em></td>
+                                <td class="text-end text-info" id="financedClosingCosts">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Loan-to-Value (LTV):</td>
+                                <td class="text-end" id="refinanceLTV">0.00%</td>
+                            </tr>
+                            <tr>
+                                <td>Old Monthly Payment:</td>
+                                <td class="text-end" id="oldMonthlyPayment">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>New Monthly Payment:</td>
+                                <td class="text-end" id="newMonthlyPayment">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Savings:</td>
+                                <td class="text-end" id="monthlySavings">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Break-Even Point:</td>
+                                <td class="text-end" id="breakEvenPoint">0 months</td>
+                            </tr>
+                            <tr>
+                                <td>Total Savings (after costs):</td>
+                                <td class="text-end" id="totalSavings">$0.00</td>
+                            </tr>
                         </tbody>
+                    </table>
+                    <div id="accelerationSection" style="display: none;">
+                        <hr>
+                        <h5>Mortgage Acceleration</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td>Months to Payoff:</td>
+                                    <td class="text-end" id="monthsToPayoff">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Years to Payoff:</td>
+                                    <td class="text-end" id="yearsToPayoff">0 years, 0 months</td>
+                                </tr>
+                                <tr>
+                                    <td>Interest Saved:</td>
+                                    <td class="text-end" id="interestSaved">$0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refinance Closing Costs Details Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-success" id="refinanceClosingCostsCard" style="display: none;">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="bi bi-receipt display-6 me-2"></i>
+                    <h4 class="mb-0">Refinance Closing Costs Details</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Detailed breakdown of closing costs used to calculate your new loan amount:</p>
+                    <table class="table table-sm">
+                        <tbody id="refinanceClosingCostsTable">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refinance Monthly Payment Breakdown Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-primary" id="refinanceMonthlyPaymentCard" style="display: none;">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="bi bi-calendar-month display-6 me-2"></i>
+                    <h4 class="mb-0">New Monthly Payment Breakdown</h4>
+                </div>
+                <div class="card-body">
+                    <div class="monthly-summary text-center mb-4">
+                        <strong>Total New Monthly Payment: <span id="refinanceTotalMonthlyPayment">$0.00</span></strong>
+                    </div>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>Principal & Interest</td>
+                                <td class="text-end" id="refinancePrincipalAndInterest">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Property Tax</td>
+                                <td class="text-end" id="refinancePropertyTax">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Home Insurance</td>
+                                <td class="text-end" id="refinanceHomeInsurance">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Mortgage Insurance (PMI)</td>
+                                <td class="text-end" id="refinancePmi">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>HOA Fee</td>
+                                <td class="text-end" id="refinanceHoaFee">$0.00</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-primary">
+                                <td><strong>Total Monthly Payment</strong></td>
+                                <td class="text-end"><strong id="refinanceTotalMonthlyPaymentFooter">$0.00</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refinance Prepaids Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-warning" id="refinancePrepaidsCard" style="display: none;">
+                <div class="card-header bg-warning text-white d-flex align-items-center">
+                    <i class="bi bi-calendar-check display-6 me-2"></i>
+                    <h4 class="mb-0">Prepaids & Escrow Setup</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Items you'll pay at closing to establish your escrow account:</p>
+                    <table class="table table-sm">
+                        <tbody id="refinancePrepaidsTable">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-warning">
+                                <td><strong>Total Prepaids</strong></td>
+                                <td class="text-end"><strong id="refinanceTotalPrepaids">$0.00</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refinance Credits Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-info" id="refinanceCreditsCard" style="display: none;">
+                <div class="card-header bg-info text-white d-flex align-items-center">
+                    <i class="bi bi-cash-coin display-6 me-2"></i>
+                    <h4 class="mb-0">Credits Applied</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Credits that reduce your costs at closing:</p>
+                    <table class="table table-sm">
+                        <tbody id="refinanceCreditsTable">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-info">
+                                <td><strong>Total Credits</strong></td>
+                                <td class="text-end"><strong id="refinanceTotalCredits">$0.00</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Refinance Cash to Close Card -->
+            <div class="card results-card refinance-only mb-4 shadow-lg border-success" id="refinanceCashToCloseCard" style="display: none;">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="bi bi-wallet2 display-6 me-2"></i>
+                    <h4 class="mb-0">Total Cash to Close</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="text-success h3"><strong>Cash Required: <span id="refinanceCashToClose">$0.00</span></strong></div>
+                        <p class="text-muted">Amount you need to bring to closing</p>
+                    </div>
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>Total Closing Costs</td>
+                                <td class="text-end" id="refinanceTotalClosingCostsSummary">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Total Prepaids</td>
+                                <td class="text-end" id="refinanceTotalPrepaidsSummary">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Less: Amount Financed</td>
+                                <td class="text-end text-success" id="refinanceAmountFinanced">($0.00)</td>
+                            </tr>
+                            <tr>
+                                <td>Less: Total Credits</td>
+                                <td class="text-end text-success" id="refinanceTotalCreditsSummary">($0.00)</td>
+                            </tr>
+                            <tr id="refinanceDownPaymentRow" style="display: none;">
+                                <td>Cash to Pay Down Loan</td>
+                                <td class="text-end" id="refinanceDownPayment">$0.00</td>
+                            </tr>
+                            <tr id="refinanceLenderCreditRow" style="display: none;">
+                                <td>Less: Lender Credit</td>
+                                <td class="text-end text-success" id="refinanceLenderCreditAmount">($0.00)</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-success">
+                                <td><strong>Total Cash to Close</strong></td>
+                                <td class="text-end"><strong id="refinanceFinalCashToClose">$0.00</strong></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -548,8 +1193,8 @@
                     <h4 class="mb-0">Cash Needed at Closing</h4>
                 </div>
                 <div class="card-body">
-                    <h5 class="section-title">Down Payment</h5>
-                    <table class="table table-sm">
+                    <h5 class="section-title purchase-only">Down Payment</h5>
+                    <table class="table table-sm purchase-only">
                         <tbody>
                             <tr>
                                 <td>Down Payment</td>
@@ -561,31 +1206,117 @@
                     <h5 class="section-title">Closing Costs</h5>
                     <table class="table table-sm">
                         <tbody id="closingCostsTable">
-                            <!-- Populated by JavaScript -->
+                            <tr>
+                                <td>Origination Fee</td>
+                                <td class="text-end">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Discount Points</td>
+                                <td class="text-end">$0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Lender's Title Insurance</td>
+                                <td class="text-end">$660.00</td>
+                            </tr>
+                            <tr>
+                                <td>Owner's Title Insurance</td>
+                                <td class="text-end">$1,065.00</td>
+                            </tr>
+                            <tr>
+                                <td>Processing Fee</td>
+                                <td class="text-end">$575.00</td>
+                            </tr>
+                            <tr>
+                                <td>Underwriting Fee</td>
+                                <td class="text-end">$675.00</td>
+                            </tr>
+                            <tr>
+                                <td>Administration Fee</td>
+                                <td class="text-end">$125.00</td>
+                            </tr>
+                            <tr>
+                                <td>Appraisal Fee</td>
+                                <td class="text-end">$675.00</td>
+                            </tr>
+                            <tr>
+                                <td>Credit Report Fee</td>
+                                <td class="text-end">$249.00</td>
+                            </tr>
+                            <tr>
+                                <td>Attorney's Fee</td>
+                                <td class="text-end">$1,200.00</td>
+                            </tr>
+                            <tr>
+                                <td>Recording Fee</td>
+                                <td class="text-end">$60.00</td>
+                            </tr>
+                            <tr>
+                                <td>State Tax/Stamps</td>
+                                <td class="text-end">$300.00</td>
+                            </tr>
+                            <tr>
+                                <td>Intangible Tax</td>
+                                <td class="text-end">$720.00</td>
+                            </tr>
+                            <tr>
+                                <td>Document Preparation</td>
+                                <td class="text-end">$115.00</td>
+                            </tr>
+                            <tr>
+                                <td>Verification Fee (VOE/VOM)</td>
+                                <td class="text-end">$150.00</td>
+                            </tr>
+                            <tr>
+                                <td>Flood Cert/Tax Service</td>
+                                <td class="text-end">$55.00</td>
+                            </tr>
                         </tbody>
                         <tfoot class="total-row">
                             <tr>
                                 <td><strong>Total Closing Costs</strong></td>
-                                <td class="text-end" id="totalClosingCosts"><strong>$0.00</strong></td>
+                                <td class="text-end" id="totalClosingCostsCell"><strong>$6,624.00</strong></td>
                             </tr>
                         </tfoot>
                     </table>
 
-                    <h5 class="section-title">Prepaid Items</h5>
-                    <table class="table table-sm">
+                    <h5 class="section-title purchase-only">Prepaid Items</h5>
+                    <table class="table table-sm purchase-only">
                         <tbody id="prepaidsTable">
-                            <!-- Populated by JavaScript -->
+                            <tr>
+                                <td>Homeowner's Insurance Premium (1 Year)</td>
+                                <td class="text-end">$2,640.00</td>
+                            </tr>
+                            <tr>
+                                <td>Property Taxes (Months)</td>
+                                <td class="text-end">$2,080.00</td>
+                            </tr>
+                            <tr>
+                                <td>Per Diem Interest</td>
+                                <td class="text-end">$303.33</td>
+                            </tr>
+                            <tr>
+                                <td>Homeowner's Insurance Escrow</td>
+                                <td class="text-end">$440.00</td>
+                            </tr>
+                            <tr>
+                                <td>Property Tax Escrow</td>
+                                <td class="text-end">$520.00</td>
+                            </tr>
+                            <tr>
+                                <td>Tax Escrow Adj +/-</td>
+                                <td class="text-end">-$1,495.89</td>
+                            </tr>
                         </tbody>
                         <tfoot class="total-row">
                             <tr>
                                 <td><strong>Total Prepaid Items</strong></td>
-                                <td class="text-end" id="totalPrepaids"><strong>$0.00</strong></td>
+                                <td class="text-end" id="totalPrepaids"><strong>$4,487.44</strong></td>
                             </tr>
                         </tfoot>
                     </table>
 
-                    <h5 class="section-title">Credits</h5>
-                    <table class="table table-sm">
+                    <h5 class="section-title purchase-only">Credits</h5>
+                    <table class="table table-sm purchase-only">
                         <tbody id="creditsTable">
                             <!-- Populated by JavaScript -->
                         </tbody>
@@ -597,17 +1328,18 @@
                         </tfoot>
                     </table>
 
-                    <h5 class="section-title">Total Cash Needed</h5>
-                    <div class="alert alert-success d-flex align-items-center mt-3" role="alert">
+                    <h5 class="section-title purchase-only">Total Cash Needed</h5>
+                    <div class="alert alert-success d-flex align-items-center mt-3 purchase-only" role="alert">
                         <i class="bi bi-cash-coin display-6 me-2"></i>
                         <div>
                             <span class="fw-bold">Total Cash to Close:</span>
-                            <span id="totalCashNeeded" class="fs-4 fw-bold ms-2">$0.00</span>
+                            <span class="fs-4 ms-2" id="totalCashToClose">$71,111.44</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        </section>
     </div>
 </div>
 
@@ -619,11 +1351,39 @@
         <pre id="debugOutput" style="display: none;"></pre>
     </div>
 </div>
+</main>
 
 {% endblock %}
 
 {% block extra_js %}
-<script type="module" src="{{ url_for('static', filename='js/calculator.js') }}?v={{ cache_buster }}"></script>
+<script type="module">
+    // Import and make functions globally available
+    import { formatCurrency, formatPercentage, formatCurrencyResponsive, formatLoanAmount, formatLoanAmountResponsive, formatPurchasePrice, formatPurchasePriceResponsive, formatDownPayment, formatDownPaymentResponsive, isMobile } from '{{ url_for("static", filename="js/utils/formatting.js") }}?v={{ cache_buster }}';
+    import { updateClosingCostsTable, updatePrepaidsTable, updateCreditsTable } from '{{ url_for("static", filename="js/ui/tableUpdaters.js") }}?v={{ cache_buster }}';
+    import { initializeMobileOptimizations, createMobileResultsSummary } from '{{ url_for("static", filename="js/ui/mobileResults.js") }}?v={{ cache_buster }}';
+
+    // Make functions globally available
+    window.formatCurrency = formatCurrency;
+    window.formatPercentage = formatPercentage;
+    window.formatCurrencyResponsive = formatCurrencyResponsive;
+    window.formatLoanAmount = formatLoanAmount;
+    window.formatLoanAmountResponsive = formatLoanAmountResponsive;
+    window.formatPurchasePrice = formatPurchasePrice;
+    window.formatPurchasePriceResponsive = formatPurchasePriceResponsive;
+    window.formatDownPayment = formatDownPayment;
+    window.formatDownPaymentResponsive = formatDownPaymentResponsive;
+    window.isMobile = isMobile;
+    window.updateClosingCostsTable = updateClosingCostsTable;
+    window.updatePrepaidsTable = updatePrepaidsTable;
+    window.updateCreditsTable = updateCreditsTable;
+    window.createMobileResultsSummary = createMobileResultsSummary;
+
+    // Initialize mobile optimizations when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMobileOptimizations();
+    });
+</script>
+<script type="module" src="{{ url_for('static', filename='js/calculator-modular.js') }}?v={{ cache_buster }}"></script>
 <!-- Test script removed after validating abbreviation functionality -->
 <!-- <script src="{{ url_for('static', filename='js/test_abbreviations.js') }}?v=1.0.1"></script> -->
 <script>
@@ -634,6 +1394,457 @@
         debugToggle.addEventListener('click', function () {
             debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
         });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Toggle refinance fields
+        const purchaseRadio = document.getElementById('mode_purchase');
+        const refinanceRadio = document.getElementById('mode_refinance');
+        const refinanceFields = document.getElementById('refinanceFields');
+        const refinanceClosingCostsFields = document.getElementById('refinanceClosingCostsFields');
+
+        // Handle refinance type changes to show/hide relevant fields
+        const refinanceTypeSelect = document.getElementById('refinance_type');
+        const refinanceLoanTypeSelect = document.getElementById('refinance_loan_type');
+
+        function updateRefinanceFieldsVisibility() {
+            const refinanceType = refinanceTypeSelect.value;
+            const loanType = refinanceLoanTypeSelect.value;
+
+            // Get form elements that might need to be hidden/shown
+            const appraisalField = document.getElementById('appraised_value').closest('.form-group');
+            const originalClosingDateField = document.getElementById('original_closing_date').closest('.form-group');
+
+            // Show all fields by default
+            appraisalField.style.display = 'block';
+            originalClosingDateField.style.display = 'block';
+
+            // Handle streamline refinances
+            if (refinanceType === 'streamline') {
+                // For USDA and FHA streamline, appraisal may not be required
+                if (loanType === 'usda' || loanType === 'fha') {
+                    appraisalField.style.display = 'none';
+                    document.getElementById('appraised_value').removeAttribute('required');
+                }
+                // For VA IRRRL, minimal documentation
+                if (loanType === 'va') {
+                    // VA IRRRL typically doesn't require appraisal
+                    appraisalField.style.display = 'none';
+                    document.getElementById('appraised_value').removeAttribute('required');
+                }
+            } else {
+                // For non-streamline, appraisal is typically required
+                appraisalField.style.display = 'block';
+                document.getElementById('appraised_value').setAttribute('required', 'required');
+            }
+        }
+
+        // Function to update target LTV max value based on loan type and refinance type
+        function updateTargetLtvMax() {
+            const refinanceType = refinanceTypeSelect.value;
+            const loanType = refinanceLoanTypeSelect.value;
+            const targetLtvInput = document.getElementById('target_ltv_value');
+
+            if (!targetLtvInput) return;
+
+            // Max LTV limits based on loan type and refinance type
+            const maxLtvLimits = {
+                'conventional': {
+                    'rate_term': 97.0,
+                    'cash_out': 80.0,
+                    'streamline': 97.0
+                },
+                'fha': {
+                    'rate_term': 96.5,
+                    'cash_out': 80.0,
+                    'streamline': 96.5
+                },
+                'va': {
+                    'rate_term': 100.0,
+                    'cash_out': 100.0,
+                    'streamline': 100.0
+                },
+                'usda': {
+                    'rate_term': 100.0,
+                    'cash_out': 0.0,
+                    'streamline': 100.0
+                }
+            };
+
+            const maxLtv = maxLtvLimits[loanType]?.[refinanceType] || 95.0;
+
+            // Update the max attribute of the target LTV input
+            targetLtvInput.setAttribute('max', maxLtv.toString());
+
+            // Update placeholder to show a reasonable default (80% or max if lower)
+            const defaultLtv = Math.min(80, maxLtv);
+            targetLtvInput.setAttribute('placeholder', defaultLtv.toString());
+
+            console.log(`Updated target LTV max to ${maxLtv}% for ${loanType} ${refinanceType}`);
+        }
+
+        if (refinanceTypeSelect && refinanceLoanTypeSelect) {
+            refinanceTypeSelect.addEventListener('change', () => {
+                updateRefinanceFieldsVisibility();
+                updateTargetLtvMax();
+            });
+            refinanceLoanTypeSelect.addEventListener('change', () => {
+                updateRefinanceFieldsVisibility();
+                updateTargetLtvMax();
+            });
+
+            // Initialize on page load
+            updateTargetLtvMax();
+        }
+
+        // Function to estimate current balance for display (no longer needed for form submission)
+        function updateCurrentBalanceDisplay() {
+            // Get input values
+            const originalBalance = parseFloat(document.getElementById('original_loan_balance').value) || 0;
+            const originalRate = parseFloat(document.getElementById('original_interest_rate').value) || 0;
+            const originalTerm = parseInt(document.getElementById('original_loan_term').value) || 30;
+            const originalClosingDate = document.getElementById('original_closing_date').value;
+
+            // If we don't have all the required values, just return
+            if (!originalBalance || !originalRate || !originalClosingDate) {
+                console.log(`Insufficient data for current balance calculation: balance=${originalBalance}, rate=${originalRate}, date=${originalClosingDate}`);
+                return;
+            }
+
+            // Calculate months elapsed since original closing date
+            const today = new Date();
+            const closingDate = new Date(originalClosingDate);
+            const monthsElapsed = (today.getFullYear() - closingDate.getFullYear()) * 12 +
+                                 (today.getMonth() - closingDate.getMonth());
+
+            // Calculate original monthly payment
+            const monthlyRate = originalRate / 100 / 12;
+            const totalPayments = originalTerm * 12;
+            let monthlyPayment;
+
+            if (monthlyRate === 0) {
+                monthlyPayment = originalBalance / totalPayments;
+            } else {
+                monthlyPayment = originalBalance * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+                                (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            }
+
+            // Calculate current balance
+            let currentBalance;
+            if (monthlyRate === 0) {
+                currentBalance = Math.max(0, originalBalance - (monthlyPayment * monthsElapsed));
+            } else {
+                currentBalance = originalBalance *
+                                (Math.pow(1 + monthlyRate, totalPayments) - Math.pow(1 + monthlyRate, monthsElapsed)) /
+                                (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            }
+
+            console.log(`Estimated current balance: ${currentBalance.toFixed(2)} (months elapsed: ${monthsElapsed})`);
+        }
+        if (purchaseRadio && refinanceRadio && refinanceFields && refinanceClosingCostsFields) {
+            function updateScenario() {
+                if (refinanceRadio.checked) {
+                    // Hide purchase form and show refinance form
+                    document.getElementById('mortgageForm').style.display = 'none';
+                    document.getElementById('refinanceForm').style.display = 'block';
+                    refinanceClosingCostsFields.style.display = '';
+
+                    // Initialize refinance form fields if they're empty
+                    const originalClosingDateField = document.getElementById('original_closing_date');
+                    if (originalClosingDateField && !originalClosingDateField.value) {
+                        // Set default date to today
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        let month = today.getMonth() + 1;
+                        let day = today.getDate();
+
+                        // Format month and day with leading zeros if needed
+                        month = month < 10 ? '0' + month : month;
+                        day = day < 10 ? '0' + day : day;
+
+                        originalClosingDateField.value = `${year}-${month}-${day}`;
+                    }
+
+                    // Make sure closing costs fields are in sync
+                    const closingCostsField = document.getElementById('closing_costs');
+                    const totalClosingCostsField = document.getElementById('total_closing_costs');
+                    if (closingCostsField && totalClosingCostsField) {
+                        if (!totalClosingCostsField.value || parseFloat(totalClosingCostsField.value) < parseFloat(closingCostsField.value)) {
+                            totalClosingCostsField.value = closingCostsField.value;
+                        }
+                    }
+
+                    // Update current balance display if fields are filled
+                    if (document.getElementById('original_loan_balance').value) {
+                        updateCurrentBalanceDisplay();
+                    }
+
+                    // Show and update LTV information card for refinance
+                    window.updateLtvInformationCard();
+                } else {
+                    // Show purchase form and hide refinance form
+                    document.getElementById('mortgageForm').style.display = 'block';
+                    document.getElementById('refinanceForm').style.display = 'none';
+                    refinanceClosingCostsFields.style.display = 'none';
+
+                    // Hide LTV information card for purchase mode
+                    const ltvInfoCard = document.getElementById('refinanceLtvInfoCard');
+                    if (ltvInfoCard) {
+                        ltvInfoCard.style.display = 'none';
+                    }
+                }
+            }
+            purchaseRadio.addEventListener('change', updateScenario);
+            refinanceRadio.addEventListener('change', updateScenario);
+            updateScenario();
+
+            // Add event listeners for refinance form fields to update new loan amount
+        const originalLoanBalanceField = document.getElementById('original_loan_balance');
+        const closingCostsField = document.getElementById('closing_costs');
+        const totalClosingCostsField = document.getElementById('total_closing_costs');
+        const originalClosingDateField = document.getElementById('original_closing_date');
+
+        // Function to sync total closing costs with financed closing costs
+        function syncClosingCosts() {
+            const financedCosts = parseFloat(closingCostsField.value) || 0;
+            const totalCosts = parseFloat(totalClosingCostsField.value) || 0;
+
+            // If total is less than financed, update total to match financed
+            if (totalCosts < financedCosts) {
+                totalClosingCostsField.value = financedCosts;
+                console.log('Updated total closing costs to match financed closing costs:', financedCosts);
+            }
+
+            // Update current balance display after syncing
+            updateCurrentBalanceDisplay();
+        }
+
+        if (originalLoanBalanceField && closingCostsField && totalClosingCostsField) {
+            originalLoanBalanceField.addEventListener('input', updateCurrentBalanceDisplay);
+            closingCostsField.addEventListener('input', function() {
+                syncClosingCosts();
+                updateCurrentBalanceDisplay();
+            });
+            totalClosingCostsField.addEventListener('input', syncClosingCosts);
+            console.log('Added event listeners for refinance form fields');
+        }
+
+        // LTV Information Card functionality - make it global so calculator.js can access it
+        window.updateLtvInformationCard = function(calculatedCurrentBalance = null) {
+            const originalLoanBalance = parseFloat(document.getElementById('original_loan_balance').value) || 0;
+            const loanType = document.getElementById('refinance_loan_type').value;
+            const refinanceType = document.getElementById('refinance_type').value;
+            const ltvInfoCard = document.getElementById('refinanceLtvInfoCard');
+
+            if (originalLoanBalance > 0 && loanType && refinanceType && ltvInfoCard) {
+                // Use actual current balance if available from calculation, otherwise estimate
+                let currentBalance;
+                let isEstimated = false;
+
+                if (calculatedCurrentBalance && calculatedCurrentBalance > 0) {
+                    // Use actual calculated current balance - much more accurate!
+                    currentBalance = calculatedCurrentBalance;
+                    isEstimated = false;
+                } else {
+                    // Fallback to estimation if no calculation has been done yet
+                    currentBalance = originalLoanBalance * 0.90; // Estimate 10% principal paid down
+                    isEstimated = true;
+                }
+
+                // Estimate closing costs and prepaids for zero cash calculation
+                const estimatedClosingCosts = Math.max(5000, currentBalance * 0.02); // $5k minimum or 2% of current balance
+                const estimatedPrepaids = 1600; // Estimate $1,600 for prepaids (taxes, insurance, interest)
+                const estimatedNewLoanAmount = currentBalance + estimatedClosingCosts + estimatedPrepaids;
+
+                // Calculate two scenarios for each LTV target:
+                // 1. Zero Cash: Appraised value needed to finance ALL closing costs
+                // 2. Max LTV: Appraised value at maximum LTV, with cash required for remaining costs
+
+                const totalCostsAndPrepaids = estimatedClosingCosts + estimatedPrepaids;
+
+                // Scenario 1: Zero Cash to Close - Round up to nearest thousand
+                const ltv80ValueZeroCash = Math.ceil(estimatedNewLoanAmount / 0.80 / 1000) * 1000;
+                const ltv90ValueZeroCash = Math.ceil(estimatedNewLoanAmount / 0.90 / 1000) * 1000;
+                const ltv95ValueZeroCash = Math.ceil(estimatedNewLoanAmount / 0.95 / 1000) * 1000;
+
+                // Scenario 2: Maximum LTV scenario - what happens when appraisal limits loan amount
+                function calculateMaxLtvScenario(targetLtv) {
+                    // Calculate the minimum appraisal needed to just cover the current balance at target LTV
+                    const minAppraisalForBalance = Math.ceil(currentBalance / targetLtv / 1000) * 1000;
+
+                    // Use an appraisal value that can cover the balance plus some costs, but not all
+                    // This represents a realistic scenario where appraisal is sufficient but not ideal
+                    const partialCostsAppraisal = Math.ceil((currentBalance + totalCostsAndPrepaids * 0.5) / targetLtv / 1000) * 1000;
+
+                    // Calculate max loan amount at target LTV
+                    const maxLoanAmount = partialCostsAppraisal * targetLtv;
+
+                    // Calculate how much of closing costs can be financed
+                    const maxFinanceableCosts = maxLoanAmount - currentBalance;
+
+                    // Calculate cash required for remaining costs
+                    const cashRequired = Math.max(0, totalCostsAndPrepaids - maxFinanceableCosts);
+
+                    return {
+                        appraisedValue: partialCostsAppraisal,
+                        cashRequired: cashRequired
+                    };
+                }
+
+                const ltv80MaxScenario = calculateMaxLtvScenario(0.80);
+                const ltv90MaxScenario = calculateMaxLtvScenario(0.90);
+                const ltv95MaxScenario = calculateMaxLtvScenario(0.95);
+
+                // Determine maximum LTV based on loan type and refinance type
+                const maxLtvLimits = {
+                    'conventional': {
+                        'rate_term': 97.0,
+                        'cash_out': 80.0,
+                        'streamline': 97.0
+                    },
+                    'fha': {
+                        'rate_term': 96.5,
+                        'cash_out': 80.0,
+                        'streamline': 96.5
+                    },
+                    'va': {
+                        'rate_term': 100.0,
+                        'cash_out': 100.0,
+                        'streamline': 100.0
+                    },
+                    'usda': {
+                        'rate_term': 100.0,
+                        'cash_out': 0.0,
+                        'streamline': 100.0
+                    }
+                };
+
+                const maxLtv = maxLtvLimits[loanType]?.[refinanceType] || 95.0;
+                let maxLtvValue = 'N/A';
+                let maxLtvText = 'Not available';
+
+                let maxLtvValueZeroCash = 'N/A';
+                let maxLtvMaxScenario = { appraisedValue: 'N/A', cashRequired: 'N/A' };
+
+                if (maxLtv > 0) {
+                    maxLtvValueZeroCash = Math.ceil(estimatedNewLoanAmount / (maxLtv / 100) / 1000) * 1000;
+                    maxLtvMaxScenario = calculateMaxLtvScenario(maxLtv / 100);
+                    maxLtvText = `${maxLtv}% max for ${loanType.toUpperCase()} ${refinanceType.replace('_', ' ')}`;
+                } else {
+                    maxLtvText = `${loanType.toUpperCase()} does not allow ${refinanceType.replace('_', ' ')} refinance`;
+                }
+
+                // Format currency
+                function formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(amount);
+                }
+
+                // Format cash required values
+                function formatCashRequired(amount) {
+                    if (amount === 'N/A' || amount === 0) return '$0';
+                    return formatCurrency(amount);
+                }
+
+                // Update current loan balance display to show new loan amount
+                document.getElementById('currentLoanBalanceDisplay').textContent = formatCurrency(estimatedNewLoanAmount);
+
+                // Update breakdown values
+                document.getElementById('breakdownOriginal').textContent = formatCurrency(originalLoanBalance);
+                document.getElementById('breakdownCurrent').textContent = formatCurrency(currentBalance);
+                document.getElementById('breakdownClosingCosts').textContent = formatCurrency(estimatedClosingCosts);
+                document.getElementById('breakdownPrepaids').textContent = formatCurrency(estimatedPrepaids);
+                document.getElementById('breakdownTotal').textContent = formatCurrency(estimatedNewLoanAmount);
+
+                // Update the label to show if it's actual or estimated
+                const currentBalanceLabel = document.querySelector('#loanBreakdown tr:nth-child(2) td:first-child');
+                const description = document.getElementById('ltvCardDescription');
+                if (currentBalanceLabel && description) {
+                    if (isEstimated) {
+                        currentBalanceLabel.textContent = 'Est. current payoff (90% of original):';
+                        description.innerHTML = `Based on your estimated new loan amount of <strong id="currentLoanBalanceDisplay">${formatCurrency(estimatedNewLoanAmount)}</strong> (including closing costs and prepaids), here are the appraised values needed to achieve different LTV ratios:`;
+                    } else {
+                        currentBalanceLabel.textContent = 'Actual current payoff:';
+                        description.innerHTML = `Based on your calculated new loan amount of <strong id="currentLoanBalanceDisplay">${formatCurrency(estimatedNewLoanAmount)}</strong> (including closing costs and prepaids), here are the appraised values needed to achieve different LTV ratios:`;
+                    }
+                }
+
+                // Note: LTV targets table values are now updated by the refinance result renderer
+                // using backend-calculated min_appraised_values for accuracy
+                // The frontend calculation has been moved to the refinance result renderer
+                // to use the correct backend values that account for financed closing costs
+
+                // These lines have been commented out because they were overriding correct backend calculations:
+                // document.getElementById('ltv80ValueZeroCash').textContent = formatCurrency(ltv80ValueZeroCash);
+                // document.getElementById('ltv90ValueZeroCash').textContent = formatCurrency(ltv90ValueZeroCash);
+                // document.getElementById('ltv95ValueZeroCash').textContent = formatCurrency(ltv95ValueZeroCash);
+                // document.getElementById('maxLtvValueZeroCash').textContent = maxLtvValueZeroCash === 'N/A' ? maxLtvValueZeroCash : formatCurrency(maxLtvValueZeroCash);
+                // document.getElementById('maxLtvText').textContent = maxLtvText;
+
+                // Show the card
+                ltvInfoCard.style.display = 'block';
+            } else {
+                // Hide the card if required data is missing
+                if (ltvInfoCard) {
+                    ltvInfoCard.style.display = 'none';
+                }
+            }
+        }
+
+        // Add event listeners to update LTV information card
+        const refinanceLoanTypeSelect = document.getElementById('refinance_loan_type');
+        const refinanceTypeSelect = document.getElementById('refinance_type');
+        const originalLoanBalanceInput = document.getElementById('original_loan_balance');
+
+        if (refinanceLoanTypeSelect && refinanceTypeSelect && originalLoanBalanceInput) {
+            refinanceLoanTypeSelect.addEventListener('change', () => window.updateLtvInformationCard());
+            refinanceTypeSelect.addEventListener('change', () => window.updateLtvInformationCard());
+            originalLoanBalanceInput.addEventListener('input', () => window.updateLtvInformationCard());
+        }
+
+        // Set default date for original closing date
+        if (originalClosingDateField) {
+            // Set default date to today if not already set
+            if (!originalClosingDateField.value) {
+                const today = new Date();
+                const year = today.getFullYear();
+                let month = today.getMonth() + 1;
+                let day = today.getDate();
+
+                // Format month and day with leading zeros if needed
+                month = month < 10 ? '0' + month : month;
+                day = day < 10 ? '0' + day : day;
+
+                originalClosingDateField.value = `${year}-${month}-${day}`;
+                console.log('Set default date for original closing date:', originalClosingDateField.value);
+            }
+        }
+
+        // Set default date for new closing date
+        const newClosingDateField = document.getElementById('new_closing_date');
+        if (newClosingDateField) {
+            // Set default date to 30 days from today if not already set
+            if (!newClosingDateField.value) {
+                const today = new Date();
+                const futureDate = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days from today
+                const year = futureDate.getFullYear();
+                let month = futureDate.getMonth() + 1;
+                let day = futureDate.getDate();
+
+                // Format month and day with leading zeros if needed
+                month = month < 10 ? '0' + month : month;
+                day = day < 10 ? '0' + day : day;
+
+                newClosingDateField.value = `${year}-${month}-${day}`;
+                console.log('Set default date for new closing date:', newClosingDateField.value);
+            }
+        }
+        }
     });
 </script>
 {% endblock %}

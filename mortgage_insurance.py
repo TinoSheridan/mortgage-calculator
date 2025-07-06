@@ -42,13 +42,9 @@ def calculate_conventional_pmi(
                     break
 
         if ltv_rate == 0:
-            logger.warning(
-                f"No matching LTV range found for {ltv:.1f}%, using default rate"
-            )
+            logger.warning(f"No matching LTV range found for {ltv:.1f}%, using default rate")
             # Default to highest range if no match found
-            highest_range = max(
-                ltv_ranges.items(), key=lambda x: float(x[0].split("-")[0])
-            )
+            highest_range = max(ltv_ranges.items(), key=lambda x: float(x[0].split("-")[0]))
             ltv_rate = highest_range[1] / 100
             logger.info(
                 f"Using highest LTV range: {highest_range[0]}%, rate: {round(highest_range[1], 3)}%"
@@ -110,23 +106,17 @@ def calculate_fha_mip(
         logger.info(f"Using {term_category} FHA MIP rates.")
 
         # Determine amount category
-        amount_category = (
-            "standard_amount" if loan_amount <= standard_loan_limit else "high_amount"
-        )
+        amount_category = "standard_amount" if loan_amount <= standard_loan_limit else "high_amount"
         logger.info(f"Using {amount_category} FHA MIP rates.")
 
         # Determine LTV category
         ltv_category = ""
         annual_mip_rate_config = (
-            mip_config.get("annual_mip", {})
-            .get(term_category, {})
-            .get(amount_category, {})
+            mip_config.get("annual_mip", {}).get(term_category, {}).get(amount_category, {})
         )
 
         if not annual_mip_rate_config:
-            logger.warning(
-                f"Missing FHA MIP rate config for {term_category}/{amount_category}"
-            )
+            logger.warning(f"Missing FHA MIP rate config for {term_category}/{amount_category}")
             # Use a reasonable default based on term if specific config is missing
             annual_mip_rate = 0.55 if term_category == "long_term" else 0.40
         else:
@@ -141,9 +131,10 @@ def calculate_fha_mip(
             else:  # short_term (<= 15 years)
                 # Often has a single rate regardless of LTV for shorter terms
                 # Check if config specifies LTV breakdown, otherwise use a single key like 'all' or default
-                if len(annual_mip_rate_config) == 1 and next(
-                    iter(annual_mip_rate_config)
-                ) in ["all", "default"]:
+                if len(annual_mip_rate_config) == 1 and next(iter(annual_mip_rate_config)) in [
+                    "all",
+                    "default",
+                ]:
                     ltv_category = next(iter(annual_mip_rate_config))
                     logger.info("Using single FHA MIP rate for short term loan")
                 elif ltv <= 90:  # Or check common LTV threshold if specified
@@ -174,18 +165,14 @@ def calculate_fha_mip(
         raise
 
 
-def calculate_usda_fee(
-    loan_amount: float, usda_config: dict, logger: logging.Logger
-) -> float:
+def calculate_usda_fee(loan_amount: float, usda_config: dict, logger: logging.Logger) -> float:
     """Calculate monthly USDA guarantee fee."""
     try:
         if not usda_config:
             logger.error("USDA loan configuration is missing")
             raise ValueError("USDA loan configuration is missing")
 
-        annual_fee_rate = (
-            usda_config.get("annual_fee_rate", 0.35) / 100
-        )  # Default if not in config
+        annual_fee_rate = usda_config.get("annual_fee_rate", 0.35) / 100  # Default if not in config
         monthly_fee = (loan_amount * annual_fee_rate) / 12
         rounded_fee = round(monthly_fee, 2)
         logger.info(f"Final monthly guarantee fee for USDA loan: ${rounded_fee:.2f}")

@@ -84,9 +84,7 @@ def test_va_funding_fee():
     print("VA Funding Fee Config:")
     print(
         json.dumps(
-            calculator.config.get("loan_types", {})
-            .get("va", {})
-            .get("funding_fee_rates", {}),
+            calculator.config.get("loan_types", {}).get("va", {}).get("funding_fee_rates", {}),
             indent=2,
         )
     )
