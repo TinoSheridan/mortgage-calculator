@@ -1,16 +1,101 @@
 """
-Admin logic functions for managing fees, counties, closing costs, templates, and configuration.
+Admin logic functions for managing fees, closing costs, templates, and configuration.
 
 Each function returns a tuple of (updated_data, error_message) or (updated_data, None) on success.
 """
+import re
+from typing import Any, Dict, Optional, Tuple
+
+
+def validate_string_field(value: Any, field_name: str, max_length: int = 255, allow_empty: bool = False) -> Optional[str]:
+    """Validate string fields with common checks."""
+    if value is None:
+        return f"{field_name} cannot be None"
+    
+    if not isinstance(value, str):
+        return f"{field_name} must be a string"
+    
+    if not allow_empty and not value.strip():
+        return f"{field_name} cannot be empty"
+    
+    if len(value) > max_length:
+        return f"{field_name} exceeds maximum length of {max_length}"
+    
+    return None
+
+
+def validate_numeric_field(value: Any, field_name: str, min_val: float = None, max_val: float = None) -> Optional[str]:
+    """Validate numeric fields with range checks."""
+    if value is None:
+        return f"{field_name} cannot be None"
+    
+    try:
+        num_val = float(value)
+    except (ValueError, TypeError):
+        return f"{field_name} must be a valid number"
+    
+    if min_val is not None and num_val < min_val:
+        return f"{field_name} must be at least {min_val}"
+    
+    if max_val is not None and num_val > max_val:
+        return f"{field_name} must be at most {max_val}"
+    
+    return None
+
+
+def sanitize_key_name(name: str) -> str:
+    """Sanitize names for use as dictionary keys."""
+    if not isinstance(name, str):
+        return ""
+    return re.sub(r'[^a-zA-Z0-9_]', '_', name.lower().strip())
 
 
 def update_closing_cost_logic(costs, n, data):
     """Update an existing closing cost in the costs dict. Returns (updated_costs, error_message)."""
+    if not isinstance(costs, dict):
+        return costs, "Invalid costs data structure"
+    
     if n not in costs:
         return costs, "Cost not found"
+    
+    if not isinstance(data, dict):
+        return costs, "Invalid data provided"
 
-    new_name = data.pop("name").lower().replace(" ", "_")
+    # Validate required fields
+    required_fields = ["name", "type", "value", "calculation_base", "description"]
+    for field in required_fields:
+        if field not in data:
+            return costs, f"Missing required field: {field}"
+    
+    # Validate name
+    name_error = validate_string_field(data["name"], "Name", max_length=100)
+    if name_error:
+        return costs, name_error
+    
+    # Validate type
+    valid_types = ["fixed", "percentage"]
+    if data["type"] not in valid_types:
+        return costs, f"Type must be one of: {', '.join(valid_types)}"
+    
+    # Validate value
+    value_error = validate_numeric_field(data["value"], "Value", min_val=0)
+    if value_error:
+        return costs, value_error
+    
+    # Validate calculation_base
+    valid_bases = ["purchase_price", "loan_amount"]
+    if data["calculation_base"] not in valid_bases:
+        return costs, f"Calculation base must be one of: {', '.join(valid_bases)}"
+    
+    # Validate description
+    desc_error = validate_string_field(data["description"], "Description", max_length=500, allow_empty=True)
+    if desc_error:
+        return costs, desc_error
+
+    new_name = sanitize_key_name(data["name"])
+    if not new_name:
+        return costs, "Invalid name provided"
+    
     if new_name != n and new_name in costs:
         return costs, "New name already exists"
 
@@ -28,10 +113,22 @@ def update_closing_cost_logic(costs, n, data):
 
 def update_pmi_rates_logic(existing_pmi_rates, data):
     """Update PMI rates structure in memory. Returns (updated_pmi_rates, error_message)."""
+    if not isinstance(existing_pmi_rates, dict):
+        return existing_pmi_rates, "Invalid PMI rates data structure"
+    
+    if not isinstance(data, dict):
+        return existing_pmi_rates, "Invalid data provided"
+    
     # Extract loan_type from the request - this is now a required field
     loan_type = data.get("loan_type")
-    if not loan_type:
-        return existing_pmi_rates, "No loan_type provided"
+    loan_type_error = validate_string_field(loan_type, "Loan type")
+    if loan_type_error:
+        return existing_pmi_rates, loan_type_error
+    
+    # Validate loan type
+    valid_loan_types = ["conventional", "fha", "va", "usda"]
+    if loan_type not in valid_loan_types:
+        return existing_pmi_rates, f"Loan type must be one of: {', '.join(valid_loan_types)}"
 
     # Initialize if loan type doesn't exist yet
     if loan_type not in existing_pmi_rates:
@@ -121,39 +218,6 @@ def delete_closing_cost_logic(costs, name):
     return costs, None
 
 
-def add_county_logic(counties, data):
-    """Add a new county to the counties dict. Returns (updated_counties, error_message)."""
-    name = data["name"].lower().replace(" ", "_")
-    if name in counties:
-        return counties, "County already exists"
-    counties[name] = {
-        "rate": float(data["rate"]),
-        "state": data["state"],
-        "description": data.get("description", ""),
-    }
-    return counties, None
-
-
-def edit_county_logic(counties, county_name, data):
-    """Edit an existing county in the counties dict. Returns (updated_counties, error_message)."""
-    if county_name not in counties:
-        return counties, "County not found"
-    counties[county_name].update(
-        {
-            "rate": float(data["rate"]),
-            "state": data["state"],
-            "description": data.get("description", ""),
-        }
-    )
-    return counties, None
-
-
-def delete_county_logic(counties, county_name):
-    """Delete a county from the counties dict. Returns (updated_counties, error_message)."""
-    if county_name not in counties:
-        return counties, "County not found"
-    counties.pop(county_name)
-    return counties, None
 
 
 def add_template_logic(templates, data):

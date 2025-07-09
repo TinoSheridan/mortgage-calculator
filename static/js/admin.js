@@ -1,31 +1,28 @@
-async function handleLogin(event) {
-    event.preventDefault();
-
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const errorAlert = document.getElementById('errorAlert');
-
-    try {
-        const response = await fetch('/admin/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            window.location.href = data.redirect || '/admin';
-        } else {
-            errorAlert.textContent = data.error || 'Login failed. Please try again.';
-            errorAlert.style.display = 'block';
+// Standardized AJAX helper function
+async function makeAjaxRequest(url, data = null, method = 'GET') {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
         }
+    };
+    
+    if (data && method !== 'GET') {
+        options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+        
+        return await response.json();
     } catch (error) {
-        console.error('Error:', error);
-        errorAlert.textContent = 'An error occurred. Please try again.';
-        errorAlert.style.display = 'block';
+        console.error('AJAX Request Error:', error);
+        throw error;
     }
 }
 
@@ -36,31 +33,18 @@ async function updateField(field, newValue) {
     const parentKey = field.dataset.parentKey;
 
     try {
-        const response = await fetch('/admin/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                section: section,
-                key: key,
-                parent_key: parentKey,
-                value: newValue
-            })
-        });
+        const data = await makeAjaxRequest('/admin/update', {
+            section: section,
+            key: key,
+            parent_key: parentKey,
+            value: newValue
+        }, 'POST');
 
-        const data = await response.json();
-
-        if (response.ok) {
-            showToast('Success', 'Value updated successfully', 'success');
-            field.textContent = newValue;
-            field.classList.remove('editing');
-        } else {
-            showToast('Error', data.error || 'Failed to update value', 'error');
-        }
+        showToast('Success', 'Value updated successfully', 'success');
+        field.textContent = newValue;
+        field.classList.remove('editing');
     } catch (error) {
-        console.error('Error:', error);
-        showToast('Error', 'An error occurred while updating the value', 'error');
+        showToast('Error', error.message || 'An error occurred while updating the value', 'error');
     }
 }
 

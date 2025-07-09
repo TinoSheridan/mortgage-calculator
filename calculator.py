@@ -195,7 +195,7 @@ class MortgageCalculator:
                     f"va_usage={va_usage}, disability_exempt={va_disability_exempt}."
                 )
 
-                va_config = loan_types_config.get("va", {})  # Get VA specific config
+                va_config = pmi_rates_config.get("va", {})  # Get VA specific config from pmi_rates
                 total_financed_fees = calculate_external_va_funding_fee(  # Call imported function
                     loan_amount,
                     down_payment_percentage,

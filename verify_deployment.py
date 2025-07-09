@@ -15,8 +15,8 @@ from VERSION import FEATURES, VERSION
 def check_feature_files():
     """Check that all necessary files for features exist"""
     required_files = {
-        "seller_credits": ["static/js/calculator.js", "templates/index.html", "app.py"],
-        "lender_credits": ["static/js/calculator.js", "templates/index.html", "app.py"],
+        "seller_credits": ["static/js/ui/tableUpdaters.js", "templates/index.html", "app.py"],
+        "lender_credits": ["static/js/ui/tableUpdaters.js", "templates/index.html", "app.py"],
     }
 
     missing_files = {}
@@ -37,7 +37,7 @@ def check_feature_code():
     checks = {
         "seller_credits": [
             {
-                "file": "static/js/calculator.js",
+                "file": "static/js/ui/tableUpdaters.js",
                 "patterns": ["sellerCredit", "seller_credit", "updateCreditsTable"],
             },
             {
@@ -51,7 +51,7 @@ def check_feature_code():
         ],
         "lender_credits": [
             {
-                "file": "static/js/calculator.js",
+                "file": "static/js/ui/tableUpdaters.js",
                 "patterns": ["lenderCredit", "lender_credit"],
             },
             {

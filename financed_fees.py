@@ -83,10 +83,10 @@ def calculate_va_funding_fee(
 
     try:
         # Get funding fee rates from the passed config
-        funding_fee_rates = va_config.get("funding_fee_rates", {})
+        funding_fee_rates = va_config.get("funding_fee", {})
         if not funding_fee_rates:
-            logger.error("VA funding_fee_rates not found in provided VA config")
-            raise ValueError("VA funding_fee_rates not found in VA config")
+            logger.error("VA funding_fee not found in provided VA config")
+            raise ValueError("VA funding_fee not found in VA config")
 
         logger.debug(f"Funding fee rates from config: {funding_fee_rates}")
 
@@ -115,12 +115,12 @@ def calculate_va_funding_fee(
         logger.info(f"Selected down payment bracket: {dp_bracket}")
 
         # Get the service type rates
-        # Structure assumed: funding_fee_rates -> funding_fee -> service_type -> dp_bracket -> loan_usage
-        service_rates = funding_fee_rates.get("funding_fee", {}).get(service_type)
+        # Structure: funding_fee -> service_type -> dp_bracket -> loan_usage
+        service_rates = funding_fee_rates.get(service_type)
         if not service_rates:
             logger.error(f"No funding fee rates found for service type: {service_type}")
             # Fallback strategy: Use 'active' if primary type not found
-            service_rates = funding_fee_rates.get("funding_fee", {}).get("active", {})
+            service_rates = funding_fee_rates.get("active", {})
             logger.info(f"Falling back to 'active' service rates")
             if not service_rates:  # Still not found? Raise error.
                 raise ValueError(

@@ -7,11 +7,11 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.6.0"  # Fixed LTV target calculations and enhanced refinance accuracy
+VERSION = "2.6.1"  # Fixed LTV target calculations and enhanced refinance accuracy
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 1, 6)  # Updated date
+LAST_UPDATED = date(2025, 1, 9)  # Updated date
 
 # Description of the last update
 UPDATE_DESCRIPTION = "Fixed LTV target calculations to use accurate backend values, improved cash-out refinance logic, enhanced LTV targets display with proper maximum LTV calculations, and refined UI labels for better clarity."

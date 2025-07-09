@@ -15,7 +15,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="{{ url_for('static', filename='css/styles.css') }}?v={{ cache_buster }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/chat.css') }}?v={{ cache_buster }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -62,32 +61,11 @@
         </div>
     </footer>
 
-    <!-- Chat Component -->
-    <div id="chatToggle" class="chat-toggle">
-        <i class="fas fa-comments"></i>
-    </div>
-
-    <div id="chatPanel" class="chat-panel">
-        <div class="chat-header">
-            <h5>Support Chat</h5>
-            <button id="closeChat" class="chat-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div id="chatMessages" class="chat-messages"></div>
-        <form id="chatForm" class="chat-form">
-            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
-            <button type="submit">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </form>
-    </div>
 
     <!-- Core JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- App JavaScript -->
-    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
     {% if session.get('admin_logged_in') %}
         <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
         <script src="{{ url_for('static', filename='js/closing_costs_admin.js') }}"></script>

@@ -108,43 +108,8 @@ function abbreviateLabel(label) {
 
 // Create sticky mobile action bar
 export function createMobileActionBar() {
-    if (!isMobile()) return;
-    
-    const existingBar = document.querySelector('.mobile-action-bar');
-    if (existingBar) return;
-    
-    const actionBar = document.createElement('div');
-    actionBar.className = 'mobile-action-bar sticky-buttons';
-    actionBar.innerHTML = `
-        <button id="mobileCopyBtn" class="btn btn-primary btn-sm">
-            <i class="bi bi-clipboard"></i> Copy Results
-        </button>
-        <button id="mobileShareBtn" class="btn btn-outline-primary btn-sm ms-2">
-            <i class="bi bi-share"></i> Share
-        </button>
-    `;
-    
-    document.body.appendChild(actionBar);
-    
-    // Add event listeners
-    document.getElementById('mobileCopyBtn')?.addEventListener('click', () => {
-        // Trigger existing copy functionality
-        document.getElementById('copyResultsBtn')?.click();
-    });
-    
-    document.getElementById('mobileShareBtn')?.addEventListener('click', () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Mortgage Calculator Results',
-                text: 'Check out these mortgage calculation results',
-                url: window.location.href
-            });
-        } else {
-            // Fallback to copy URL
-            navigator.clipboard.writeText(window.location.href);
-            showToast('URL copied to clipboard');
-        }
-    });
+    // Mobile action bar functionality has been removed
+    return;
 }
 
 // Show toast message

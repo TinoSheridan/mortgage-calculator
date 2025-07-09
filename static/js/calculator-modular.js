@@ -84,21 +84,7 @@ class MortgageCalculator {
             });
         }
 
-        // Copy button listeners
-        const copyResultsBtn = document.getElementById('copyResultsBtn');
-        const copyDetailBtn = document.getElementById('copyDetailBtn');
-
-        if (copyResultsBtn) {
-            copyResultsBtn.addEventListener('click', () => {
-                this.copyResultsSummary();
-            });
-        }
-
-        if (copyDetailBtn) {
-            copyDetailBtn.addEventListener('click', () => {
-                this.copyResultsDetails();
-            });
-        }
+        // Copy button listeners removed
 
         // Initialize form event listeners
         formManager.initializeEventListeners();
@@ -357,7 +343,7 @@ class MortgageCalculator {
             const downPaymentElement = document.getElementById('downPaymentAmount');
             if (downPaymentElement) {
                 const downPaymentAmount = formatDownPayment(data.down_payment);
-                const downPaymentPercent = `${data.loan_details?.down_payment_percentage || 20}%`;
+                const downPaymentPercent = `${data.loan_details?.down_payment_percentage ?? 20}%`;
                 downPaymentElement.innerHTML = `${downPaymentAmount} (<span id="downPaymentPercentage">${downPaymentPercent}</span>)`;
                 console.log('Updated downPaymentAmount to:', downPaymentAmount, downPaymentPercent);
                 
@@ -677,7 +663,7 @@ class MortgageCalculator {
             document.getElementById('totalMonthlyPayment')?.textContent || '$0.00';
             
         const downPayment = data?.down_payment ? 
-            `$${data.down_payment.toLocaleString()} (${data.loan_details?.down_payment_percentage || 20}%)` : 
+            `$${data.down_payment.toLocaleString()} (${data.loan_details?.down_payment_percentage ?? 20}%)` : 
             document.getElementById('downPaymentAmount')?.textContent || '$0.00';
             
         const loanAmount = data?.loan_amount ? 

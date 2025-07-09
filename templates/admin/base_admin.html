@@ -14,22 +14,36 @@
     <style>
         .sidebar {
             min-height: 100vh;
-            background-color: #f8f9fa;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
             border-right: 1px solid #dee2e6;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
 
         .sidebar .nav-link {
-            color: #333;
-            padding: 0.5rem 1rem;
+            color: #495057;
+            padding: 0.75rem 1rem;
+            margin: 0.1rem 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
         }
 
         .sidebar .nav-link:hover {
-            background-color: #e9ecef;
+            background-color: #fff;
+            color: #0d6efd;
+            transform: translateX(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .sidebar .nav-link.active {
             background-color: #0d6efd;
             color: white;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
         }
 
         .notification {
@@ -61,6 +75,52 @@
             border-color: #dc3545;
             box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
         }
+
+        /* Main content area improvements */
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+        }
+
+        .admin-header h1 {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+
+        /* Card improvements */
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: box-shadow 0.15s ease-in-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #f1f3f4;
+            font-weight: 600;
+        }
+
+        /* Section headers */
+        .section-header {
+            color: #6c757d;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -69,71 +129,74 @@
             <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 px-0 position-fixed sidebar" style="z-index: 1050;">
                 <div class="d-flex flex-column p-3">
-                    <a href="/admin" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
+                    <a href="{{ url_for('admin.dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
                         <i class="fas fa-calculator me-2"></i>
                         <span class="fs-4">Admin Panel</span>
                     </a>
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
+                        <!-- Quick Access -->
                         <li class="nav-item">
-                            <a href="/" class="nav-link">
-                                <i class="fas fa-calculator me-2"></i>
+                            <a href="{{ url_for('index') }}" class="nav-link">
+                                <i class="fas fa-arrow-left me-2"></i>
                                 Back to Calculator
                             </a>
                         </li>
+                        
+                        <!-- Overview Section -->
+                        <li class="nav-item mt-3">
+                            <small class="text-muted fw-bold px-3">OVERVIEW</small>
+                        </li>
                         <li class="nav-item">
-                            <a href="/admin" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                                <i class="fas fa-home me-2"></i>
+                            <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt me-2"></i>
                                 Dashboard
                             </a>
                         </li>
-                        <li>
-                            <a href="/admin/counties" class="nav-link {% if request.endpoint == 'admin_counties' %}active{% endif %}">
-                                <i class="fas fa-map-marker-alt me-2"></i>
-                                Counties
-                            </a>
+                        
+                        <!-- Configuration Section -->
+                        <li class="nav-item mt-3">
+                            <small class="text-muted fw-bold px-3">CONFIGURATION</small>
                         </li>
-                        <li>
-                            <a href="/admin/compliance" class="nav-link {% if request.endpoint == 'admin_compliance' %}active{% endif %}">
-                                <i class="fas fa-gavel me-2"></i>
-                                Compliance Text
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/admin/templates" class="nav-link {% if request.endpoint == 'admin_templates' %}active{% endif %}">
-                                <i class="fas fa-file-alt me-2"></i>
-                                Output Templates
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/admin/closing-costs" class="nav-link {% if active_page == 'closing_costs' %}active{% endif %}">
-                                <i class="fas fa-dollar-sign me-2"></i>
-                                Closing Costs
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/admin/mortgage-config" class="nav-link {% if active_page == 'mortgage_config' %}active{% endif %}">
-                                <i class="fas fa-home me-2"></i>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.mortgage_config') }}" class="nav-link {% if request.endpoint == 'admin.mortgage_config' %}active{% endif %}">
+                                <i class="fas fa-cogs me-2"></i>
                                 Mortgage Config
                             </a>
                         </li>
-                        <li>
-                            <a href="/admin/pmi-rates" class="nav-link {% if request.endpoint == 'admin_pmi_rates' %}active{% endif %}">
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.pmi_rates') }}" class="nav-link {% if request.endpoint == 'admin.pmi_rates' %}active{% endif %}">
                                 <i class="fas fa-percentage me-2"></i>
                                 PMI Rates
                             </a>
                         </li>
-                        <li>
-                            <a href="/admin/conventional-pmi" class="nav-link {% if request.endpoint == 'conventional_pmi_page' %}active{% endif %}">
-                                <i class="fas fa-tools me-2"></i>
-                                <span class="badge bg-warning text-dark me-2">Fix</span>
-                                Conventional PMI
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.closing_costs') }}" class="nav-link {% if request.endpoint == 'admin.closing_costs' %}active{% endif %}">
+                                <i class="fas fa-receipt me-2"></i>
+                                Closing Costs
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ url_for('admin.title_insurance_config') }}" class="nav-link {% if request.endpoint == 'admin.title_insurance_config' %}active{% endif %}">
                                 <i class="fas fa-shield-alt me-2"></i>
                                 Title Insurance
+                            </a>
+                        </li>
+                        
+                        <!-- Content Management Section -->
+                        <li class="nav-item mt-3">
+                            <small class="text-muted fw-bold px-3">CONTENT</small>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.templates') }}" class="nav-link {% if request.endpoint == 'admin.templates' %}active{% endif %}">
+                                <i class="fas fa-file-code me-2"></i>
+                                Output Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin.compliance') }}" class="nav-link {% if request.endpoint == 'admin.compliance' %}active{% endif %}">
+                                <i class="fas fa-balance-scale me-2"></i>
+                                Compliance Text
                             </a>
                         </li>
                     </ul>
@@ -144,21 +207,20 @@
                             <strong>{{ session.get('admin_user', 'Admin') }}</strong>
                         </a>
                         <ul class="dropdown-menu text-small shadow" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="/admin/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/admin/logout"><i class="fas fa-sign-out-alt me-2"></i>Sign out</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign out</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <!-- Main content -->
-            <div class="col-md-9 col-lg-10 ms-sm-auto px-4">
-                <div class="pt-3 pb-2 mb-3">
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-0 main-content">
+                <div class="admin-header px-4">
                     <h1 class="h2">{% block admin_title %}Dashboard{% endblock %}</h1>
                 </div>
-                {% block admin_content %}{% endblock %}
-                {% block content %}{% endblock %}
+                <div class="px-4">
+                    {% block admin_content %}{% endblock %}
+                </div>
             </div>
         </div>
     </div>
@@ -169,48 +231,40 @@
     <!-- jQuery first, then Bootstrap Bundle with Popper -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
     <!-- Utility functions -->
     <script>
-        // Immediate execution test script
-        (function() {
-            console.log("BASE ADMIN TEMPLATE: JavaScript execution test");
 
-            // Create a test notification when the page loads
-            window.addEventListener('load', function() {
-                console.log("BASE ADMIN TEMPLATE: Window load event fired");
-
-                // Create a visible notification
-                var testDiv = document.createElement('div');
-                testDiv.className = 'alert alert-info mt-3';
-                testDiv.style.position = 'fixed';
-                testDiv.style.top = '10px';
-                testDiv.style.right = '10px';
-                testDiv.style.zIndex = '9999';
-                testDiv.innerHTML = 'JavaScript is working!';
-
-                document.body.appendChild(testDiv);
-
-                // Remove the test button after a few seconds
-                setTimeout(function() {
-                    if (testDiv && testDiv.parentNode) {
-                        testDiv.parentNode.removeChild(testDiv);
-                    }
-                }, 3000);
-            });
-        })();
-
-        // Form validation
+        // Enhanced form validation
         function validateForm(form) {
             let isValid = true;
+            const errors = [];
+            
             form.querySelectorAll('[required]').forEach(field => {
                 if (!field.value.trim()) {
                     field.classList.add('form-invalid');
+                    errors.push(`${field.getAttribute('data-label') || field.name || 'Field'} is required`);
                     isValid = false;
                 } else {
                     field.classList.remove('form-invalid');
                 }
             });
+            
+            // Validate numeric fields
+            form.querySelectorAll('input[type="number"]').forEach(field => {
+                if (field.value && isNaN(parseFloat(field.value))) {
+                    field.classList.add('form-invalid');
+                    errors.push(`${field.getAttribute('data-label') || field.name || 'Field'} must be a valid number`);
+                    isValid = false;
+                }
+            });
+            
+            // Show validation errors
+            if (!isValid && errors.length > 0) {
+                showNotification('Validation errors: ' + errors.join(', '), 'danger');
+            }
+            
             return isValid;
         }
 
@@ -232,43 +286,6 @@
             }, 5000);
         }
 
-        // API request helper
-        async function makeRequest(url, method = 'GET', data = null) {
-            try {
-                const options = {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'
-                    }
-                };
-
-                if (data) {
-                    options.body = JSON.stringify(data);
-                }
-
-                const response = await fetch(url, options);
-
-                // Check if the response was successful *before* trying to parse JSON
-                if (!response.ok) {
-                    // Try to get error text, default if fails
-                    let errorText = 'An error occurred with status: ' + response.status;
-                    try {
-                        errorText = await response.text(); // Get raw text for error message
-                    } catch (e) { /* Ignore text parsing error */ }
-                    throw new Error(errorText);
-                }
-
-                // If response is OK, parse JSON
-                const result = await response.json();
-                return result;
-
-            } catch (error) {
-                // Log the detailed error and re-throw a user-friendly message
-                console.error("makeRequest Error:", error);
-                throw new Error(error.message || 'API request failed');
-            }
-        }
 
         // Initialize tooltips
         document.addEventListener('DOMContentLoaded', () => {

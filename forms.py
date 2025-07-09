@@ -3,31 +3,6 @@ from wtforms import FloatField, PasswordField, SelectField, StringField, SubmitF
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 
-class CountyForm(FlaskForm):
-    """Form for managing county-specific rates and fees."""
-
-    county = StringField("County Name", validators=[DataRequired()])
-    property_tax_rate = FloatField(
-        "Property Tax Rate (%)",
-        validators=[DataRequired(), NumberRange(min=0, max=10)],
-        description="Annual property tax rate as a percentage",
-    )
-    insurance_rate = FloatField(
-        "Insurance Rate (%)",
-        validators=[DataRequired(), NumberRange(min=0, max=5)],
-        description="Annual insurance rate as a percentage",
-    )
-    min_hoa = FloatField(
-        "Minimum HOA Fee",
-        validators=[Optional(), NumberRange(min=0)],
-        description="Minimum monthly HOA fee in dollars",
-    )
-    max_hoa = FloatField(
-        "Maximum HOA Fee",
-        validators=[Optional(), NumberRange(min=0)],
-        description="Maximum monthly HOA fee in dollars",
-    )
-    submit = SubmitField("Save County")
 
 
 class ComplianceTextForm(FlaskForm):

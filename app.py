@@ -26,7 +26,6 @@ from config_factory import get_config  # noqa: E402
 from config_manager import ConfigManager  # noqa: E402
 import admin_routes  # noqa: E402
 import beta_routes  # noqa: E402
-import chat_routes  # noqa: E402
 import health_check  # noqa: E402
 from error_handling import ErrorHandler, ValidationError, CalculationError, validate_request_data, handle_errors  # noqa: E402
 
@@ -162,8 +161,8 @@ def add_header(response):
 # Initialize CSRF protection after CORS initialization
 csrf = CSRFProtect(app)
 
-# Initialize error handling
-error_handler = ErrorHandler(app)
+# Initialize error handling (temporarily disabled for debugging)
+# error_handler = ErrorHandler(app)
 
 
 # Exempt specific routes from CSRF protection
@@ -692,8 +691,6 @@ try:
     logger.debug("Admin blueprint registered successfully")
     app.register_blueprint(beta_routes.beta_bp)
     logger.debug("Beta blueprint registered successfully")
-    app.register_blueprint(chat_routes.chat_bp)
-    logger.debug("Chat blueprint registered successfully")
     app.register_blueprint(health_check.health_bp)
     logger.debug("Health check blueprint registered successfully")
 except Exception as e:

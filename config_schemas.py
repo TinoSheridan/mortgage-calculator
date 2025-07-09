@@ -301,20 +301,6 @@ PMI_RATES_SCHEMA = {
     }
 }
 
-# County Rates Schema (optional file)
-COUNTY_RATES_SCHEMA = {
-    "type": "object",
-    "patternProperties": {
-        "^[A-Za-z ]+$": {  # County name pattern
-            "type": "object",
-            "properties": {
-                "property_tax_rate": {"type": "number", "minimum": 0, "maximum": 10},
-                "insurance_rate": {"type": "number", "minimum": 0, "maximum": 5},
-                "description": {"type": "string"}
-            }
-        }
-    }
-}
 
 # Compliance Text Schema (optional file)
 COMPLIANCE_TEXT_SCHEMA = {
@@ -364,7 +350,6 @@ CONFIG_SCHEMAS = {
     "mortgage_config.json": MORTGAGE_CONFIG_SCHEMA,
     "closing_costs.json": CLOSING_COSTS_SCHEMA,
     "pmi_rates.json": PMI_RATES_SCHEMA,
-    "county_rates.json": COUNTY_RATES_SCHEMA,
     "compliance_text.json": COMPLIANCE_TEXT_SCHEMA,
     "output_templates.json": OUTPUT_TEMPLATES_SCHEMA
 }
@@ -378,7 +363,6 @@ REQUIRED_CONFIG_FILES = [
 
 # Optional configuration files (may not exist)
 OPTIONAL_CONFIG_FILES = [
-    "county_rates.json",
     "compliance_text.json",
     "output_templates.json"
 ]

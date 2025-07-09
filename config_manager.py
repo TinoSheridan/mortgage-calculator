@@ -175,7 +175,6 @@ class ConfigManager:
                 ("mortgage_config.json", "mortgage_config", True),  # (filename, config_key, required)
                 ("pmi_rates.json", "pmi_rates", True),
                 ("closing_costs.json", "closing_costs", True),
-                ("county_rates.json", "county_rates", False),
                 ("compliance_text.json", "compliance_text", False),
                 ("output_templates.json", "output_templates", False),
             ]
@@ -385,7 +384,7 @@ class ConfigManager:
                 # Validate mortgage config data
                 mortgage_config = {
                     k: v for k, v in self.config.items()
-                    if k not in ["pmi_rates", "closing_costs", "county_rates", "compliance_text", "output_templates"]
+                    if k not in ["pmi_rates", "closing_costs", "compliance_text", "output_templates"]
                 }
                 if not self.validate_config_data("mortgage_config.json", mortgage_config):
                     raise ValueError("Mortgage configuration validation failed")
@@ -424,7 +423,6 @@ class ConfigManager:
                         not in [
                             "pmi_rates",
                             "closing_costs",
-                            "county_rates",
                             "compliance_text",
                             "output_templates",
                         ]
@@ -472,17 +470,6 @@ class ConfigManager:
                 self.logger.error(f"Failed to save closing costs: {e}")
                 raise
 
-            # Save county rates
-            county_rates_path = os.path.join(self.config_dir, "county_rates.json")
-            self.logger.info(f"Saving county rates to: {county_rates_path}")
-            try:
-                with open(county_rates_path, "w") as f:
-                    json.dump(self.config.get("county_rates", {}), f, indent=4)
-                    self.logger.info("Saved county rates")
-                    modified_sections.append("county_rates")
-            except (IOError, PermissionError) as e:
-                self.logger.error(f"Failed to save county rates: {e}")
-                raise
 
             # Save compliance text
             compliance_path = os.path.join(self.config_dir, "compliance_text.json")
@@ -532,7 +519,6 @@ class ConfigManager:
                 "closing_costs": os.path.exists(
                     os.path.join(self.config_dir, "closing_costs.json")
                 ),
-                "county_rates": os.path.exists(os.path.join(self.config_dir, "county_rates.json")),
                 "compliance_text": os.path.exists(
                     os.path.join(self.config_dir, "compliance_text.json")
                 ),

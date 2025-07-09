@@ -84,7 +84,7 @@ export class PurchaseResultRenderer {
         const downPaymentPercentageElement = document.getElementById('downPaymentPercentage');
         if (downPaymentElement) {
             const downPaymentAmount = formatDownPayment(data.down_payment);
-            const downPaymentPercent = `${data.loan_details?.down_payment_percentage || 20}%`;
+            const downPaymentPercent = `${data.loan_details?.down_payment_percentage ?? 20}%`;
             console.log('Setting down payment:', downPaymentAmount, downPaymentPercent);
             downPaymentElement.innerHTML = `${downPaymentAmount} (<span id="downPaymentPercentage">${downPaymentPercent}</span>)`;
         } else {
@@ -93,7 +93,7 @@ export class PurchaseResultRenderer {
         
         // Also update the percentage element directly if it exists
         if (downPaymentPercentageElement) {
-            downPaymentPercentageElement.textContent = `${data.loan_details?.down_payment_percentage || 20}%`;
+            downPaymentPercentageElement.textContent = `${data.loan_details?.down_payment_percentage ?? 20}%`;
         }
         
         safelyUpdateElement('interestRate', formatPercentage(data.loan_details?.interest_rate || 0));

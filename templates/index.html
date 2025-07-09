@@ -318,7 +318,7 @@
                             <label for="va_service_type" class="form-label">Military Service</label>
                             <select class="form-select" id="va_service_type" name="va_service_type">
                                 <option value="active">Active Duty</option>
-                                <option value="veteran">Veteran</option>
+                                <option value="reserves">Reserves/National Guard</option>
                             </select>
                         </div>
                         <div class="form-group mb-1">
@@ -1844,6 +1844,26 @@
                 console.log('Set default date for new closing date:', newClosingDateField.value);
             }
         }
+        }
+
+        // Handle VA loan type selection to show/hide VA options
+        const loanTypeSelect = document.getElementById('loan_type');
+        const vaOptionsDiv = document.getElementById('vaOptions');
+        
+        if (loanTypeSelect && vaOptionsDiv) {
+            function toggleVAOptions() {
+                if (loanTypeSelect.value === 'va') {
+                    vaOptionsDiv.style.display = 'block';
+                } else {
+                    vaOptionsDiv.style.display = 'none';
+                }
+            }
+            
+            // Add event listener for changes
+            loanTypeSelect.addEventListener('change', toggleVAOptions);
+            
+            // Initialize on page load
+            toggleVAOptions();
         }
     });
 </script>

@@ -2,7 +2,7 @@
 
 {% block title %}Dashboard{% endblock %}
 
-{% block content %}
+{% block admin_content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -19,69 +19,52 @@
 
     <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-calculator fa-2x text-primary"></i>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3">
+                                <i class="fas fa-chart-line fa-2x text-primary"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">Total Calculations</h6>
-                            <h3 class="mb-0" id="totalCalculations">-</h3>
+                            <p class="text-muted mb-1 small">Total Calculations</p>
+                            <h3 class="mb-0 fw-bold" id="totalCalculations">-</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="bg-success bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-map-marker-alt fa-2x text-success"></i>
+                            <div class="bg-info bg-opacity-10 p-3 rounded-3">
+                                <i class="fas fa-file-code fa-2x text-info"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">Active Counties</h6>
-                            <h3 class="mb-0" id="activeCounties">-</h3>
+                            <p class="text-muted mb-1 small">Output Templates</p>
+                            <h3 class="mb-0 fw-bold" id="outputTemplates">-</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <div class="bg-info bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-file-alt fa-2x text-info"></i>
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3">
+                                <i class="fas fa-receipt fa-2x text-success"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">Output Templates</h6>
-                            <h3 class="mb-0" id="outputTemplates">-</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="bg-warning bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-dollar-sign fa-2x text-warning"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">Total Fees</h6>
-                            <h3 class="mb-0" id="totalFees">-</h3>
+                            <p class="text-muted mb-1 small">Configured Fees</p>
+                            <h3 class="mb-0 fw-bold" id="totalFees">-</h3>
                         </div>
                     </div>
                 </div>
@@ -93,11 +76,16 @@
     <div class="row g-4">
         <!-- System Health -->
         <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">System Health</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-heartbeat text-success"></i>
+                        </div>
+                        <h5 class="card-title mb-0">System Health</h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-3">
                     <div class="list-group list-group-flush" id="systemHealth">
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
@@ -140,11 +128,16 @@
 
         <!-- Recent Changes -->
         <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Recent Changes</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i class="fas fa-history text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Recent Changes</h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-3">
                     <div class="list-group list-group-flush" id="recentChanges">
                         <div class="text-center py-3">
                             <i class="fas fa-circle-notch fa-spin"></i>
@@ -163,7 +156,7 @@
     // Refresh dashboard data
     async function refreshDashboard() {
         try {
-            const data = await makeRequest('/admin/dashboard/data', 'GET');
+            const data = await makeAjaxRequest('/admin/dashboard/data', null, 'GET');
             updateDashboard(data);
             showNotification('Dashboard refreshed successfully', 'success');
         } catch (error) {
@@ -186,7 +179,6 @@
 
         // Update statistics
         safeSetText('totalCalculations', data.stats.total_calculations);
-        safeSetText('activeCounties', data.stats.active_counties);
         safeSetText('outputTemplates', data.stats.output_templates);
         safeSetText('totalFees', data.stats.total_fees);
 
