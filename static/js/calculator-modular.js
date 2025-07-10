@@ -84,17 +84,33 @@ class MortgageCalculator {
             });
         }
 
-        // Copy button listeners removed
+        // Copy button listeners
+        const copyResultsBtn = document.getElementById('copyResultsBtn');
+        const copyDetailBtn = document.getElementById('copyDetailBtn');
+
+        if (copyResultsBtn) {
+            copyResultsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.copyResultsSummary();
+            });
+        }
+
+        if (copyDetailBtn) {
+            copyDetailBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.copyResultsDetails();
+            });
+        }
 
         // Initialize form event listeners
         formManager.initializeEventListeners();
-        
+
         // Tax and insurance method toggle listeners
         this.setupTaxInsuranceToggles();
-        
+
         // Manual balance override toggle listener
         this.setupManualBalanceToggle();
-        
+
         // Cash to closing options toggle listener
         this.setupCashOptionsToggle();
 
@@ -107,14 +123,14 @@ class MortgageCalculator {
     initializeUI() {
         // Set initial form visibility
         uiStateManager.toggleFormVisibility();
-        
+
         // Initialize button states
         uiStateManager.initializeButtons();
-        
+
         // Hide any existing error messages
         uiStateManager.hideError();
         uiStateManager.hideValidationError();
-        
+
         console.log('UI initialization complete');
     }
 
@@ -205,7 +221,7 @@ class MortgageCalculator {
         if (!response.success && !response.result) {
             throw new Error(response.error || 'Calculation failed');
         }
-        
+
         // Check if result contains an error field (backend validation error)
         if (response.result && response.result.error) {
             throw new Error(response.result.error);
@@ -230,7 +246,7 @@ class MortgageCalculator {
             // Update loan details after UI state changes (to prevent override)
             this.updateLoanDetailsCard(response);
         }
-        
+
         console.log(`${mode} calculation completed successfully`);
     }
 
@@ -247,13 +263,13 @@ class MortgageCalculator {
 
             // Clear any existing results
             purchaseResultRenderer.clearResults();
-            
+
             // Update results
             purchaseResultRenderer.updateResults(response);
-            
+
             // Show result cards
             purchaseResultRenderer.showResultCards();
-            
+
             console.log('Purchase results rendered successfully');
         } catch (error) {
             console.error('Error rendering purchase results:', error);
@@ -274,13 +290,13 @@ class MortgageCalculator {
 
             // Clear any existing results
             refinanceResultRenderer.clearResults();
-            
+
             // Update results
             refinanceResultRenderer.updateResults(response);
-            
+
             // Show refinance result cards
             uiStateManager.showRefinanceResults();
-            
+
             console.log('Refinance results rendered successfully');
         } catch (error) {
             console.error('Error rendering refinance results:', error);
@@ -305,7 +321,7 @@ class MortgageCalculator {
     updateLoanDetailsCard(response) {
         console.log('Updating loan details card after UI state change');
         const data = response;
-        
+
         // Check if the Loan Details card is visible
         const loanDetailsCard = document.getElementById('loanDetailsCard');
         if (loanDetailsCard) {
@@ -315,7 +331,7 @@ class MortgageCalculator {
         } else {
             console.error('Loan Details card (loanDetailsCard) not found!');
         }
-        
+
         // Import formatter functions
         import('./utils/formatting.js').then(({ formatCurrency, formatPercentage, formatPurchasePrice, formatDownPayment }) => {
             // Update loan details card elements directly
@@ -328,17 +344,17 @@ class MortgageCalculator {
                     console.error(`Element ${id} not found`);
                 }
             };
-            
+
             updateElement('purchasePrice', formatPurchasePrice(data.loan_details?.purchase_price || 0));
             updateElement('loanAmount', formatCurrency(data.loan_amount, { isLoanAmount: true }));
             updateElement('interestRate', formatPercentage(data.loan_details?.interest_rate || 0));
             updateElement('loanTerm', `${data.loan_details?.loan_term_years || 0} years`);
             updateElement('loanType', data.loan_details?.loan_type || 'Conventional');
             updateElement('propertyType', 'Single Family Home');
-            
+
             // Update the down payment in the Cash Needed at Closing card
             updateElement('downPayment', formatDownPayment(data.down_payment));
-            
+
             // Special handling for down payment element with nested span
             const downPaymentElement = document.getElementById('downPaymentAmount');
             if (downPaymentElement) {
@@ -346,7 +362,7 @@ class MortgageCalculator {
                 const downPaymentPercent = `${data.loan_details?.down_payment_percentage ?? 20}%`;
                 downPaymentElement.innerHTML = `${downPaymentAmount} (<span id="downPaymentPercentage">${downPaymentPercent}</span>)`;
                 console.log('Updated downPaymentAmount to:', downPaymentAmount, downPaymentPercent);
-                
+
                 // Verify what's actually in the DOM after update
                 setTimeout(() => {
                     const verifyElement = document.getElementById('downPaymentAmount');
@@ -354,12 +370,12 @@ class MortgageCalculator {
                     console.log('VERIFICATION - element visible:', verifyElement ? window.getComputedStyle(verifyElement).display : 'N/A');
                 }, 100);
             }
-            
+
             // Format closing date
             const closingDate = data.loan_details?.closing_date || new Date().toISOString().split('T')[0];
             const formattedDate = new Date(closingDate).toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'long', 
+                month: 'long',
                 day: 'numeric'
             });
             updateElement('closingDate', formattedDate);
@@ -372,13 +388,13 @@ class MortgageCalculator {
      */
     handleCalculationError(error) {
         let errorMessage = 'Calculation failed. Please try again.';
-        
+
         if (error.message) {
             errorMessage = error.message;
         }
-        
+
         console.error('Calculation error:', errorMessage);
-        
+
         // Check if this is an LTV validation error that we can help with
         if (error.message && error.message.includes('LTV') && error.message.includes('exceeds maximum')) {
             this.showLTVGuidance(error.message);
@@ -407,7 +423,7 @@ class MortgageCalculator {
                 <small class="text-muted">This error will remain until you select a target LTV option.</small>
             </div>
         `;
-        
+
         // Show the guidance and don't auto-hide it
         uiStateManager.showError(errorHtml, true, false); // false = don't auto-hide
     }
@@ -452,18 +468,18 @@ class MortgageCalculator {
         // Clear results
         purchaseResultRenderer.clearResults();
         refinanceResultRenderer.clearResults();
-        
+
         // Hide result cards
         purchaseResultRenderer.hideResultCards();
         refinanceResultRenderer.hideResultCards();
-        
+
         // Hide results section
         uiStateManager.hideResults();
-        
+
         // Clear error messages
         uiStateManager.hideError();
         uiStateManager.hideValidationError();
-        
+
         console.log('Calculator reset to initial state');
     }
 
@@ -591,13 +607,13 @@ class MortgageCalculator {
     async copyResultsSummary() {
         let summaryText = '';
         const mode = this.getCurrentMode();
-        
+
         if (mode === 'purchase') {
             summaryText = this.generatePurchaseSummary();
         } else {
             summaryText = this.generateRefinanceSummary();
         }
-        
+
         try {
             await navigator.clipboard.writeText(summaryText);
             this.showCopyConfirmation();
@@ -616,13 +632,13 @@ class MortgageCalculator {
     async copyResultsDetails() {
         let detailsText = '';
         const mode = this.getCurrentMode();
-        
+
         if (mode === 'purchase') {
             detailsText = this.generatePurchaseDetails();
         } else {
             detailsText = this.generateRefinanceDetails();
         }
-        
+
         try {
             await navigator.clipboard.writeText(detailsText);
             this.showCopyConfirmation();
@@ -640,52 +656,52 @@ class MortgageCalculator {
     generatePurchaseSummary() {
         // Use stored calculation data if available, otherwise read from DOM
         const data = this.lastCalculationResult?.data;
-        
+
         // Basic loan info - prefer data from API response
-        const purchasePrice = data?.loan_details?.purchase_price ? 
-            `$${data.loan_details.purchase_price.toLocaleString()}` : 
+        const purchasePrice = data?.loan_details?.purchase_price ?
+            `$${data.loan_details.purchase_price.toLocaleString()}` :
             document.getElementById('purchasePrice')?.textContent || '$0.00';
-            
-        const loanType = data?.loan_details?.loan_type || 
+
+        const loanType = data?.loan_details?.loan_type ||
             document.getElementById('loanType')?.textContent || 'Conventional';
-            
-        const interestRate = data?.loan_details?.interest_rate ? 
-            `${data.loan_details.interest_rate}%` : 
+
+        const interestRate = data?.loan_details?.interest_rate ?
+            `${data.loan_details.interest_rate}%` :
             document.getElementById('interestRate')?.textContent || '0.00%';
-            
-        const loanTerm = data?.loan_details?.loan_term_years ? 
-            `${data.loan_details.loan_term_years} years` : 
+
+        const loanTerm = data?.loan_details?.loan_term_years ?
+            `${data.loan_details.loan_term_years} years` :
             document.getElementById('loanTerm')?.textContent || '30 years';
 
         // Key totals from each card - prefer data from API response
-        const monthlyPayment = data?.monthly_payment ? 
-            `$${data.monthly_payment.toLocaleString()}` : 
+        const monthlyPayment = data?.monthly_payment ?
+            `$${data.monthly_payment.toLocaleString()}` :
             document.getElementById('totalMonthlyPayment')?.textContent || '$0.00';
-            
-        const downPayment = data?.down_payment ? 
-            `$${data.down_payment.toLocaleString()} (${data.loan_details?.down_payment_percentage ?? 20}%)` : 
+
+        const downPayment = data?.down_payment ?
+            `$${data.down_payment.toLocaleString()} (${data.loan_details?.down_payment_percentage ?? 20}%)` :
             document.getElementById('downPaymentAmount')?.textContent || '$0.00';
-            
-        const loanAmount = data?.loan_amount ? 
-            `$${data.loan_amount.toLocaleString()}` : 
+
+        const loanAmount = data?.loan_amount ?
+            `$${data.loan_amount.toLocaleString()}` :
             document.getElementById('loanAmount')?.textContent || '$0.00';
-        
+
         // Totals from other cards
-        const closingCostsTotal = data?.closing_costs?.total ? 
-            `$${data.closing_costs.total.toLocaleString()}` : 
-            document.getElementById('totalClosingCostsCell')?.textContent || 
+        const closingCostsTotal = data?.closing_costs?.total ?
+            `$${data.closing_costs.total.toLocaleString()}` :
+            document.getElementById('totalClosingCostsCell')?.textContent ||
             document.querySelector('#closingCostsTable tfoot td:last-child')?.textContent || '$0.00';
-            
-        const prepaidsTotal = data?.prepaids?.total ? 
-            `$${data.prepaids.total.toLocaleString()}` : 
+
+        const prepaidsTotal = data?.prepaids?.total ?
+            `$${data.prepaids.total.toLocaleString()}` :
             document.getElementById('totalPrepaids')?.textContent || '$0.00';
-            
-        const creditsTotal = data?.credits?.total ? 
-            `$${data.credits.total.toLocaleString()}` : 
+
+        const creditsTotal = data?.credits?.total ?
+            `$${data.credits.total.toLocaleString()}` :
             document.getElementById('totalCredits')?.textContent || '$0.00';
-            
-        const cashToClose = data?.total_cash_needed ? 
-            `$${data.total_cash_needed.toLocaleString()}` : 
+
+        const cashToClose = data?.total_cash_needed ?
+            `$${data.total_cash_needed.toLocaleString()}` :
             document.getElementById('totalCashToClose')?.textContent || '$0.00';
 
         return `MORTGAGE CALCULATION SUMMARY
@@ -714,49 +730,49 @@ Generated on ${new Date().toLocaleDateString()}`;
     generateRefinanceSummary() {
         // Use stored calculation data if available, otherwise read from DOM
         const data = this.lastCalculationResult?.data?.result || this.lastCalculationResult?.data;
-        
+
         // Basic refinance info - prefer data from API response
-        const currentBalance = data?.current_balance ? 
-            `$${data.current_balance.toLocaleString()}` : 
+        const currentBalance = data?.current_balance ?
+            `$${data.current_balance.toLocaleString()}` :
             document.getElementById('currentBalance')?.textContent || '$0.00';
-            
-        const newLoanAmount = data?.new_loan_amount ? 
-            `$${data.new_loan_amount.toLocaleString()}` : 
+
+        const newLoanAmount = data?.new_loan_amount ?
+            `$${data.new_loan_amount.toLocaleString()}` :
             document.getElementById('newLoanAmount')?.textContent || '$0.00';
-            
-        const ltv = data?.ltv ? 
-            `${data.ltv}%` : 
+
+        const ltv = data?.ltv ?
+            `${data.ltv}%` :
             document.getElementById('refinanceLTV')?.textContent || '0.00%';
 
         // Payment comparison
-        const oldPayment = data?.original_monthly_payment ? 
-            `$${data.original_monthly_payment.toLocaleString()}` : 
+        const oldPayment = data?.original_monthly_payment ?
+            `$${data.original_monthly_payment.toLocaleString()}` :
             document.getElementById('oldMonthlyPayment')?.textContent || '$0.00';
-            
-        const newPayment = data?.new_monthly_payment ? 
-            `$${data.new_monthly_payment.toLocaleString()}` : 
+
+        const newPayment = data?.new_monthly_payment ?
+            `$${data.new_monthly_payment.toLocaleString()}` :
             document.getElementById('newMonthlyPayment')?.textContent || '$0.00';
-            
-        const monthlySavings = data?.monthly_savings ? 
-            `$${data.monthly_savings.toLocaleString()}` : 
+
+        const monthlySavings = data?.monthly_savings ?
+            `$${data.monthly_savings.toLocaleString()}` :
             document.getElementById('monthlySavings')?.textContent || '$0.00';
 
         // Costs and savings
-        const breakEven = data?.break_even_time || 
+        const breakEven = data?.break_even_time ||
             document.getElementById('breakEvenPoint')?.textContent || '0 months';
-            
-        const totalSavings = data?.total_savings ? 
-            `$${data.total_savings.toLocaleString()}` : 
+
+        const totalSavings = data?.total_savings ?
+            `$${data.total_savings.toLocaleString()}` :
             document.getElementById('totalSavings')?.textContent || '$0.00';
-        
+
         // Get closing costs total
-        const refinanceClosingCosts = data?.total_closing_costs ? 
-            `$${data.total_closing_costs.toLocaleString()}` : 
+        const refinanceClosingCosts = data?.total_closing_costs ?
+            `$${data.total_closing_costs.toLocaleString()}` :
             document.querySelector('#refinanceClosingCostsTable .total-row td:last-child')?.textContent || '$0.00';
-        
+
         // Get cash to close
-        const cashToClose = data?.cash_to_close ? 
-            `$${data.cash_to_close.toLocaleString()}` : 
+        const cashToClose = data?.cash_to_close ?
+            `$${data.cash_to_close.toLocaleString()}` :
             document.getElementById('refinanceCashToClose')?.textContent || '$0.00';
 
         return `REFINANCE CALCULATION SUMMARY
@@ -783,23 +799,23 @@ Generated on ${new Date().toLocaleDateString()}`;
      */
     generatePurchaseDetails() {
         let details = this.generatePurchaseSummary() + '\n\n';
-        
+
         // Add monthly breakdown
         details += 'MONTHLY PAYMENT BREAKDOWN\n';
         details += this.extractTableData('monthlyBreakdownTable') + '\n';
-        
+
         // Add closing costs
         details += 'CLOSING COSTS\n';
         details += this.extractTableData('closingCostsTable') + '\n';
-        
+
         // Add prepaid items
         details += 'PREPAID ITEMS\n';
         details += this.extractTableData('prepaidsTable') + '\n';
-        
+
         // Add credits if any
         details += 'CREDITS\n';
         details += this.extractTableData('creditsTable') + '\n';
-        
+
         return details;
     }
 
@@ -808,15 +824,15 @@ Generated on ${new Date().toLocaleDateString()}`;
      */
     generateRefinanceDetails() {
         let details = this.generateRefinanceSummary() + '\n\n';
-        
+
         // Add monthly breakdown
         details += 'NEW MONTHLY PAYMENT BREAKDOWN\n';
         details += this.extractTableData('refinanceMonthlyPaymentCard') + '\n';
-        
+
         // Add closing costs
         details += 'CLOSING COSTS\n';
         details += this.extractTableData('refinanceClosingCostsTable') + '\n';
-        
+
         return details;
     }
 
@@ -826,10 +842,10 @@ Generated on ${new Date().toLocaleDateString()}`;
     extractTableData(containerId) {
         const container = document.getElementById(containerId);
         if (!container) return 'No data available\n';
-        
+
         let tableText = '';
         const rows = container.querySelectorAll('tr');
-        
+
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             if (cells.length >= 2) {
@@ -838,7 +854,7 @@ Generated on ${new Date().toLocaleDateString()}`;
                 tableText += `${label}: ${value}\n`;
             }
         });
-        
+
         return tableText || 'No data available\n';
     }
 
@@ -867,7 +883,7 @@ Generated on ${new Date().toLocaleDateString()}`;
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        
+
         try {
             document.execCommand('copy');
             this.showCopyConfirmation();
@@ -876,7 +892,7 @@ Generated on ${new Date().toLocaleDateString()}`;
             console.error('Fallback copy failed:', err);
             alert('Copy failed. Please manually select and copy the text.');
         }
-        
+
         document.body.removeChild(textArea);
     }
 }
@@ -884,17 +900,17 @@ Generated on ${new Date().toLocaleDateString()}`;
 // Initialize calculator when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing modular calculator...');
-    
+
     try {
         const calculator = new MortgageCalculator();
         calculator.initialize();
-        
+
         // Make calculator available globally for debugging
         window.mortgageCalculator = calculator;
-        
+
     } catch (error) {
         console.error('Failed to initialize mortgage calculator:', error);
-        
+
         // Show error to user
         const errorAlert = document.getElementById('errorAlert');
         if (errorAlert) {
