@@ -427,6 +427,11 @@ class MortgageCalculator:
                 annual_insurance_rate,
                 annual_rate,
                 closing_date,
+                tax_method,
+                insurance_method,
+                annual_tax_amount,
+                annual_insurance_amount,
+                purchase_price,
             )
             self.logger.info(f"Calculated prepaid items: ${prepaid_items['total']: .2f}. ")
 
@@ -800,6 +805,11 @@ class MortgageCalculator:
         annual_insurance_rate: float,
         annual_interest_rate: float,
         closing_date=None,
+        tax_method: str = "percentage",
+        insurance_method: str = "percentage",
+        annual_tax_amount: float = 0.0,
+        annual_insurance_amount: float = 0.0,
+        purchase_price: float = 0.0,
     ) -> Dict[str, float]:
         """Calculate prepaid items (taxes, insurance, interest)."""
         try:
@@ -854,8 +864,17 @@ class MortgageCalculator:
             )
             prepaid["prepaid_interest"] = prepaid_interest
 
-            # 2. Calculate prepaid property tax
-            monthly_tax = (loan_amount * annual_tax_rate / 100) / 12
+            # 2. Calculate prepaid property tax (with method override support)
+            if tax_method == "amount" and annual_tax_amount > 0:
+                monthly_tax = annual_tax_amount / 12
+                self.logger.info(
+                    f"Using actual tax amount for prepaids: ${annual_tax_amount:.2f}/year = ${monthly_tax:.2f}/month"
+                )
+            else:
+                # Use purchase_price for tax calculation if available, otherwise fallback to loan_amount
+                tax_base = purchase_price if purchase_price > 0 else loan_amount
+                monthly_tax = (tax_base * annual_tax_rate / 100) / 12
+                self.logger.info(f"Calculated monthly tax for prepaids: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})")
 
             # Use new calculation method if closing date is provided, otherwise fall back to previous method
             if closing_date:
@@ -893,8 +912,16 @@ class MortgageCalculator:
                 f"Property tax calculations: monthly=${monthly_tax: .2f}, prepaid=${prepaid['prepaid_tax']: .2f}, escrow=${prepaid['tax_escrow']: .2f}, seller_adjustment=${tax_adjustment: .2f}, borrower_credit=${borrower_escrow_credit: .2f}. "
             )
 
-            # 3. Calculate prepaid homeowner's insurance
-            monthly_insurance = (loan_amount * annual_insurance_rate / 100) / 12
+            # 3. Calculate prepaid homeowner's insurance (with method override support)
+            if insurance_method == "amount" and annual_insurance_amount > 0:
+                monthly_insurance = annual_insurance_amount / 12
+                self.logger.info(
+                    f"Using actual insurance amount for prepaids: ${annual_insurance_amount:.2f}/year = ${monthly_insurance:.2f}/month"
+                )
+            else:
+                monthly_insurance = (loan_amount * annual_insurance_rate / 100) / 12
+                self.logger.info(f"Calculated monthly insurance for prepaids: ${monthly_insurance:.2f} (percentage method)")
+            
             prepaid["prepaid_insurance"] = round(
                 monthly_insurance * config["months_insurance_prepaid"], 2
             )
@@ -1524,6 +1551,11 @@ class MortgageCalculator:
                         annual_insurance_rate=annual_insurance_rate,
                         annual_interest_rate=new_interest_rate,
                         closing_date=refinance_closing_date,
+                        tax_method="percentage",
+                        insurance_method="percentage",
+                        annual_tax_amount=0.0,
+                        annual_insurance_amount=0.0,
+                        purchase_price=appraised_value,
                     )
 
                 # Add prepaids to loan amount for zero cash calculation
@@ -1573,6 +1605,11 @@ class MortgageCalculator:
                                 annual_insurance_rate=annual_insurance_rate,
                                 annual_interest_rate=new_interest_rate,
                                 closing_date=refinance_closing_date,
+                                tax_method="percentage",
+                                insurance_method="percentage",
+                                annual_tax_amount=0.0,
+                                annual_insurance_amount=0.0,
+                                purchase_price=appraised_value,
                             )
 
                         prepaids_total = prepaid_items.get("total", 0)
@@ -1751,6 +1788,11 @@ class MortgageCalculator:
                         annual_insurance_rate=annual_insurance_rate,
                         annual_interest_rate=new_interest_rate,
                         closing_date=refinance_closing_date,
+                        tax_method="percentage",
+                        insurance_method="percentage",
+                        annual_tax_amount=0.0,
+                        annual_insurance_amount=0.0,
+                        purchase_price=appraised_value,
                     )
 
             # 16. Calculate credits (lender credits, etc.)
