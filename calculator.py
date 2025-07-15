@@ -876,11 +876,9 @@ class MortgageCalculator:
                 monthly_tax = (tax_base * annual_tax_rate / 100) / 12
                 self.logger.info(f"Calculated monthly tax for prepaids: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})")
 
-            # Use new calculation method if closing date is provided, otherwise fall back to previous method
-            if closing_date:
-                prepaid["prepaid_tax"] = self._calculate_prepaid_tax(closing_date, monthly_tax)
-            else:
-                prepaid["prepaid_tax"] = round(monthly_tax * config["months_tax_prepaid"], 2)
+            # Prepaid property tax is always 12 months regardless of closing date
+            # Seller proration and borrower escrow credits are handled separately
+            prepaid["prepaid_tax"] = round(monthly_tax * config["months_tax_prepaid"], 2)
 
             prepaid["tax_escrow"] = round(monthly_tax * config["months_tax_escrow"], 2)
 
