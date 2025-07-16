@@ -2,11 +2,12 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 # Import validation components
 try:
     from config_validator import ConfigValidator, validate_config_on_startup
+
     HAS_VALIDATION = True
 except ImportError:
     HAS_VALIDATION = False
@@ -23,12 +24,12 @@ class ConfigManager:
         self.max_recent_changes = 50
         self.calculation_history = []
         self.recent_changes = []
-        
+
         # Caching support
         self._config_cache: Dict[str, Any] = {}
         self._file_mod_times: Dict[str, float] = {}
         self._cache_enabled = True
-        
+
         # Validation support
         self.validator = None
         self._validation_enabled = HAS_VALIDATION
@@ -36,7 +37,9 @@ class ConfigManager:
             self.validator = ConfigValidator(self.config_dir)
             self.logger.info("Configuration validation enabled")
         else:
-            self.logger.warning("Configuration validation disabled - jsonschema package not available")
+            self.logger.warning(
+                "Configuration validation disabled - jsonschema package not available"
+            )
 
         # Load configuration and history
         self.load_config()
@@ -53,10 +56,10 @@ class ConfigManager:
         """Check if cached data is still valid for a file."""
         if not self._cache_enabled or file_path not in self._config_cache:
             return False
-        
+
         current_mod_time = self._get_file_mod_time(file_path)
         cached_mod_time = self._file_mod_times.get(file_path, 0.0)
-        
+
         return current_mod_time == cached_mod_time
 
     def _load_json_file_cached(self, file_path: str, config_key: str) -> Optional[Dict[str, Any]]:
@@ -65,23 +68,23 @@ class ConfigManager:
         if self._is_cache_valid(file_path):
             self.logger.debug(f"Using cached config for {config_key}")
             return self._config_cache[file_path]
-        
+
         # Load from file
         try:
             if not os.path.exists(file_path):
                 return None
-                
+
             with open(file_path, "r") as f:
                 data = json.load(f)
-                
+
             # Cache the data
             if self._cache_enabled:
                 self._config_cache[file_path] = data
                 self._file_mod_times[file_path] = self._get_file_mod_time(file_path)
                 self.logger.debug(f"Cached config for {config_key}")
-            
+
             return data
-            
+
         except (FileNotFoundError, json.JSONDecodeError) as e:
             self.logger.error(f"Error loading {config_key} from {file_path}: {e}")
             return None
@@ -100,60 +103,57 @@ class ConfigManager:
     def enable_cache(self):
         """Enable caching."""
         self._cache_enabled = True
-    
+
     def validate_configuration(self) -> bool:
         """Validate all configuration files.
-        
+
         Returns:
             True if all configurations are valid, False otherwise
         """
         if not self._validation_enabled:
             self.logger.warning("Configuration validation is disabled")
             return True
-        
+
         is_valid, errors = self.validator.validate_all_configs()
-        
+
         if not is_valid:
             self.logger.error("Configuration validation failed:")
             for error in errors:
                 self.logger.error(f"  - {error}")
-        
+
         return is_valid
-    
+
     def get_validation_report(self) -> Dict[str, Any]:
         """Get a comprehensive validation report.
-        
+
         Returns:
             Dictionary containing validation results
         """
         if not self._validation_enabled:
-            return {
-                "validation_enabled": False,
-                "warning": "jsonschema package not available"
-            }
-        
+            return {"validation_enabled": False, "warning": "jsonschema package not available"}
+
         return self.validator.get_validation_report()
-    
+
     def validate_config_data(self, filename: str, config_data: Dict[str, Any]) -> bool:
         """Validate configuration data before saving.
-        
+
         Args:
             filename: Name of the configuration file
             config_data: Configuration data to validate
-            
+
         Returns:
             True if valid, False otherwise
         """
         if not self._validation_enabled:
             return True
-        
+
         is_valid, errors = self.validator.validate_config_data(filename, config_data)
-        
+
         if not is_valid:
             self.logger.error(f"Validation failed for {filename}:")
             for error in errors:
                 self.logger.error(f"  - {error}")
-        
+
         return is_valid
 
     def load_config(self):
@@ -164,28 +164,34 @@ class ConfigManager:
                 self.logger.info("Validating configuration files before loading...")
                 is_valid, errors = self.validator.validate_all_configs()
                 if not is_valid:
-                    self.logger.warning("Configuration validation failed, but proceeding with load:")
+                    self.logger.warning(
+                        "Configuration validation failed, but proceeding with load:"
+                    )
                     for error in errors:
                         self.logger.warning(f"  - {error}")
                 else:
                     self.logger.info("All configuration files passed validation")
-            
+
             # Define configuration files to load
             config_files = [
-                ("mortgage_config.json", "mortgage_config", True),  # (filename, config_key, required)
+                (
+                    "mortgage_config.json",
+                    "mortgage_config",
+                    True,
+                ),  # (filename, config_key, required)
                 ("pmi_rates.json", "pmi_rates", True),
                 ("closing_costs.json", "closing_costs", True),
                 ("compliance_text.json", "compliance_text", False),
                 ("output_templates.json", "output_templates", False),
             ]
-            
+
             for filename, config_key, required in config_files:
                 file_path = os.path.join(self.config_dir, filename)
                 self.logger.info(f"Loading {config_key} from: {file_path}")
-                
+
                 # Load with caching
                 data = self._load_json_file_cached(file_path, config_key)
-                
+
                 if data is not None:
                     if config_key == "mortgage_config":
                         # Merge mortgage config into main config
@@ -194,7 +200,7 @@ class ConfigManager:
                         # Store as separate key
                         self.config[config_key] = data
                     self.logger.info(f"Loaded {config_key}")
-                    
+
                 elif required:
                     # Required file is missing
                     raise FileNotFoundError(f"Required configuration file not found: {file_path}")
@@ -380,20 +386,26 @@ class ConfigManager:
             # Validate configuration before saving (if validation is enabled)
             if self._validation_enabled and self.validator:
                 self.logger.info("Validating configuration before saving...")
-                
+
                 # Validate mortgage config data
                 mortgage_config = {
-                    k: v for k, v in self.config.items()
-                    if k not in ["pmi_rates", "closing_costs", "compliance_text", "output_templates"]
+                    k: v
+                    for k, v in self.config.items()
+                    if k
+                    not in ["pmi_rates", "closing_costs", "compliance_text", "output_templates"]
                 }
                 if not self.validate_config_data("mortgage_config.json", mortgage_config):
                     raise ValueError("Mortgage configuration validation failed")
-                
+
                 # Validate other configs
-                if "pmi_rates" in self.config and not self.validate_config_data("pmi_rates.json", self.config["pmi_rates"]):
+                if "pmi_rates" in self.config and not self.validate_config_data(
+                    "pmi_rates.json", self.config["pmi_rates"]
+                ):
                     raise ValueError("PMI rates configuration validation failed")
-                
-                if "closing_costs" in self.config and not self.validate_config_data("closing_costs.json", self.config["closing_costs"]):
+
+                if "closing_costs" in self.config and not self.validate_config_data(
+                    "closing_costs.json", self.config["closing_costs"]
+                ):
                     raise ValueError("Closing costs configuration validation failed")
 
             # Create config directory if it doesn't exist
@@ -469,7 +481,6 @@ class ConfigManager:
             except (IOError, PermissionError) as e:
                 self.logger.error(f"Failed to save closing costs: {e}")
                 raise
-
 
             # Save compliance text
             compliance_path = os.path.join(self.config_dir, "compliance_text.json")

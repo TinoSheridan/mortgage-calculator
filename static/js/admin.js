@@ -6,19 +6,19 @@ async function makeAjaxRequest(url, data = null, method = 'GET') {
             'Content-Type': 'application/json',
         }
     };
-    
+
     if (data && method !== 'GET') {
         options.body = JSON.stringify(data);
     }
-    
+
     try {
         const response = await fetch(url, options);
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
             throw new Error(errorData.error || `Request failed with status ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error('AJAX Request Error:', error);

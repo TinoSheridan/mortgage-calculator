@@ -5,29 +5,37 @@ import os
 import sys
 import traceback
 from datetime import datetime, timedelta
+
+from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_wtf.csrf import CSRFProtect
-from dotenv import load_dotenv
 
 # Set up Python path to handle both direct running and module imports
 base_dir = os.path.dirname(os.path.abspath(__file__))
 if base_dir not in sys.path:
     sys.path.insert(0, base_dir)
 # Set MortgageCalc module for absolute imports
-sys.modules['MortgageCalc'] = sys.modules['__main__']
+sys.modules["MortgageCalc"] = sys.modules["__main__"]
 
 # Add current directory to path to ensure imports work properly
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Now that paths are set up, we can safely import local modules
-from constants import TRANSACTION_TYPE  # noqa: E402
-from calculator import MortgageCalculator  # noqa: E402
-from config_factory import get_config  # noqa: E402
-from config_manager import ConfigManager  # noqa: E402
 import admin_routes  # noqa: E402
 import beta_routes  # noqa: E402
 import health_check  # noqa: E402
-from error_handling import ErrorHandler, ValidationError, CalculationError, validate_request_data, handle_errors  # noqa: E402
+from calculator import MortgageCalculator  # noqa: E402
+from config_factory import get_config  # noqa: E402
+from config_manager import ConfigManager  # noqa: E402
+
+# Now that paths are set up, we can safely import local modules
+from constants import TRANSACTION_TYPE  # noqa: E402
+from error_handling import (  # noqa: E402
+    CalculationError,
+    ErrorHandler,
+    ValidationError,
+    handle_errors,
+    validate_request_data,
+)
 
 # Configure logging early
 logging.basicConfig(level=logging.INFO)
@@ -85,6 +93,7 @@ logger.debug("Configuration loading completed")
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0  # During development
 logger.debug("MIME type configuration completed")
 
+
 # Add proper MIME type handling for static files
 @app.route("/static/<path:filename>")
 def serve_static(filename):
@@ -97,7 +106,9 @@ app.config.from_object(app_config)
 # SECURITY: Fail fast if SECRET_KEY is not set - never use default fallback
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
-    raise RuntimeError("SECRET_KEY environment variable must be set. Never use default keys in production!")
+    raise RuntimeError(
+        "SECRET_KEY environment variable must be set. Never use default keys in production!"
+    )
 app.secret_key = secret_key
 app.config["WTF_CSRF_ENABLED"] = True  # Re-enabled CSRF protection
 app.config["SESSION_TYPE"] = "filesystem"  # Use filesystem sessions for persistence
@@ -121,8 +132,8 @@ def add_header(response):
 
     # Security Headers
     # Strict-Transport-Security (HSTS) - Enable in production with HTTPS
-    if app.config.get('SESSION_COOKIE_SECURE') or os.getenv('FLASK_ENV') == 'production':
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    if app.config.get("SESSION_COOKIE_SECURE") or os.getenv("FLASK_ENV") == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     # Content Security Policy (CSP)
     csp_policy = (
@@ -185,7 +196,17 @@ def csrf_exempt_admin_routes(response):
 
 # CSRF protection enabled - token must be provided in X-CSRFToken header
 @app.route("/calculate", methods=["POST"])
-@validate_request_data(required_fields=['purchase_price', 'down_payment_percentage', 'annual_rate', 'loan_term', 'annual_tax_rate', 'annual_insurance_rate', 'loan_type'])
+@validate_request_data(
+    required_fields=[
+        "purchase_price",
+        "down_payment_percentage",
+        "annual_rate",
+        "loan_term",
+        "annual_tax_rate",
+        "annual_insurance_rate",
+        "loan_type",
+    ]
+)
 @handle_errors
 def calculate():
     """Perform the main calculation and return complete mortgage details."""
@@ -197,50 +218,78 @@ def calculate():
     try:
         purchase_price = float(data.get("purchase_price"))
         if purchase_price <= 0:
-            raise ValidationError("Purchase price must be greater than 0", field="purchase_price", value=purchase_price)
-        
+            raise ValidationError(
+                "Purchase price must be greater than 0",
+                field="purchase_price",
+                value=purchase_price,
+            )
+
         down_payment_percentage = float(data.get("down_payment_percentage"))
         if not (0 <= down_payment_percentage <= 100):
-            raise ValidationError("Down payment percentage must be between 0 and 100", field="down_payment_percentage", value=down_payment_percentage)
-        
+            raise ValidationError(
+                "Down payment percentage must be between 0 and 100",
+                field="down_payment_percentage",
+                value=down_payment_percentage,
+            )
+
         annual_rate = float(data.get("annual_rate"))
         if not (0 <= annual_rate <= 30):
-            raise ValidationError("Interest rate must be between 0 and 30", field="annual_rate", value=annual_rate)
-        
+            raise ValidationError(
+                "Interest rate must be between 0 and 30", field="annual_rate", value=annual_rate
+            )
+
         loan_term = int(data.get("loan_term"))
         if not (1 <= loan_term <= 50):
-            raise ValidationError("Loan term must be between 1 and 50 years", field="loan_term", value=loan_term)
-        
+            raise ValidationError(
+                "Loan term must be between 1 and 50 years", field="loan_term", value=loan_term
+            )
+
         annual_tax_rate = float(data.get("annual_tax_rate"))
         if annual_tax_rate < 0:
-            raise ValidationError("Property tax rate cannot be negative", field="annual_tax_rate", value=annual_tax_rate)
-        
+            raise ValidationError(
+                "Property tax rate cannot be negative",
+                field="annual_tax_rate",
+                value=annual_tax_rate,
+            )
+
         annual_insurance_rate = float(data.get("annual_insurance_rate"))
         if annual_insurance_rate < 0:
-            raise ValidationError("Insurance rate cannot be negative", field="annual_insurance_rate", value=annual_insurance_rate)
-            
+            raise ValidationError(
+                "Insurance rate cannot be negative",
+                field="annual_insurance_rate",
+                value=annual_insurance_rate,
+            )
+
         # Handle tax and insurance method overrides
         tax_method = data.get("tax_method", "percentage")
         insurance_method = data.get("insurance_method", "percentage")
         annual_tax_amount = float(data.get("annual_tax_amount", 0))
         annual_insurance_amount = float(data.get("annual_insurance_amount", 0))
-        
+
         if tax_method == "amount" and annual_tax_amount < 0:
-            raise ValidationError("Annual tax amount cannot be negative", field="annual_tax_amount", value=annual_tax_amount)
+            raise ValidationError(
+                "Annual tax amount cannot be negative",
+                field="annual_tax_amount",
+                value=annual_tax_amount,
+            )
         if insurance_method == "amount" and annual_insurance_amount < 0:
-            raise ValidationError("Annual insurance amount cannot be negative", field="annual_insurance_amount", value=annual_insurance_amount)
-            
+            raise ValidationError(
+                "Annual insurance amount cannot be negative",
+                field="annual_insurance_amount",
+                value=annual_insurance_amount,
+            )
+
     except (ValueError, TypeError) as e:
         raise ValidationError(f"Invalid numeric value provided: {str(e)}")
-        
+
     # Parse loan_type from request
-    loan_type = request.json.get('loan_type', 'conventional').lower()
+    loan_type = request.json.get("loan_type", "conventional").lower()
     app.logger.info(f"Request for loan_type: {loan_type}")
-    
+
     # Use shared utility to parse transaction type (default to PURCHASE for this route)
     transaction_type_enum = parse_transaction_type(data, TRANSACTION_TYPE.PURCHASE)
     app.logger.info(f"Using transaction type: {transaction_type_enum}")
-    
+
     monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
     seller_credit = float(data.get("seller_credit", 0))
     lender_credit = float(data.get("lender_credit", 0))
@@ -450,29 +499,32 @@ def max_seller_contribution_api():
 def parse_transaction_type(request_data, default_type=TRANSACTION_TYPE.PURCHASE):
     """
     Parse transaction_type from request data and convert to enum.
-    
+
     Args:
         request_data: The JSON data from the request
         default_type: Default transaction type to use if not specified
-        
+
     Returns:
         TRANSACTION_TYPE enum value
     """
-    transaction_type = request_data.get('transaction_type', '').lower()
+    transaction_type = request_data.get("transaction_type", "").lower()
     if not transaction_type:
         transaction_type = default_type.value
-    
+
     # Map the transaction_type string to enum value
     try:
         transaction_type_enum = TRANSACTION_TYPE(transaction_type)
         app.logger.info(f"Mapped transaction_type to enum: {transaction_type_enum}")
         return transaction_type_enum
     except ValueError:
-        app.logger.warning(f"Invalid transaction_type: {transaction_type}, defaulting to {default_type}")
+        app.logger.warning(
+            f"Invalid transaction_type: {transaction_type}, defaulting to {default_type}"
+        )
         return default_type
 
 
 # --- Add refinance calculation API endpoint ---
+
 
 @app.route("/refinance", methods=["POST"])
 def refinance():
@@ -490,21 +542,21 @@ def refinance():
 
         # Create a complete set of validated parameters to pass to the calculator
         validated_params = {}
-        
+
         try:
             # Function to safely convert values with detailed error logging
             def validate_param(key, default_value=0, converter=float, required=False):
                 value = data.get(key)
                 app.logger.info(f"Processing parameter {key}: {repr(value)}")
-                
+
                 # Handle empty strings and None values
-                if value is None or value == '' or (isinstance(value, str) and value.strip() == ''):
+                if value is None or value == "" or (isinstance(value, str) and value.strip() == ""):
                     if required:
                         app.logger.warning(f"Required parameter {key} is missing or empty")
                         raise ValueError(f"Required parameter {key} is missing or empty")
                     app.logger.info(f"Using default for {key}: {default_value}")
                     return default_value
-                
+
                 try:
                     converted = converter(value)
                     app.logger.info(f"Converted {key}: {converted}")
@@ -514,70 +566,95 @@ def refinance():
                     if required:
                         raise ValueError(f"Invalid value for {key}: {repr(value)}. Error: {str(e)}")
                     return default_value
-            
+
             # Validate all parameters
             validated_params["appraised_value"] = validate_param("appraised_value", required=True)
-            validated_params["original_loan_balance"] = validate_param("original_loan_balance", required=True)
-            validated_params["original_interest_rate"] = validate_param("original_interest_rate", required=True)
+            validated_params["original_loan_balance"] = validate_param(
+                "original_loan_balance", required=True
+            )
+            validated_params["original_interest_rate"] = validate_param(
+                "original_interest_rate", required=True
+            )
             validated_params["original_loan_term"] = validate_param("original_loan_term", 30, int)
             validated_params["use_manual_balance"] = data.get("use_manual_balance", False)
-            validated_params["manual_current_balance"] = validate_param("manual_current_balance", 0, float)
+            validated_params["manual_current_balance"] = validate_param(
+                "manual_current_balance", 0, float
+            )
             cash_option_value = data.get("cash_option", "finance_all")
             # Handle empty string as default to finance_all
-            validated_params["cash_option"] = cash_option_value if cash_option_value else "finance_all"
+            validated_params["cash_option"] = (
+                cash_option_value if cash_option_value else "finance_all"
+            )
             validated_params["target_ltv_value"] = validate_param("target_ltv_value", 80, float)
-            
+            validated_params["cash_back_amount"] = validate_param("cash_back_amount", 0, float)
+
             # Handle date with special case
             original_closing_date = data.get("original_closing_date")
             if not original_closing_date:
-                original_closing_date = datetime.now().strftime('%Y-%m-%d')
+                original_closing_date = datetime.now().strftime("%Y-%m-%d")
                 app.logger.info(f"Using today as original_closing_date: {original_closing_date}")
             validated_params["original_closing_date"] = original_closing_date
-            
-            validated_params["new_interest_rate"] = validate_param("new_interest_rate", required=True)
+
+            validated_params["new_interest_rate"] = validate_param(
+                "new_interest_rate", required=True
+            )
             validated_params["new_loan_term"] = validate_param("new_loan_term", 30, int)
-            
+
             # We no longer need to validate closing_costs or new_loan_amount
             # These will be calculated automatically by the calculator
-            
+
             # Prepaid calculation parameters
-            validated_params["new_closing_date"] = data.get("new_closing_date", datetime.now().strftime('%Y-%m-%d'))
+            validated_params["new_closing_date"] = data.get(
+                "new_closing_date", datetime.now().strftime("%Y-%m-%d")
+            )
             validated_params["annual_taxes"] = validate_param("annual_taxes", required=True)
             validated_params["annual_insurance"] = validate_param("annual_insurance", required=True)
             validated_params["monthly_hoa_fee"] = validate_param("monthly_hoa_fee", 0, float)
-            validated_params["extra_monthly_savings"] = validate_param("extra_monthly_savings", 0, float)
-            validated_params["refinance_lender_credit"] = validate_param("refinance_lender_credit", 0, float)
+            validated_params["extra_monthly_savings"] = validate_param(
+                "extra_monthly_savings", 0, float
+            )
+            validated_params["refinance_lender_credit"] = validate_param(
+                "refinance_lender_credit", 0, float
+            )
             validated_params["tax_escrow_months"] = validate_param("tax_escrow_months", 3, int)
-            validated_params["insurance_escrow_months"] = validate_param("insurance_escrow_months", 2, int)
-            
+            validated_params["insurance_escrow_months"] = validate_param(
+                "insurance_escrow_months", 2, int
+            )
+
             # Zero cash to close mode
             validated_params["zero_cash_to_close"] = data.get("zero_cash_to_close", False)
-            
+
             # Optional parameters
             validated_params["new_discount_points"] = validate_param("new_discount_points", 0)
-            
+
             # New refinance parameters
             validated_params["loan_type"] = data.get("loan_type", "conventional").lower()
             validated_params["refinance_type"] = data.get("refinance_type", "rate_term").lower()
-            
+
             # Validate loan type
             valid_loan_types = ["conventional", "fha", "va", "usda"]
             if validated_params["loan_type"] not in valid_loan_types:
-                raise ValueError(f"Invalid loan type: {validated_params['loan_type']}. Must be one of: {valid_loan_types}")
-            
-            # Validate refinance type  
+                raise ValueError(
+                    f"Invalid loan type: {validated_params['loan_type']}. Must be one of: {valid_loan_types}"
+                )
+
+            # Validate refinance type
             valid_refinance_types = ["rate_term", "cash_out", "streamline"]
             if validated_params["refinance_type"] not in valid_refinance_types:
-                raise ValueError(f"Invalid refinance type: {validated_params['refinance_type']}. Must be one of: {valid_refinance_types}")
-            
+                raise ValueError(
+                    f"Invalid refinance type: {validated_params['refinance_type']}. Must be one of: {valid_refinance_types}"
+                )
+
             # Handle streamline refinance special cases
             if validated_params["refinance_type"] == "streamline":
                 # For streamline refinances, appraisal may not be required
                 if validated_params["loan_type"] in ["usda", "fha", "va"]:
                     # If no appraised value provided for streamline, use original loan balance as proxy
                     if validated_params["appraised_value"] <= 0:
-                        validated_params["appraised_value"] = validated_params["original_loan_balance"] * 1.2  # Assume 20% equity
-            
+                        validated_params["appraised_value"] = (
+                            validated_params["original_loan_balance"] * 1.2
+                        )  # Assume 20% equity
+
             # Remove closing costs and total closing costs parameters
             # These will be calculated automatically by the calculator
             if "closing_costs" in validated_params:
@@ -586,18 +663,31 @@ def refinance():
                 del validated_params["total_closing_costs"]
             if "financed_closing_costs" in validated_params:
                 del validated_params["financed_closing_costs"]
-            
+
             # Final validation checks
             if validated_params["appraised_value"] <= 0:
                 app.logger.error("Appraised value must be > 0")
-                return jsonify({"success": False, "error": "Appraised value must be greater than zero"}), 400
-                
+                return (
+                    jsonify(
+                        {"success": False, "error": "Appraised value must be greater than zero"}
+                    ),
+                    400,
+                )
+
             if validated_params["original_loan_balance"] <= 0:
                 app.logger.error("Original loan balance must be > 0")
-                return jsonify({"success": False, "error": "Original loan balance must be greater than zero"}), 400
-                
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "error": "Original loan balance must be greater than zero",
+                        }
+                    ),
+                    400,
+                )
+
             app.logger.info(f"Final validated parameters: {validated_params}")
-                
+
         except ValueError as e:
             app.logger.error(f"Parameter validation error: {str(e)}")
             return jsonify({"success": False, "error": str(e)}), 400
@@ -609,18 +699,17 @@ def refinance():
         # Parse transaction type (default to REFINANCE for this route)
         transaction_type_enum = parse_transaction_type(data, TRANSACTION_TYPE.REFINANCE)
         app.logger.info(f"Using transaction type: {transaction_type_enum}")
-        
+
         # Calculate refinance with validated parameters
         calculator_instance = MortgageCalculator()
         try:
             app.logger.info("Calling calculate_refinance with validated parameters")
             # The transaction_type is now explicitly passed from our utility function
             result = calculator_instance.calculate_refinance(
-                **validated_params,
-                transaction_type=transaction_type_enum
+                **validated_params, transaction_type=transaction_type_enum
             )
             app.logger.info("Refinance calculation success")
-            
+
             # Add transaction_type to result for consistent frontend handling
             if "loan_details" not in result:
                 result["loan_details"] = {}
@@ -628,36 +717,48 @@ def refinance():
         except Exception as calc_error:
             app.logger.error(f"Error in calculate_refinance: {str(calc_error)}")
             app.logger.error(traceback.format_exc())
-            return jsonify({"success": False, "error": f"Calculation error: {str(calc_error)}"}), 400
-        
+            return (
+                jsonify({"success": False, "error": f"Calculation error: {str(calc_error)}"}),
+                400,
+            )
+
         # The closing costs are now calculated by the calculator and included in the result
         # We don't need to add any additional structure as the calculator already provides
         # detailed closing costs in the closing_costs_details field
         app.logger.info(f"Closing costs details: {result.get('closing_costs_details', {})}")
-        
+
         # For backward compatibility, ensure we have a structured closing_costs field
-        if 'closing_costs' not in result and 'total_closing_costs' in result:
-            result['closing_costs'] = {
-                'total': result['total_closing_costs'],
-                'financed_amount': result['financed_closing_costs'],
-                'cash_to_close': result['cash_to_close'],
+        if "closing_costs" not in result and "total_closing_costs" in result:
+            result["closing_costs"] = {
+                "total": result["total_closing_costs"],
+                "financed_amount": result["financed_closing_costs"],
+                "cash_to_close": result["cash_to_close"],
                 # Add default line items based on the closing_costs_details
-                'appraisal_fee': result.get('closing_costs_details', {}).get('appraisal_fee', 675),
-                'credit_report_fee': result.get('closing_costs_details', {}).get('credit_report_fee', 249),
-                'processing_fee': result.get('closing_costs_details', {}).get('processing_fee', 575),
-                'underwriting_fee': result.get('closing_costs_details', {}).get('underwriting_fee', 675),
-                'title_fees': result.get('closing_costs_details', {}).get('lender_title_insurance', 825),
-                'recording_fee': result.get('closing_costs_details', {}).get('recording_fee', 60),
-                'other_fees': result.get('closing_costs_details', {}).get('other_fees', 0)
-        }
-        
+                "appraisal_fee": result.get("closing_costs_details", {}).get("appraisal_fee", 675),
+                "credit_report_fee": result.get("closing_costs_details", {}).get(
+                    "credit_report_fee", 249
+                ),
+                "processing_fee": result.get("closing_costs_details", {}).get(
+                    "processing_fee", 575
+                ),
+                "underwriting_fee": result.get("closing_costs_details", {}).get(
+                    "underwriting_fee", 675
+                ),
+                "title_fees": result.get("closing_costs_details", {}).get(
+                    "lender_title_insurance", 825
+                ),
+                "recording_fee": result.get("closing_costs_details", {}).get("recording_fee", 60),
+                "other_fees": result.get("closing_costs_details", {}).get("other_fees", 0),
+            }
+
         # The new_loan_amount is calculated automatically by the calculator and included in the result
-        app.logger.info(f"new_loan_amount in response: {result.get('new_loan_amount', 'not found')}")
-            
+        app.logger.info(
+            f"new_loan_amount in response: {result.get('new_loan_amount', 'not found')}"
+        )
+
         # Log the full result for debugging
         app.logger.info(f"Final refinance result: {result}")
-        
-        
+
         app.logger.info("Refinance calculation complete. Returning result")
         return jsonify({"success": True, "result": result})
     except Exception as e:
@@ -700,6 +801,7 @@ app.config_manager = config_manager
 
 logger.debug("Starting route definitions")
 
+
 # Main calculator route
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -709,9 +811,14 @@ def index():
     # Print out the template folder and absolute path for index.html for debugging
     app.logger.info(f"Flask template_folder: {app.template_folder}")
     import os
-    template_abs_path = os.path.abspath(os.path.join(app.template_folder or 'templates', 'index.html'))
+
+    template_abs_path = os.path.abspath(
+        os.path.join(app.template_folder or "templates", "index.html")
+    )
     app.logger.warning(f"[DEBUG] Attempting to render template at: {template_abs_path}")
-    app.logger.info(f"[DEBUG] Absolute path of index.html template being rendered: {template_abs_path}")
+    app.logger.info(
+        f"[DEBUG] Absolute path of index.html template being rendered: {template_abs_path}"
+    )
 
     # If it's a POST request, redirect to calculate endpoint
     if request.method == "POST":

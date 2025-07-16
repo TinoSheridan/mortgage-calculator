@@ -689,6 +689,14 @@
                             </div>
                             <div class="form-text text-muted ms-4 mb-2">Ideal for eliminating mortgage insurance at 80% LTV</div>
 
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="cash_option" value="cash_back" id="cash_back">
+                                <label class="form-check-label" for="cash_back">
+                                    Desired cash back (cash-out refinance)
+                                </label>
+                            </div>
+                            <div class="form-text text-muted ms-4 mb-2">Specify how much cash you want to receive at closing</div>
+
                         </div>
 
                         <!-- Target LTV Input -->
@@ -696,6 +704,13 @@
                             <label for="target_ltv_value" class="form-label">Target LTV (%)</label>
                             <input type="number" class="form-control" id="target_ltv_value" name="target_ltv_value" step="0.1" min="50" max="100" placeholder="80">
                             <div class="form-text text-muted">Enter your desired loan-to-value ratio (80% eliminates mortgage insurance)</div>
+                        </div>
+
+                        <!-- Cash Back Input -->
+                        <div class="form-group mb-1" id="cash_back_group" style="display: none;">
+                            <label for="cash_back_amount" class="form-label">Cash Back Amount ($)</label>
+                            <input type="number" class="form-control" id="cash_back_amount" name="cash_back_amount" step="100" min="0" placeholder="10000">
+                            <div class="form-text text-muted">Enter the cash amount you want to receive at closing</div>
                         </div>
 
                     </div>
@@ -1849,7 +1864,7 @@
         // Handle VA loan type selection to show/hide VA options
         const loanTypeSelect = document.getElementById('loan_type');
         const vaOptionsDiv = document.getElementById('vaOptions');
-        
+
         if (loanTypeSelect && vaOptionsDiv) {
             function toggleVAOptions() {
                 if (loanTypeSelect.value === 'va') {
@@ -1858,10 +1873,10 @@
                     vaOptionsDiv.style.display = 'none';
                 }
             }
-            
+
             // Add event listener for changes
             loanTypeSelect.addEventListener('change', toggleVAOptions);
-            
+
             // Initialize on page load
             toggleVAOptions();
         }

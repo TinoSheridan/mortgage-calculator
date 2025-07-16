@@ -20,14 +20,14 @@ export class PurchaseResultRenderer {
             monthlyPayment: document.getElementById('totalMonthlyPayment'),
             loanAmount: document.getElementById('loanAmount'),
             downPayment: document.getElementById('downPaymentAmount'),
-            
+
             // Monthly breakdown
             monthlyMortgage: document.getElementById('principalAndInterest'),
             monthlyTax: document.getElementById('propertyTax'),
             monthlyInsurance: document.getElementById('homeInsurance'),
             monthlyPmi: document.getElementById('pmi'),
             monthlyHoa: document.getElementById('hoaFee'),
-            
+
             // Loan details
             totalCashNeeded: document.getElementById('totalCashToClose'),
             ltvRatio: document.getElementById('ltv'),
@@ -50,7 +50,7 @@ export class PurchaseResultRenderer {
             this.updateLoanDetails(data);
             this.updateTables(data);
             this.updateSellerContributionInfo(data);
-            
+
             console.log('Purchase results updated successfully');
         } catch (error) {
             console.error('Error updating purchase results:', error);
@@ -67,18 +67,18 @@ export class PurchaseResultRenderer {
             down_payment: data.down_payment,
             loan_details: data.loan_details
         });
-        
+
         // Main monthly payment
         safelyUpdateElement(this.resultElements.monthlyPayment, formatCurrency(data.monthly_payment));
-        
+
         // Loan details - update both sets of elements
         safelyUpdateElement(this.resultElements.loanAmount, formatCurrency(data.loan_amount, { isLoanAmount: true }));
         safelyUpdateElement(this.resultElements.downPayment, formatDownPayment(data.down_payment));
-        
+
         // Also update the Loan Details card elements
         safelyUpdateElement('purchasePrice', formatPurchasePrice(data.loan_details?.purchase_price || 0));
         safelyUpdateElement('loanAmount', formatCurrency(data.loan_amount, { isLoanAmount: true }));
-        
+
         // Down payment with percentage (special handling for nested span)
         const downPaymentElement = document.getElementById('downPaymentAmount');
         const downPaymentPercentageElement = document.getElementById('downPaymentPercentage');
@@ -90,22 +90,22 @@ export class PurchaseResultRenderer {
         } else {
             console.error('downPaymentAmount element not found');
         }
-        
+
         // Also update the percentage element directly if it exists
         if (downPaymentPercentageElement) {
             downPaymentPercentageElement.textContent = `${data.loan_details?.down_payment_percentage ?? 20}%`;
         }
-        
+
         safelyUpdateElement('interestRate', formatPercentage(data.loan_details?.interest_rate || 0));
         safelyUpdateElement('loanTerm', `${data.loan_details?.loan_term_years || 0} years`);
         safelyUpdateElement('loanType', data.loan_details?.loan_type || 'Conventional');
         safelyUpdateElement('propertyType', 'Single Family Home'); // Default property type
-        
+
         // Format closing date if available
         const closingDate = data.loan_details?.closing_date || new Date().toISOString().split('T')[0];
         const formattedDate = new Date(closingDate).toLocaleDateString('en-US', {
             year: 'numeric',
-            month: 'long', 
+            month: 'long',
             day: 'numeric'
         });
         safelyUpdateElement('closingDate', formattedDate);
@@ -117,7 +117,7 @@ export class PurchaseResultRenderer {
      */
     updateMonthlyBreakdown(data) {
         const breakdown = data.monthly_breakdown || {};
-        
+
         safelyUpdateElement(this.resultElements.monthlyMortgage, formatCurrency(breakdown.principal_interest));
         safelyUpdateElement(this.resultElements.monthlyTax, formatCurrency(breakdown.property_tax));
         safelyUpdateElement(this.resultElements.monthlyInsurance, formatCurrency(breakdown.home_insurance));
@@ -139,7 +139,7 @@ export class PurchaseResultRenderer {
      */
     updateLoanDetails(data) {
         const loanDetails = data.loan_details || {};
-        
+
         // LTV Ratio
         if (loanDetails.ltv_ratio !== undefined) {
             safelyUpdateElement(this.resultElements.ltvRatio, formatPercentage(loanDetails.ltv_ratio));
@@ -152,16 +152,16 @@ export class PurchaseResultRenderer {
      */
     updateSellerContributionInfo(data) {
         const loanDetails = data.loan_details || {};
-        
+
         // Max seller contribution with descriptive message
         if (loanDetails.max_seller_contribution !== undefined) {
             const maxAllowable = loanDetails.max_seller_contribution;
-            
+
             // Calculate total closing costs + prepaid
             const closingCostsTotal = data.closing_costs?.total || 0;
             const prepaidTotal = data.prepaids?.total || 0;
             const totalCostsAndPrepaid = closingCostsTotal + prepaidTotal;
-            
+
             // Debug logging to verify calculation
             console.log('Seller credit calculation debug:', {
                 closingCostsTotal,
@@ -169,15 +169,15 @@ export class PurchaseResultRenderer {
                 totalCostsAndPrepaid,
                 maxAllowable
             });
-            
+
             // Create descriptive message
             let message = `Max allowable seller credit equals ${formatCurrency(maxAllowable)}`;
-            
+
             // Add conditional message if total costs + prepaid < max allowable
             if (totalCostsAndPrepaid < maxAllowable && totalCostsAndPrepaid > 0) {
                 message += `. Max allowed for this scenario equals ${formatCurrency(totalCostsAndPrepaid)}`;
             }
-            
+
             safelyUpdateElement(this.resultElements.maxSellerContribution, message);
         }
 
@@ -232,7 +232,7 @@ export class PurchaseResultRenderer {
         const element = document.getElementById(elementId);
         if (element && value !== undefined && value !== null) {
             let formattedValue = value;
-            
+
             switch (formatter) {
                 case 'formatCurrency':
                     formattedValue = formatCurrency(value);
@@ -246,7 +246,7 @@ export class PurchaseResultRenderer {
                 default:
                     formattedValue = String(value);
             }
-            
+
             element.textContent = formattedValue;
         }
     }
@@ -260,7 +260,7 @@ export class PurchaseResultRenderer {
                 element.textContent = '';
             }
         });
-        
+
         console.log('Purchase results cleared');
     }
 
@@ -294,7 +294,7 @@ export class PurchaseResultRenderer {
     validateResultData(data) {
         const requiredFields = [
             'monthly_payment',
-            'loan_amount', 
+            'loan_amount',
             'down_payment',
             'total_cash_needed'
         ];

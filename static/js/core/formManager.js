@@ -65,6 +65,7 @@ export class FormManager {
      * @returns {Object} Refinance form data
      */
     getRefinanceFormData() {
+        const cashOption = this.getSelectedValue('cash_option');
         const formData = {
             appraised_value: safeNumber(this.getValueById('appraised_value')),
             original_loan_balance: safeNumber(this.getValueById('original_loan_balance')),
@@ -73,8 +74,7 @@ export class FormManager {
             original_closing_date: this.getValueById('original_closing_date'),
             use_manual_balance: this.getCheckboxValue('use_manual_balance'),
             manual_current_balance: safeNumber(this.getValueById('manual_current_balance')),
-            cash_option: this.getSelectedValue('cash_option'),
-            target_ltv_value: safeNumber(this.getValueById('target_ltv_value')),
+            cash_option: cashOption,
             new_interest_rate: safeNumber(this.getValueById('new_interest_rate')),
             new_loan_term: safeNumber(this.getValueById('new_loan_term')),
             new_closing_date: this.getValueById('new_closing_date'),
@@ -90,6 +90,16 @@ export class FormManager {
             refinance_type: this.getSelectedValue('refinance_type'),
             zero_cash_to_close: this.getCheckboxValue('zero_cash_to_close'),
         };
+
+        // Only include target_ltv_value if cash_option is 'target_ltv'
+        if (cashOption === 'target_ltv') {
+            formData.target_ltv_value = safeNumber(this.getValueById('target_ltv_value'));
+        }
+
+        // Only include cash_back_amount if cash_option is 'cash_back'
+        if (cashOption === 'cash_back') {
+            formData.cash_back_amount = safeNumber(this.getValueById('cash_back_amount'));
+        }
 
         return formData;
     }
@@ -144,7 +154,7 @@ export class FormManager {
         // Business logic validation
         const downPaymentAmount = (formData.purchase_price * formData.down_payment_percentage) / 100;
         const loanAmount = formData.purchase_price - downPaymentAmount;
-        
+
         if (loanAmount <= 0) {
             errors.push('Loan amount must be greater than 0');
         }
@@ -210,11 +220,20 @@ export class FormManager {
         if (formData.cash_option === 'target_ltv') {
             // Get max LTV based on loan type and refinance type
             const maxLtv = this.getMaxLtvForLoanType(formData.loan_type, formData.refinance_type);
-            
+
             if (!formData.target_ltv_value || formData.target_ltv_value <= 0) {
                 errors.push('Target LTV must be greater than 0%');
             } else if (formData.target_ltv_value > maxLtv) {
                 errors.push(`Target LTV cannot exceed ${maxLtv}% for ${formData.loan_type} ${formData.refinance_type} refinance`);
+            }
+        }
+
+        // Cash back validation
+        if (formData.cash_option === 'cash_back') {
+            if (!formData.cash_back_amount || formData.cash_back_amount <= 0) {
+                errors.push('Cash back amount must be greater than $0');
+            } else if (formData.cash_back_amount > 1000000) {
+                errors.push('Cash back amount cannot exceed $1,000,000');
             }
         }
 
@@ -266,7 +285,7 @@ export class FormManager {
         if (element) {
             return element.value;
         }
-        
+
         // If not found by ID, try to find checked radio button by name
         const radioElement = document.querySelector(`input[name="${id}"]:checked`);
         return radioElement ? radioElement.value : '';
@@ -339,7 +358,7 @@ export class FormManager {
                 'streamline': 100.0
             }
         };
-        
+
         return maxLtvLimits[loanType]?.[refinanceType] || 95.0;
     }
 
@@ -358,12 +377,12 @@ export class FormManager {
     initializeEventListeners() {
         // Add input validation listeners
         this.addInputValidationListeners();
-        
+
         // Add form submission prevention (handled by calculator)
         if (this.purchaseForm) {
             this.purchaseForm.addEventListener('submit', (e) => e.preventDefault());
         }
-        
+
         if (this.refinanceForm) {
             this.refinanceForm.addEventListener('submit', (e) => e.preventDefault());
         }
@@ -375,7 +394,7 @@ export class FormManager {
     addInputValidationListeners() {
         // Add listeners for numeric inputs to ensure valid ranges
         const numericInputs = document.querySelectorAll('input[type="number"]');
-        
+
         numericInputs.forEach(input => {
             input.addEventListener('blur', (e) => {
                 this.validateNumericInput(e.target);
@@ -394,7 +413,7 @@ export class FormManager {
 
         if (input.value && (isNaN(value) || (min !== null && value < min) || (max !== null && value > max))) {
             input.classList.add('is-invalid');
-            
+
             // Create or update error message
             let errorDiv = input.parentElement.querySelector('.invalid-feedback');
             if (!errorDiv) {
@@ -402,7 +421,7 @@ export class FormManager {
                 errorDiv.className = 'invalid-feedback';
                 input.parentElement.appendChild(errorDiv);
             }
-            
+
             if (isNaN(value)) {
                 errorDiv.textContent = 'Please enter a valid number';
             } else if (min !== null && value < min) {

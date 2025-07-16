@@ -3,8 +3,6 @@ from wtforms import FloatField, PasswordField, SelectField, StringField, SubmitF
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 
-
-
 class ComplianceTextForm(FlaskForm):
     """Form for managing compliance text sections."""
 

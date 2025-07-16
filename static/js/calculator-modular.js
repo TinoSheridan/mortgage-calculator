@@ -576,15 +576,20 @@ class MortgageCalculator {
     setupCashOptionsToggle() {
         const financeAllRadio = document.getElementById('finance_all');
         const targetLtvRadio = document.getElementById('target_ltv');
+        const cashBackRadio = document.getElementById('cash_back');
         const targetLtvGroup = document.getElementById('target_ltv_group');
+        const cashBackGroup = document.getElementById('cash_back_group');
         const targetLtvInput = document.getElementById('target_ltv_value');
+        const cashBackInput = document.getElementById('cash_back_amount');
 
-        if (financeAllRadio && targetLtvRadio && targetLtvGroup) {
+        if (financeAllRadio && targetLtvRadio && cashBackRadio && targetLtvGroup && cashBackGroup) {
             // Finance all costs (default)
             financeAllRadio.addEventListener('change', () => {
                 if (financeAllRadio.checked) {
                     targetLtvGroup.style.display = 'none';
+                    cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = false;
+                    if (cashBackInput) cashBackInput.required = false;
                 }
             });
 
@@ -592,7 +597,19 @@ class MortgageCalculator {
             targetLtvRadio.addEventListener('change', () => {
                 if (targetLtvRadio.checked) {
                     targetLtvGroup.style.display = 'block';
+                    cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = true;
+                    if (cashBackInput) cashBackInput.required = false;
+                }
+            });
+
+            // Cash Back
+            cashBackRadio.addEventListener('change', () => {
+                if (cashBackRadio.checked) {
+                    targetLtvGroup.style.display = 'none';
+                    cashBackGroup.style.display = 'block';
+                    if (targetLtvInput) targetLtvInput.required = false;
+                    if (cashBackInput) cashBackInput.required = true;
                 }
             });
 

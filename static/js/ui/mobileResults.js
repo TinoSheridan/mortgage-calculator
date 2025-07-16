@@ -4,15 +4,15 @@ import { formatCurrency, formatCurrencyResponsive, formatLoanAmountResponsive, i
 // Create compact mobile results summary
 export function createMobileResultsSummary(results) {
     if (!isMobile()) return null;
-    
+
     const summaryHtml = `
         <div class="results-compact">
             <div class="highlight">
                 Monthly Payment: ${formatCurrencyResponsive(results.monthly_breakdown?.total || 0)}
             </div>
             <div class="secondary">
-                P&I: ${formatCurrencyResponsive(results.monthly_breakdown?.principal_interest || 0)} • 
-                Tax: ${formatCurrencyResponsive(results.monthly_breakdown?.property_tax || 0)} • 
+                P&I: ${formatCurrencyResponsive(results.monthly_breakdown?.principal_interest || 0)} •
+                Tax: ${formatCurrencyResponsive(results.monthly_breakdown?.property_tax || 0)} •
                 Insurance: ${formatCurrencyResponsive(results.monthly_breakdown?.home_insurance || 0)}
                 ${results.monthly_breakdown?.mortgage_insurance > 0 ? ` • PMI: ${formatCurrencyResponsive(results.monthly_breakdown.mortgage_insurance)}` : ''}
             </div>
@@ -23,14 +23,14 @@ export function createMobileResultsSummary(results) {
             ` : ''}
         </div>
     `;
-    
+
     return summaryHtml;
 }
 
 // Create compact table for mobile
 export function createMobileTable(data, title) {
     if (!isMobile()) return null;
-    
+
     const rows = Object.entries(data)
         .filter(([key, value]) => value !== 0 && value !== null && value !== undefined)
         .map(([key, value]) => {
@@ -42,7 +42,7 @@ export function createMobileTable(data, title) {
                 </div>
             `;
         }).join('');
-    
+
     return `
         <div class="mobile-table">
             <div class="mobile-table-header">${title}</div>
@@ -54,11 +54,11 @@ export function createMobileTable(data, title) {
 // Optimize existing tables for mobile
 export function optimizeTablesForMobile() {
     if (!isMobile()) return;
-    
+
     // Add mobile classes to tables
     document.querySelectorAll('.table').forEach(table => {
         table.classList.add('table-mobile-optimized');
-        
+
         // Simplify table structure for mobile
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(row => {
@@ -66,7 +66,7 @@ export function optimizeTablesForMobile() {
             if (cells.length >= 2) {
                 const label = cells[0].textContent.trim();
                 const value = cells[1].textContent.trim();
-                
+
                 // Shorten labels for mobile
                 if (label.length > 20) {
                     cells[0].textContent = abbreviateLabel(label);
@@ -102,7 +102,7 @@ function abbreviateLabel(label) {
         'Total Prepaid Items': 'Total Prepaids',
         'Total Cash to Close': 'Cash to Close'
     };
-    
+
     return abbreviations[label] || (label.length > 20 ? label.substring(0, 17) + '...' : label);
 }
 
@@ -129,9 +129,9 @@ function showToast(message) {
         z-index: 1000;
         font-size: 0.9rem;
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.remove();
     }, 3000);
@@ -140,16 +140,16 @@ function showToast(message) {
 // Initialize mobile optimizations
 export function initializeMobileOptimizations() {
     if (!isMobile()) return;
-    
+
     // Add mobile-specific CSS class to body
     document.body.classList.add('mobile-device');
-    
+
     // Optimize existing content
     optimizeTablesForMobile();
-    
+
     // Create action bar
     createMobileActionBar();
-    
+
     // Add viewport-specific styles
     const mobileStyles = document.createElement('style');
     mobileStyles.textContent = `
@@ -160,14 +160,14 @@ export function initializeMobileOptimizations() {
             margin-bottom: 1rem;
             overflow: hidden;
         }
-        
+
         .mobile-table-header {
             background: #f8f9fa;
             padding: 0.75rem;
             font-weight: 600;
             border-bottom: 1px solid #dee2e6;
         }
-        
+
         .mobile-table-row {
             display: flex;
             justify-content: space-between;
@@ -175,41 +175,41 @@ export function initializeMobileOptimizations() {
             padding: 0.5rem 0.75rem;
             border-bottom: 1px solid #f1f3f4;
         }
-        
+
         .mobile-table-row:last-child {
             border-bottom: none;
         }
-        
+
         .mobile-table-row .label {
             flex: 1;
             font-weight: 500;
             color: #495057;
         }
-        
+
         .mobile-table-row .value {
             font-family: 'SF Mono', Monaco, monospace;
             font-weight: 600;
             color: #198754;
         }
-        
+
         .mobile-action-bar {
             display: flex;
             justify-content: center;
             gap: 0.5rem;
         }
-        
+
         .table-mobile-optimized {
             font-size: 0.85rem;
         }
-        
+
         .table-mobile-optimized td {
             padding: 0.4rem 0.2rem;
         }
-        
+
         .toast-message {
             animation: slideUp 0.3s ease-out;
         }
-        
+
         @keyframes slideUp {
             from {
                 opacity: 0;
@@ -221,6 +221,6 @@ export function initializeMobileOptimizations() {
             }
         }
     `;
-    
+
     document.head.appendChild(mobileStyles);
 }

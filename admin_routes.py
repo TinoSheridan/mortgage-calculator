@@ -7,7 +7,10 @@ import copy
 import json
 import logging
 import os
+import time
+from collections import defaultdict
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from functools import wraps
 from statistics import StatisticsManager
 
@@ -24,82 +27,83 @@ from flask import (
     url_for,
 )
 
-# Import version directly
-from VERSION import VERSION
-
 import admin_logic
 from admin_logic import (
-    add_template_logic,
-    edit_template_logic,
-    delete_template_logic,
-    add_fee_logic,
-    edit_fee_logic,
-    delete_fee_logic,
     add_closing_cost_logic,
-    update_closing_cost_logic,
+    add_fee_logic,
+    add_template_logic,
     delete_closing_cost_logic,
-    update_mortgage_config_logic,
-    update_prepaid_items_logic,
+    delete_fee_logic,
+    delete_template_logic,
+    edit_fee_logic,
+    edit_template_logic,
+    update_closing_cost_logic,
     update_loan_limits_logic,
+    update_mortgage_config_logic,
     update_pmi_rates_logic,
+    update_prepaid_items_logic,
 )
 
-from decimal import Decimal, InvalidOperation
-import time
-from collections import defaultdict
+# Import version directly
+from VERSION import VERSION
 
 # Rate limiting for login attempts
 login_attempts = defaultdict(list)
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_DURATION = 300  # 5 minutes
 
+
 def is_rate_limited(ip_address):
     """Check if IP is rate limited for login attempts."""
     now = time.time()
     # Clean old attempts
-    login_attempts[ip_address] = [attempt for attempt in login_attempts[ip_address] 
-                                  if now - attempt < LOCKOUT_DURATION]
-    
+    login_attempts[ip_address] = [
+        attempt for attempt in login_attempts[ip_address] if now - attempt < LOCKOUT_DURATION
+    ]
+
     return len(login_attempts[ip_address]) >= MAX_LOGIN_ATTEMPTS
+
 
 def record_login_attempt(ip_address):
     """Record a failed login attempt."""
     login_attempts[ip_address].append(time.time())
 
+
 def log_admin_action(action, details, user="admin", ip_address=None):
     """Log admin actions for audit trail."""
     from datetime import datetime
-    
+
     audit_entry = {
         "timestamp": datetime.now().isoformat(),
         "user": user,
-        "ip_address": ip_address or request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr),
+        "ip_address": ip_address
+        or request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr),
         "action": action,
         "details": details,
-        "user_agent": request.headers.get('User-Agent', 'Unknown')
+        "user_agent": request.headers.get("User-Agent", "Unknown"),
     }
-    
+
     # Log to application logger
     logger.info(f"AUDIT: {action} by {user} from {audit_entry['ip_address']} - {details}")
-    
+
     # Store in config manager if available
     try:
-        if hasattr(current_app, 'config_manager'):
+        if hasattr(current_app, "config_manager"):
             current_app.config_manager.add_change(
-                description=f"AUDIT: {action}",
-                details=details,
-                user=user
+                description=f"AUDIT: {action}", details=details, user=user
             )
     except Exception as e:
         logger.error(f"Failed to store audit log: {str(e)}")
-    
+
     return audit_entry
+
 
 def create_error_response(message, status_code=400, log_message=None):
     """Create standardized error response."""
     if log_message:
         logger.error(log_message)
     return jsonify({"success": False, "error": message}), status_code
+
 
 def create_success_response(data=None, message="Operation completed successfully"):
     """Create standardized success response."""
@@ -108,15 +112,16 @@ def create_success_response(data=None, message="Operation completed successfully
         response["data"] = data
     return jsonify(response)
 
+
 def validate_config_update(config_data, config_type="general"):
     """Validate configuration data before saving."""
     if not isinstance(config_data, dict):
         return False, "Configuration data must be a dictionary"
-    
+
     # Basic structure validation
     if not config_data:
         return False, "Configuration data cannot be empty"
-    
+
     # Type-specific validation
     if config_type == "closing_costs":
         required_keys = ["type", "value", "calculation_base"]
@@ -128,20 +133,21 @@ def validate_config_update(config_data, config_type="general"):
                     return False, f"Cost '{cost_name}' missing required field '{key}'"
             if cost_data["type"] not in ["fixed", "percentage"]:
                 return False, f"Cost '{cost_name}' has invalid type"
-    
+
     elif config_type == "pmi_rates":
         for loan_type, rates in config_data.items():
             if not isinstance(rates, dict):
                 return False, f"PMI rates for '{loan_type}' must be a dictionary"
-    
+
     elif config_type == "counties":
         for county, data in config_data.items():
             if not isinstance(data, dict):
                 return False, f"County '{county}' data must be a dictionary"
             if "tax_rate" not in data:
                 return False, f"County '{county}' missing tax_rate"
-    
+
     return True, None
+
 
 # Create a Blueprint for admin routes
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -152,8 +158,6 @@ logger = logging.getLogger(__name__)
 # Constants
 CLOSING_COSTS_FILE = "config/closing_costs.json"
 SELLER_CONTRIBUTIONS_FILE = "config/seller_contributions.json"
-
-
 
 
 def load_templates():
@@ -194,7 +198,7 @@ def save_fees(fees):
     if not is_valid:
         logger.error(f"Closing costs validation failed: {error_msg}")
         raise ValueError(f"Validation failed: {error_msg}")
-    
+
     current_app.config_manager.config["closing_costs"] = fees
     current_app.config_manager.save_config()
 
@@ -212,25 +216,27 @@ def get_admin_context(**kwargs):
 def admin_required(f):
     """
     Decorator that requires admin authentication for a route with session timeout handling.
-    
+
     Features:
     - Checks if user is logged in
     - Implements 30-minute inactivity timeout
     - Updates last activity timestamp on each request
     - Redirects to login page if authentication fails
     """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Check if user is logged in
         if not session.get("admin_logged_in"):
             logger.warning(f"Unauthorized admin access attempt to {request.path}")
             return redirect(url_for("admin.login"))
-        
+
         # Check session timeout (30 minutes of inactivity)
         from datetime import datetime, timedelta
+
         last_activity = session.get("admin_last_activity")
         session_timeout = timedelta(minutes=30)
-        
+
         if last_activity:
             try:
                 last_activity_time = datetime.fromisoformat(last_activity)
@@ -244,12 +250,13 @@ def admin_required(f):
                 logger.warning("Invalid session timestamp detected, clearing session")
                 session.clear()
                 return redirect(url_for("admin.login"))
-        
+
         # Update last activity time
         session["admin_last_activity"] = datetime.now().isoformat()
         session.permanent = True
-        
+
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -259,7 +266,7 @@ def test_login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        
+
         # Simple credential check
         if username == "admin" and password == "secure123!":
             session["admin_logged_in"] = True
@@ -267,14 +274,15 @@ def test_login():
             return redirect(url_for("admin.dashboard"))
         else:
             flash("Invalid credentials", "error")
-    
+
     return render_template("admin/login.html")
+
 
 @admin_bp.route("/login", methods=["GET", "POST"])
 def login():
     """
     Admin login page and authentication handler.
-    
+
     Security features:
     - Rate limiting (5 attempts per 5 minutes per IP)
     - Input validation and length checks
@@ -283,21 +291,21 @@ def login():
     """
     if request.method == "POST":
         # Check rate limiting
-        client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+        client_ip = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr)
         if is_rate_limited(client_ip):
             logger.warning(f"Rate limited login attempt from IP: {client_ip}")
             flash("Too many failed login attempts. Please try again in 5 minutes.", "error")
             return render_template("admin/login.html")
-        
+
         username = request.form.get("username")
         password = request.form.get("password")
-        
+
         # Basic input validation
         if not username or not password:
             logger.warning(f"Login attempt with missing credentials from IP: {client_ip}")
             flash("Username and password are required", "error")
             return render_template("admin/login.html")
-        
+
         # Prevent username enumeration by checking length
         if len(username) > 50 or len(password) > 100:
             logger.warning(f"Login attempt with excessively long credentials from IP: {client_ip}")
@@ -308,16 +316,16 @@ def login():
         # Get admin credentials from environment variables (more secure)
         valid_username = os.getenv("ADMIN_USERNAME")
         valid_password = os.getenv("ADMIN_PASSWORD")
-        
+
         # Fallback to config only if env vars not set (for backward compatibility)
         if not valid_username or not valid_password:
             admin_config = current_app.config_manager.config.get("admin", {})
             valid_username = admin_config.get("username")
             valid_password = admin_config.get("password")
-        
+
         # SECURITY: Never log passwords or credentials
         logger.info(f"Admin login attempt for user: {username}")
-        
+
         # Validate credentials exist
         if not valid_username or not valid_password:
             logger.error("Admin credentials not configured - access denied")
@@ -327,11 +335,12 @@ def login():
         if username == valid_username and password == valid_password:
             # Set session variable and ensure it persists
             from datetime import datetime
+
             session["admin_logged_in"] = True
             session["admin_last_activity"] = datetime.now().isoformat()
             session.permanent = True
             logger.info(f"Successful admin login for user: {username}")
-            
+
             # Audit log successful login (temporarily disabled for debugging)
             # log_admin_action("LOGIN_SUCCESS", f"Admin user {username} logged in successfully", user=username)
 
@@ -341,10 +350,10 @@ def login():
         # SECURITY: Log failed login attempts and record for rate limiting
         logger.warning(f"Failed admin login attempt for user: {username} from IP: {client_ip}")
         record_login_attempt(client_ip)
-        
+
         # Audit log failed login (temporarily disabled for debugging)
         # log_admin_action("LOGIN_FAILED", f"Failed login attempt for user: {username}", user=username)
-        
+
         error = "Invalid credentials"
         flash(error, "error")
         return render_template("admin/login.html", error=error)
@@ -358,7 +367,7 @@ def logout():
     # Audit log logout before clearing session
     if session.get("admin_logged_in"):
         log_admin_action("LOGOUT", "Admin user logged out")
-    
+
     session.pop("admin_logged_in", None)
     session.pop("admin_last_activity", None)
     flash("Successfully logged out", "success")
@@ -454,8 +463,6 @@ def dashboard_data():
         )
 
 
-
-
 @admin_bp.route("/compliance")
 @admin_required
 def compliance():
@@ -493,7 +500,7 @@ def add_compliance_text():
 
     # Audit log the action
     log_admin_action("COMPLIANCE_ADD", f"Added compliance text section: {section_name}")
-    
+
     # Save updated config
     current_app.config_manager.config["compliance_text"] = compliance_text
     current_app.config_manager.save_config()
@@ -928,7 +935,9 @@ def update_prepaid_items():
     """Update prepaid items in the mortgage configuration via the admin interface."""
     data = request.get_json() or request.form.to_dict()
     config = current_app.config_manager.config
-    updated_config, error = admin_logic.update_prepaid_items_logic(config, data.get("prepaid_items"))
+    updated_config, error = admin_logic.update_prepaid_items_logic(
+        config, data.get("prepaid_items")
+    )
     if error:
         return jsonify({"success": False, "error": error}), 400
     current_app.config_manager.config = updated_config
@@ -1139,8 +1148,8 @@ def save_seller_contributions():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-
 # --- Title Insurance Configuration Routes ---
+
 
 @admin_bp.route("/title-insurance", methods=["GET"])
 @admin_required
@@ -1196,13 +1205,9 @@ def update_title_insurance_config():
                         total_tiers.append(
                             {"up_to": int(up_to_str), "rate_percentage": round(rate_value, 3)}
                         )
-                        logger.info(
-                            f"Added LTV range: {up_to_str} = {rate_value}"
-                        )
+                        logger.info(f"Added LTV range: {up_to_str} = {rate_value}")
                 except ValueError:
-                    logger.warning(
-                        f"Invalid rate value for {rate_key}: {form_data[rate_key]}"
-                    )
+                    logger.warning(f"Invalid rate value for {rate_key}: {form_data[rate_key]}")
 
         # Extract tiered rates (Lender Simultaneous)
         lender_tiers = []
@@ -1223,13 +1228,9 @@ def update_title_insurance_config():
                         lender_tiers.append(
                             {"up_to": int(up_to_str), "rate_percentage": round(rate_value, 3)}
                         )
-                        logger.info(
-                            f"Added LTV range: {up_to_str} = {rate_value}"
-                        )
+                        logger.info(f"Added LTV range: {up_to_str} = {rate_value}")
                 except ValueError:
-                    logger.warning(
-                        f"Invalid rate value for {rate_key}: {form_data[rate_key]}"
-                    )
+                    logger.warning(f"Invalid rate value for {rate_key}: {form_data[rate_key]}")
 
         # Sort tiers by 'up_to' (None/infinity last)
         total_tiers.sort(key=lambda x: x["up_to"] if x["up_to"] is not None else float("inf"))
@@ -1283,6 +1284,7 @@ def update_title_insurance_config():
 
 # --- Configuration Validation Routes ---
 
+
 @admin_bp.route("/validation")
 @admin_required
 def validation_dashboard():
@@ -1290,11 +1292,9 @@ def validation_dashboard():
     try:
         # Get validation report
         report = current_app.config_manager.get_validation_report()
-        
+
         return render_template(
-            "admin/validation.html",
-            validation_report=report,
-            **get_admin_context()
+            "admin/validation.html", validation_report=report, **get_admin_context()
         )
     except Exception as e:
         logger.error(f"Error loading validation dashboard: {e}")
@@ -1310,37 +1310,36 @@ def run_validation():
         # Run validation
         is_valid = current_app.config_manager.validate_configuration()
         report = current_app.config_manager.get_validation_report()
-        
+
         # Count errors and successes
         total_files = report.get("summary", {}).get("total_files", 0)
         valid_files = report.get("summary", {}).get("valid_files", 0)
         total_errors = report.get("summary", {}).get("total_errors", 0)
-        
+
         response_data = {
             "success": True,
             "validation_passed": is_valid,
             "total_files": total_files,
             "valid_files": valid_files,
             "total_errors": total_errors,
-            "report": report
+            "report": report,
         }
-        
+
         if is_valid:
             logger.info("Configuration validation passed")
             message = f"✅ All {total_files} configuration files are valid"
         else:
             logger.warning(f"Configuration validation failed with {total_errors} errors")
-            message = f"❌ {total_errors} validation errors found in {total_files - valid_files} files"
-        
+            message = (
+                f"❌ {total_errors} validation errors found in {total_files - valid_files} files"
+            )
+
         response_data["message"] = message
         return jsonify(response_data)
-        
+
     except Exception as e:
         logger.error(f"Error running validation: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Error running validation: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Error running validation: {str(e)}"}), 500
 
 
 @admin_bp.route("/validation/details/<filename>", methods=["GET"])
@@ -1349,28 +1348,35 @@ def validation_file_details(filename):
     """Get detailed validation information for a specific file."""
     try:
         if not current_app.config_manager._validation_enabled:
-            return jsonify({
-                "success": False,
-                "error": "Validation is disabled - jsonschema package not available"
-            }), 400
-        
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Validation is disabled - jsonschema package not available",
+                    }
+                ),
+                400,
+            )
+
         # Validate the specific file
         is_valid, errors = current_app.config_manager.validator.validate_config_file(filename)
-        
-        return jsonify({
-            "success": True,
-            "filename": filename,
-            "is_valid": is_valid,
-            "errors": errors,
-            "error_count": len(errors)
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "filename": filename,
+                "is_valid": is_valid,
+                "errors": errors,
+                "error_count": len(errors),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error getting validation details for {filename}: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Error getting validation details: {str(e)}"
-        }), 500
+        return (
+            jsonify({"success": False, "error": f"Error getting validation details: {str(e)}"}),
+            500,
+        )
 
 
 @admin_bp.route("/validation/schema/<filename>", methods=["GET"])
@@ -1379,27 +1385,17 @@ def get_config_schema(filename):
     """Get the JSON schema for a specific configuration file."""
     try:
         from config_schemas import CONFIG_SCHEMAS
-        
+
         if filename not in CONFIG_SCHEMAS:
-            return jsonify({
-                "success": False,
-                "error": f"No schema defined for {filename}"
-            }), 404
-        
+            return jsonify({"success": False, "error": f"No schema defined for {filename}"}), 404
+
         schema = CONFIG_SCHEMAS[filename]
-        
-        return jsonify({
-            "success": True,
-            "filename": filename,
-            "schema": schema
-        })
-        
+
+        return jsonify({"success": True, "filename": filename, "schema": schema})
+
     except Exception as e:
         logger.error(f"Error getting schema for {filename}: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Error getting schema: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Error getting schema: {str(e)}"}), 500
 
 
 @admin_bp.route("/validation/fix-suggestions", methods=["POST"])
@@ -1410,53 +1406,54 @@ def get_validation_fix_suggestions():
         data = request.get_json()
         filename = data.get("filename")
         error_message = data.get("error")
-        
+
         if not filename or not error_message:
-            return jsonify({
-                "success": False,
-                "error": "filename and error parameters are required"
-            }), 400
-        
+            return (
+                jsonify({"success": False, "error": "filename and error parameters are required"}),
+                400,
+            )
+
         # Generate fix suggestions based on common error patterns
         suggestions = []
-        
+
         if "required" in error_message.lower():
             suggestions.append("Add the missing required field to your configuration")
             suggestions.append("Check the field name for typos")
-            
+
         elif "type" in error_message.lower():
             suggestions.append("Check the data type - ensure numbers are not quoted")
             suggestions.append("Verify boolean values are true/false (not strings)")
-            
+
         elif "enum" in error_message.lower():
             suggestions.append("Check allowed values in the schema")
             suggestions.append("Verify the field value matches one of the permitted options")
-            
+
         elif "pattern" in error_message.lower():
-            suggestions.append("Check field name format - use letters, numbers, and underscores only")
+            suggestions.append(
+                "Check field name format - use letters, numbers, and underscores only"
+            )
             suggestions.append("Remove special characters except underscores")
-            
+
         elif "minimum" in error_message.lower() or "maximum" in error_message.lower():
             suggestions.append("Check the numeric value is within allowed range")
             suggestions.append("Ensure the value is positive if required")
-        
+
         else:
             suggestions.append("Check the configuration file format and structure")
             suggestions.append("Compare with a working configuration file")
-            
-        return jsonify({
-            "success": True,
-            "filename": filename,
-            "error": error_message,
-            "suggestions": suggestions
-        })
-        
+
+        return jsonify(
+            {
+                "success": True,
+                "filename": filename,
+                "error": error_message,
+                "suggestions": suggestions,
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error generating fix suggestions: {e}")
-        return jsonify({
-            "success": False,
-            "error": f"Error generating suggestions: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Error generating suggestions: {str(e)}"}), 500
 
 
 # --- End Configuration Validation Routes ---

@@ -874,7 +874,9 @@ class MortgageCalculator:
                 # Use purchase_price for tax calculation if available, otherwise fallback to loan_amount
                 tax_base = purchase_price if purchase_price > 0 else loan_amount
                 monthly_tax = (tax_base * annual_tax_rate / 100) / 12
-                self.logger.info(f"Calculated monthly tax for prepaids: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})")
+                self.logger.info(
+                    f"Calculated monthly tax for prepaids: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})"
+                )
 
             # Prepaid property tax is always 12 months regardless of closing date
             # Seller proration and borrower escrow credits are handled separately
@@ -918,8 +920,10 @@ class MortgageCalculator:
                 )
             else:
                 monthly_insurance = (loan_amount * annual_insurance_rate / 100) / 12
-                self.logger.info(f"Calculated monthly insurance for prepaids: ${monthly_insurance:.2f} (percentage method)")
-            
+                self.logger.info(
+                    f"Calculated monthly insurance for prepaids: ${monthly_insurance:.2f} (percentage method)"
+                )
+
             prepaid["prepaid_insurance"] = round(
                 monthly_insurance * config["months_insurance_prepaid"], 2
             )
@@ -1393,21 +1397,29 @@ class MortgageCalculator:
             # Calculate monthly tax based on method
             if tax_method == "amount" and annual_taxes and annual_taxes > 0:
                 monthly_tax = annual_taxes / 12
-                self.logger.info(f"Refinance: Using actual tax amount: ${annual_taxes:.2f}/year = ${monthly_tax:.2f}/month")
+                self.logger.info(
+                    f"Refinance: Using actual tax amount: ${annual_taxes:.2f}/year = ${monthly_tax:.2f}/month"
+                )
             else:
                 # Use percentage method
                 tax_base = appraised_value if appraised_value > 0 else loan_amount
                 monthly_tax = (tax_base * annual_tax_rate / 100) / 12
-                self.logger.info(f"Refinance: Calculated monthly tax: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})")
-            
-            # Calculate monthly insurance based on method  
+                self.logger.info(
+                    f"Refinance: Calculated monthly tax: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})"
+                )
+
+            # Calculate monthly insurance based on method
             if insurance_method == "amount" and annual_insurance and annual_insurance > 0:
                 monthly_insurance = annual_insurance / 12
-                self.logger.info(f"Refinance: Using actual insurance amount: ${annual_insurance:.2f}/year = ${monthly_insurance:.2f}/month")
+                self.logger.info(
+                    f"Refinance: Using actual insurance amount: ${annual_insurance:.2f}/year = ${monthly_insurance:.2f}/month"
+                )
             else:
                 # Use percentage method
                 monthly_insurance = (loan_amount * annual_insurance_rate / 100) / 12
-                self.logger.info(f"Refinance: Calculated monthly insurance: ${monthly_insurance:.2f} (percentage method)")
+                self.logger.info(
+                    f"Refinance: Calculated monthly insurance: ${monthly_insurance:.2f} (percentage method)"
+                )
 
             prepaid["tax_escrow"] = monthly_tax * tax_escrow_months
             prepaid["tax_escrow_months"] = tax_escrow_months
@@ -1449,6 +1461,7 @@ class MortgageCalculator:
         manual_current_balance: float = 0.0,
         cash_option: str = "finance_all",
         target_ltv_value: float = 80.0,
+        cash_back_amount: float = 0.0,
         tax_escrow_months: int = 3,
         insurance_escrow_months: int = 2,
         new_discount_points: float = 0.0,
@@ -1674,6 +1687,68 @@ class MortgageCalculator:
                             self.logger.info(
                                 f"Rate/term refinance - Target LTV: {target_ltv_value}%, New loan amount: ${new_loan_amount:.2f}, No cash needed (loan amount sufficient)"
                             )
+                elif cash_option == "cash_back":
+                    # Cash-out refinance with desired cash back amount
+                    # Force refinance_type to cash_out for proper validation
+                    refinance_type = "cash_out"
+
+                    # Calculate loan amount needed to provide desired cash back
+                    if new_closing_date:
+                        try:
+                            refinance_closing_date = datetime.strptime(
+                                new_closing_date, "%Y-%m-%d"
+                            ).date()
+                        except ValueError:
+                            refinance_closing_date = date.today()
+                    else:
+                        refinance_closing_date = date.today()
+
+                    # Calculate prepaid items first
+                    if annual_taxes is not None and annual_insurance is not None:
+                        prepaid_items = self._calculate_refinance_prepaids(
+                            loan_amount=preliminary_loan_amount,
+                            annual_taxes=annual_taxes,
+                            annual_insurance=annual_insurance,
+                            annual_interest_rate=new_interest_rate,
+                            closing_date=refinance_closing_date,
+                            tax_escrow_months=tax_escrow_months,
+                            insurance_escrow_months=insurance_escrow_months,
+                            tax_method=tax_method,
+                            insurance_method=insurance_method,
+                            annual_tax_rate=annual_tax_rate,
+                            annual_insurance_rate=annual_insurance_rate,
+                            appraised_value=appraised_value,
+                        )
+                    else:
+                        prepaid_items = self.calculate_prepaid_items(
+                            loan_amount=preliminary_loan_amount,
+                            annual_tax_rate=annual_tax_rate,
+                            annual_insurance_rate=annual_insurance_rate,
+                            annual_interest_rate=new_interest_rate,
+                            closing_date=refinance_closing_date,
+                            tax_method=tax_method,
+                            insurance_method=insurance_method,
+                            annual_tax_amount=annual_taxes or 0.0,
+                            annual_insurance_amount=annual_insurance or 0.0,
+                            purchase_price=appraised_value,
+                        )
+
+                    # Calculate new loan amount: current balance + closing costs + prepaids + cash back
+                    prepaid_total = prepaid_items.get("total", 0)
+                    new_loan_amount = (
+                        current_balance + financed_closing_costs + prepaid_total + cash_back_amount
+                    )
+                    cash_needed = -cash_back_amount  # Negative cash needed = cash back to borrower
+
+                    # Calculate cash received for cash-out refinance display
+                    total_credits = refinance_lender_credit
+                    cash_received = cash_back_amount  # The exact amount the borrower requested
+
+                    self.logger.info(
+                        f"Cash back mode - New loan amount: ${new_loan_amount:.2f} "
+                        f"(current balance: ${current_balance:.2f} + closing costs: ${financed_closing_costs:.2f} + "
+                        f"prepaids: ${prepaid_total:.2f} + cash back: ${cash_back_amount:.2f}), Cash received: ${cash_received:.2f}"
+                    )
                 else:
                     # Standard refinance - finance all costs
                     new_loan_amount = preliminary_loan_amount
@@ -1816,7 +1891,7 @@ class MortgageCalculator:
                         # Convert to percentage method with default rate
                         pass  # annual_tax_rate already set in method signature
                     if insurance_method == "amount" and annual_insurance is None:
-                        # Convert to percentage method with default rate  
+                        # Convert to percentage method with default rate
                         pass  # annual_insurance_rate already set in method signature
                     prepaid_items = self.calculate_prepaid_items(
                         loan_amount=new_loan_amount,

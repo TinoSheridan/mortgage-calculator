@@ -142,7 +142,7 @@
                                 Back to Calculator
                             </a>
                         </li>
-                        
+
                         <!-- Overview Section -->
                         <li class="nav-item mt-3">
                             <small class="text-muted fw-bold px-3">OVERVIEW</small>
@@ -153,7 +153,7 @@
                                 Dashboard
                             </a>
                         </li>
-                        
+
                         <!-- Configuration Section -->
                         <li class="nav-item mt-3">
                             <small class="text-muted fw-bold px-3">CONFIGURATION</small>
@@ -182,7 +182,7 @@
                                 Title Insurance
                             </a>
                         </li>
-                        
+
                         <!-- Content Management Section -->
                         <li class="nav-item mt-3">
                             <small class="text-muted fw-bold px-3">CONTENT</small>
@@ -240,7 +240,7 @@
         function validateForm(form) {
             let isValid = true;
             const errors = [];
-            
+
             form.querySelectorAll('[required]').forEach(field => {
                 if (!field.value.trim()) {
                     field.classList.add('form-invalid');
@@ -250,7 +250,7 @@
                     field.classList.remove('form-invalid');
                 }
             });
-            
+
             // Validate numeric fields
             form.querySelectorAll('input[type="number"]').forEach(field => {
                 if (field.value && isNaN(parseFloat(field.value))) {
@@ -259,12 +259,12 @@
                     isValid = false;
                 }
             });
-            
+
             // Show validation errors
             if (!isValid && errors.length > 0) {
                 showNotification('Validation errors: ' + errors.join(', '), 'danger');
             }
-            
+
             return isValid;
         }
 
