@@ -1343,6 +1343,11 @@ class MortgageCalculator:
         closing_date,
         tax_escrow_months: int = 3,
         insurance_escrow_months: int = 2,
+        tax_method: str = "percentage",
+        insurance_method: str = "percentage",
+        annual_tax_rate: float = 1.3,
+        annual_insurance_rate: float = 1.1,
+        appraised_value: float = 0.0,
     ) -> Dict[str, float]:
         """
         Calculate prepaid items specifically for refinance transactions.
@@ -1385,8 +1390,24 @@ class MortgageCalculator:
             prepaid["prepaid_tax_months"] = 0
 
             # 4. Escrow reserves (separate months for tax and insurance)
-            monthly_tax = annual_taxes / 12
-            monthly_insurance = annual_insurance / 12
+            # Calculate monthly tax based on method
+            if tax_method == "amount" and annual_taxes and annual_taxes > 0:
+                monthly_tax = annual_taxes / 12
+                self.logger.info(f"Refinance: Using actual tax amount: ${annual_taxes:.2f}/year = ${monthly_tax:.2f}/month")
+            else:
+                # Use percentage method
+                tax_base = appraised_value if appraised_value > 0 else loan_amount
+                monthly_tax = (tax_base * annual_tax_rate / 100) / 12
+                self.logger.info(f"Refinance: Calculated monthly tax: ${monthly_tax:.2f} (percentage method on ${tax_base:.2f})")
+            
+            # Calculate monthly insurance based on method  
+            if insurance_method == "amount" and annual_insurance and annual_insurance > 0:
+                monthly_insurance = annual_insurance / 12
+                self.logger.info(f"Refinance: Using actual insurance amount: ${annual_insurance:.2f}/year = ${monthly_insurance:.2f}/month")
+            else:
+                # Use percentage method
+                monthly_insurance = (loan_amount * annual_insurance_rate / 100) / 12
+                self.logger.info(f"Refinance: Calculated monthly insurance: ${monthly_insurance:.2f} (percentage method)")
 
             prepaid["tax_escrow"] = monthly_tax * tax_escrow_months
             prepaid["tax_escrow_months"] = tax_escrow_months
@@ -1435,6 +1456,11 @@ class MortgageCalculator:
         refinance_type: str = "rate_term",
         zero_cash_to_close: bool = False,
         transaction_type: Union[str, TRANSACTION_TYPE] = TRANSACTION_TYPE.REFINANCE,
+        # Tax and insurance method parameters
+        tax_method: str = "percentage",
+        insurance_method: str = "percentage",
+        annual_tax_rate: float = 1.3,
+        annual_insurance_rate: float = 1.1,
     ) -> Dict[str, Any]:
         """
         Calculate refinance analysis, including current balance, LTV, break-even, and savings.
@@ -1538,21 +1564,24 @@ class MortgageCalculator:
                         closing_date=refinance_closing_date,
                         tax_escrow_months=tax_escrow_months,
                         insurance_escrow_months=insurance_escrow_months,
+                        tax_method=tax_method,
+                        insurance_method=insurance_method,
+                        annual_tax_rate=annual_tax_rate,
+                        annual_insurance_rate=annual_insurance_rate,
+                        appraised_value=appraised_value,
                     )
                 else:
-                    # Use standard calculation with rates
-                    annual_tax_rate = 1.3  # Default fallback
-                    annual_insurance_rate = 1.1  # Default fallback
+                    # Use standard calculation with rates (use passed parameters)
                     preliminary_prepaid_items = self.calculate_prepaid_items(
                         loan_amount=preliminary_loan_amount,
                         annual_tax_rate=annual_tax_rate,
                         annual_insurance_rate=annual_insurance_rate,
                         annual_interest_rate=new_interest_rate,
                         closing_date=refinance_closing_date,
-                        tax_method="percentage",
-                        insurance_method="percentage",
-                        annual_tax_amount=0.0,
-                        annual_insurance_amount=0.0,
+                        tax_method=tax_method,
+                        insurance_method=insurance_method,
+                        annual_tax_amount=annual_taxes or 0.0,
+                        annual_insurance_amount=annual_insurance or 0.0,
                         purchase_price=appraised_value,
                     )
 
@@ -1592,21 +1621,24 @@ class MortgageCalculator:
                                 closing_date=refinance_closing_date,
                                 tax_escrow_months=tax_escrow_months,
                                 insurance_escrow_months=insurance_escrow_months,
+                                tax_method=tax_method,
+                                insurance_method=insurance_method,
+                                annual_tax_rate=annual_tax_rate,
+                                annual_insurance_rate=annual_insurance_rate,
+                                appraised_value=appraised_value,
                             )
                         else:
-                            # Use standard calculation with rates
-                            annual_tax_rate = 1.3  # Default fallback
-                            annual_insurance_rate = 1.1  # Default fallback
+                            # Use standard calculation with rates (use passed parameters)
                             prepaid_items = self.calculate_prepaid_items(
                                 loan_amount=new_loan_amount,
                                 annual_tax_rate=annual_tax_rate,
                                 annual_insurance_rate=annual_insurance_rate,
                                 annual_interest_rate=new_interest_rate,
                                 closing_date=refinance_closing_date,
-                                tax_method="percentage",
-                                insurance_method="percentage",
-                                annual_tax_amount=0.0,
-                                annual_insurance_amount=0.0,
+                                tax_method=tax_method,
+                                insurance_method=insurance_method,
+                                annual_tax_amount=annual_taxes or 0.0,
+                                annual_insurance_amount=annual_insurance or 0.0,
                                 purchase_price=appraised_value,
                             )
 
@@ -1771,25 +1803,31 @@ class MortgageCalculator:
                         closing_date=refinance_closing_date,
                         tax_escrow_months=tax_escrow_months,
                         insurance_escrow_months=insurance_escrow_months,
+                        tax_method=tax_method,
+                        insurance_method=insurance_method,
+                        annual_tax_rate=annual_tax_rate,
+                        annual_insurance_rate=annual_insurance_rate,
+                        appraised_value=appraised_value,
                     )
                 else:
-                    # Fallback to standard calculation with rates
-                    annual_tax_rate = (
-                        (annual_taxes or (appraised_value * 1.3 / 100)) / appraised_value
-                    ) * 100
-                    annual_insurance_rate = (
-                        (annual_insurance or (appraised_value * 1.1 / 100)) / appraised_value
-                    ) * 100
+                    # Fallback to standard calculation with rates (use passed parameters)
+                    # If tax_method is "amount" but annual_taxes is None, fall back to percentage method
+                    if tax_method == "amount" and annual_taxes is None:
+                        # Convert to percentage method with default rate
+                        pass  # annual_tax_rate already set in method signature
+                    if insurance_method == "amount" and annual_insurance is None:
+                        # Convert to percentage method with default rate  
+                        pass  # annual_insurance_rate already set in method signature
                     prepaid_items = self.calculate_prepaid_items(
                         loan_amount=new_loan_amount,
                         annual_tax_rate=annual_tax_rate,
                         annual_insurance_rate=annual_insurance_rate,
                         annual_interest_rate=new_interest_rate,
                         closing_date=refinance_closing_date,
-                        tax_method="percentage",
-                        insurance_method="percentage",
-                        annual_tax_amount=0.0,
-                        annual_insurance_amount=0.0,
+                        tax_method=tax_method,
+                        insurance_method=insurance_method,
+                        annual_tax_amount=annual_taxes or 0.0,
+                        annual_insurance_amount=annual_insurance or 0.0,
                         purchase_price=appraised_value,
                     )
 
