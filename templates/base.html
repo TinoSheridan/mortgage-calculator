@@ -120,15 +120,26 @@
 
     <!-- Rate Intel Styling -->
     <style>
-        /* Ensure Rate Intel dropdown appears above calculator results */
-        .dropdown-menu {
-            z-index: 1050 !important;
+        /* Ensure Rate Intel dropdown appears above all calculator elements */
+        .navbar .dropdown-menu {
+            z-index: 9999 !important;
+            position: absolute !important;
         }
         
-        /* Ensure calculator results cards stay in background */
-        .results-card, .card, .calculator-results {
+        /* Specifically target the Rate Intel dropdown */
+        #rateIntelDropdown + .dropdown-menu {
+            z-index: 9999 !important;
+        }
+        
+        /* Force all calculator elements to lower z-index */
+        .container, .card, .btn, .results-card, .calculator-results, 
+        .copy-detail-btn, .monthly-summary, .breakdown-section {
             z-index: 1 !important;
-            position: relative;
+        }
+        
+        /* Navigation should be higher than content */
+        .navbar {
+            z-index: 1030 !important;
         }
     </style>
 
