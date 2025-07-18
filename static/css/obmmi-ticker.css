@@ -1,0 +1,240 @@
+/* OBMMI Ticker Tape Banner */
+.obmmi-ticker-container {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 8px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+    overflow: hidden;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.obmmi-ticker-content {
+    display: flex;
+    align-items: center;
+    animation: scroll-left 60s linear infinite;
+    gap: 40px;
+}
+
+.obmmi-ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.obmmi-ticker-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.obmmi-ticker-label {
+    font-size: 10px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.obmmi-ticker-rate {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.obmmi-ticker-change {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.obmmi-ticker-change.up {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.obmmi-ticker-change.down {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+}
+
+.obmmi-ticker-change.stable {
+    background: rgba(156, 163, 175, 0.9);
+    color: white;
+}
+
+.obmmi-branding {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.obmmi-branding a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.obmmi-branding a:hover {
+    text-decoration: underline;
+}
+
+.obmmi-widget-container {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 0 20px;
+    min-width: 200px;
+}
+
+.obmmi-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    opacity: 0.8;
+    padding: 12px 20px;
+}
+
+.obmmi-error {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    margin: 0 20px;
+}
+
+/* Scrolling Animation */
+@keyframes scroll-left {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Pause animation on hover */
+.obmmi-ticker-container:hover .obmmi-ticker-content {
+    animation-play-state: paused;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .obmmi-ticker-container {
+        min-height: 35px;
+        padding: 6px 0;
+        font-size: 11px;
+    }
+    
+    .obmmi-ticker-item {
+        padding: 3px 8px;
+        gap: 4px;
+    }
+    
+    .obmmi-ticker-label {
+        font-size: 9px;
+    }
+    
+    .obmmi-ticker-rate {
+        font-size: 12px;
+    }
+    
+    .obmmi-ticker-change {
+        font-size: 9px;
+    }
+    
+    .obmmi-branding {
+        font-size: 9px;
+        right: 5px;
+    }
+    
+    .obmmi-ticker-content {
+        animation-duration: 45s; /* Faster on mobile */
+    }
+}
+
+@media (max-width: 480px) {
+    .obmmi-ticker-container {
+        min-height: 30px;
+        padding: 4px 0;
+        font-size: 10px;
+    }
+    
+    .obmmi-ticker-item {
+        padding: 2px 6px;
+        gap: 3px;
+    }
+    
+    .obmmi-ticker-label {
+        font-size: 8px;
+    }
+    
+    .obmmi-ticker-rate {
+        font-size: 11px;
+    }
+    
+    .obmmi-ticker-change {
+        font-size: 8px;
+    }
+    
+    .obmmi-branding {
+        font-size: 8px;
+        right: 3px;
+    }
+    
+    .obmmi-ticker-content {
+        animation-duration: 40s; /* Even faster on small screens */
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .obmmi-ticker-container {
+        background: #000;
+        border-bottom: 2px solid #fff;
+    }
+    
+    .obmmi-ticker-item {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .obmmi-ticker-content {
+        animation: none;
+    }
+    
+    .obmmi-ticker-container {
+        overflow-x: auto;
+    }
+}
+
+/* Print styles */
+@media print {
+    .obmmi-ticker-container {
+        display: none;
+    }
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBMMI Ticker Tape Example</title>
+    <link rel="stylesheet" href="static/css/obmmi-ticker.css">
+    <style>
+        /* Example page styling */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .info-section h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+        
+        .info-section p {
+            line-height: 1.6;
+            color: #666;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #22c55e;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .implementation-note {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .implementation-note h3 {
+            color: #0ea5e9;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- OBMMI Ticker will be injected here by JavaScript -->
+    
+    <div class="main-content">
+        <h1>OBMMI Ticker Tape Integration</h1>
+        
+        <div class="info-section">
+            <h2>About OBMMI (Optimal Blue Mortgage Market Indices)</h2>
+            <p>
+                The ticker tape banner above displays real-time mortgage market data from the Optimal Blue 
+                Mortgage Market Indices (OBMMI). This data represents approximately 35% of the U.S. mortgage 
+                market and provides more accurate rate information than traditional advertised rates because 
+                it's based on actual loan locks.
+            </p>
+            
+            <ul class="feature-list">
+                <li>Real-time data from actual loan locks (not advertised rates)</li>
+                <li>Covers ~35% of the U.S. mortgage market</li>
+                <li>Updates multiple times daily</li>
+                <li>Includes major loan types: 30Y Fixed, 15Y Fixed, FHA, VA, Jumbo</li>
+                <li>Mobile-responsive ticker tape design</li>
+                <li>Minimal screen real estate usage</li>
+            </ul>
+        </div>
+        
+        <div class="info-section">
+            <h2>Implementation Features</h2>
+            <ul class="feature-list">
+                <li>Scrolling ticker tape animation</li>
+                <li>Hover to pause functionality</li>
+                <li>Mobile-optimized responsive design</li>
+                <li>Accessibility features (reduced motion support)</li>
+                <li>Automatic refresh every 5 minutes</li>
+                <li>Fallback data when widget is unavailable</li>
+                <li>Proper Optimal Blue attribution</li>
+            </ul>
+        </div>
+        
+        <div class="implementation-note">
+            <h3>Integration Instructions</h3>
+            <p>To integrate the OBMMI widget on your website:</p>
+            <ol>
+                <li>Include the CSS and JavaScript files in your HTML</li>
+                <li>Obtain the official OBMMI widget script from Optimal Blue</li>
+                <li>Update the widget script URL in the JavaScript file</li>
+                <li>Customize the styling to match your brand</li>
+            </ol>
+            
+            <p><strong>Required Files:</strong></p>
+            <div class="code-block">
+&lt;link rel="stylesheet" href="static/css/obmmi-ticker.css"&gt;
+&lt;script src="static/js/obmmi-ticker.js"&gt;&lt;/script&gt;
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h2>Mobile Optimization</h2>
+            <p>
+                The ticker tape is specifically designed to minimize screen real estate usage on mobile devices:
+            </p>
+            <ul class="feature-list">
+                <li>Compact height: 30-40px depending on screen size</li>
+                <li>Faster scrolling speed on smaller screens</li>
+                <li>Optimized font sizes for readability</li>
+                <li>Touch-friendly hover states</li>
+                <li>Reduced motion support for accessibility</li>
+            </ul>
+        </div>
+        
+        <div class="info-section">
+            <h2>Customization Options</h2>
+            <p>The ticker can be customized for your branding:</p>
+            <ul class="feature-list">
+                <li>Color scheme and gradients</li>
+                <li>Animation speed and direction</li>
+                <li>Font family and sizes</li>
+                <li>Loan types to display</li>
+                <li>Positioning (top or bottom of page)</li>
+                <li>Refresh intervals</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Load the OBMMI ticker script -->
+    <script src="static/js/obmmi-ticker.js"></script>
+</body>
+</html>
