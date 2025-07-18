@@ -303,5 +303,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Export for use in other modules
-export default MarketBanner;
+// Make MarketBanner available globally
+window.MarketBanner = MarketBanner;

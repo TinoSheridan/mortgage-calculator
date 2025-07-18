@@ -1376,7 +1376,6 @@
     import { formatCurrency, formatPercentage, formatCurrencyResponsive, formatLoanAmount, formatLoanAmountResponsive, formatPurchasePrice, formatPurchasePriceResponsive, formatDownPayment, formatDownPaymentResponsive, isMobile } from '{{ url_for("static", filename="js/utils/formatting.js") }}?v={{ cache_buster }}';
     import { updateClosingCostsTable, updatePrepaidsTable, updateCreditsTable } from '{{ url_for("static", filename="js/ui/tableUpdaters.js") }}?v={{ cache_buster }}';
     import { initializeMobileOptimizations, createMobileResultsSummary } from '{{ url_for("static", filename="js/ui/mobileResults.js") }}?v={{ cache_buster }}';
-    import MarketBanner from '{{ url_for("static", filename="js/market-banner.js") }}?v={{ cache_buster }}';
 
     // Make functions globally available
     window.formatCurrency = formatCurrency;
@@ -1884,10 +1883,5 @@
     });
 </script>
 
-<script type="module">
-    import MarketBanner from '{{ url_for("static", filename="js/market-banner.js") }}?v={{ cache_buster }}';
-
-    // Market banner is initialized automatically via DOMContentLoaded event
-    console.log('Market banner module loaded');
-</script>
+<script src="{{ url_for('static', filename='js/market-banner.js') }}?v={{ cache_buster }}"></script>
 {% endblock %}
