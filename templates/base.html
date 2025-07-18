@@ -31,6 +31,54 @@
                             <i class="bi bi-house-gear"></i> Property Intel
                         </a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="rateIntelDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-graph-up-arrow"></i> Rate Intel
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="rateIntelDropdown">
+                            <li><h6 class="dropdown-header">Current Rates</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.mortgagenewsdaily.com/mortgage-rates', 'Mortgage News Daily')">
+                                <i class="bi bi-newspaper"></i> Mortgage News Daily
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.bankrate.com/mortgages/mortgage-rates/', 'Bankrate')">
+                                <i class="bi bi-bank"></i> Bankrate
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.nerdwallet.com/mortgages/mortgage-rates', 'NerdWallet')">
+                                <i class="bi bi-calculator"></i> NerdWallet
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.zillow.com/mortgage-rates/', 'Zillow')">
+                                <i class="bi bi-house-door"></i> Zillow
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Market Indices</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://fred.stlouisfed.org/series/MORTGAGE30US', 'FRED - 30-Year Fixed')">
+                                <i class="bi bi-graph-up"></i> FRED 30-Year Fixed
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://fred.stlouisfed.org/series/MORTGAGE15US', 'FRED - 15-Year Fixed')">
+                                <i class="bi bi-graph-up"></i> FRED 15-Year Fixed
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://fred.stlouisfed.org/series/DGS10', 'FRED - 10-Year Treasury')">
+                                <i class="bi bi-graph-up"></i> 10-Year Treasury
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www2.optimalblue.com/obmmi/', 'Optimal Blue OBMMI')">
+                                <i class="bi bi-graph-up-arrow"></i> Optimal Blue OBMMI
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Industry News</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.housingwire.com/', 'Housing Wire')">
+                                <i class="bi bi-newspaper"></i> Housing Wire
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.nationalmortgagenews.com/', 'National Mortgage News')">
+                                <i class="bi bi-newspaper"></i> National Mortgage News
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.inman.com/mortgage/', 'Inman Mortgage')">
+                                <i class="bi bi-newspaper"></i> Inman Mortgage
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openRateWindow('https://www.mpamag.com/', 'Mortgage Professional America')">
+                                <i class="bi bi-newspaper"></i> MPA Magazine
+                            </a></li>
+                        </ul>
+                    </li>
                     {% if session.get('admin_logged_in') %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
@@ -69,6 +117,39 @@
 
     <!-- Core JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Rate Intel Function -->
+    <script>
+        // Rate Intel Window Opening Function
+        function openRateWindow(url, title) {
+            const width = 1200;
+            const height = 800;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            const features = `
+                width=${width},
+                height=${height},
+                left=${left},
+                top=${top},
+                scrollbars=yes,
+                resizable=yes,
+                toolbar=yes,
+                menubar=yes,
+                location=yes,
+                status=yes
+            `.replace(/\s+/g, '');
+            
+            const rateWindow = window.open(url, title.replace(/\s+/g, ''), features);
+            
+            if (rateWindow) {
+                rateWindow.focus();
+            } else {
+                // Fallback if popup blocked
+                alert('Pop-up blocked. Please allow pop-ups for this site to use Rate Intel.');
+            }
+        }
+    </script>
 
     <!-- Property Intelligence -->
     <script src="{{ url_for('static', filename='js/property-intel.js') }}?v={{ cache_buster }}"></script>
