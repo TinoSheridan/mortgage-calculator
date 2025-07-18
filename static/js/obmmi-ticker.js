@@ -77,37 +77,14 @@ class OBMMITicker {
 
     loadRealOBMMIWidget() {
         try {
-            // Create a hidden iframe to load OBMMI data
-            const iframe = document.createElement('iframe');
-            iframe.src = 'https://www2.optimalblue.com/OBMMI/widgetConfig.php';
-            iframe.width = '700';
-            iframe.height = '522';
-            iframe.frameBorder = '0';
-            iframe.style.display = 'none'; // Hide the iframe
-            iframe.id = 'obmmi-data-source';
+            // Since we cannot extract data from the iframe due to CORS,
+            // we'll focus on making the full widget modal work properly
+            // and use a more obvious ticker message
             
-            // Add iframe to page
-            document.body.appendChild(iframe);
+            console.log('OBMMI widget integration: Using fallback data for ticker, real data available via Full Widget button');
             
-            // Try to extract data from iframe when loaded
-            iframe.onload = () => {
-                try {
-                    // Attempt to parse data from iframe
-                    this.extractOBMMIData(iframe);
-                } catch (error) {
-                    console.log('Cannot access iframe data due to CORS, using fallback');
-                    this.loadFallbackData();
-                }
-            };
-            
-            // Fallback if iframe fails to load
-            iframe.onerror = () => {
-                console.log('OBMMI iframe failed to load, using fallback');
-                this.loadFallbackData();
-            };
-            
-            // Also show fallback data immediately while iframe loads
-            this.loadFallbackData();
+            // Load fallback data with a message indicating real data is available
+            this.loadFallbackDataWithRealWidgetNote();
             
         } catch (error) {
             console.error('Error loading OBMMI widget:', error);
@@ -176,12 +153,50 @@ class OBMMITicker {
                 { type: '5Y ARM', rate: 6.625, change: -0.050, direction: 'down' }
             ],
             lastUpdated: new Date().toISOString(),
-            source: 'OBMMI Market Data'
+            source: 'Demo Data'
         };
 
         setTimeout(() => {
             this.renderTickerData(fallbackData);
         }, 1000);
+    }
+
+    loadFallbackDataWithRealWidgetNote() {
+        // Show a professional message directing users to real data
+        this.container.innerHTML = `
+            <div class="obmmi-ticker-content" style="animation: none; justify-content: center; text-align: center;">
+                <div class="obmmi-ticker-item" style="background: rgba(255,255,255,0.2); padding: 8px 16px;">
+                    <div class="obmmi-ticker-rate" style="font-size: 14px;">
+                        📊 Live OBMMI Market Data Available
+                    </div>
+                </div>
+            </div>
+            <div class="obmmi-branding">
+                <span>Powered by</span>
+                <a href="https://www.optimalblue.com" target="_blank" rel="noopener">Optimal Blue</a>
+                <button class="obmmi-expand-button" onclick="window.obmmiTicker.showFullWidget()" style="background: rgba(34,197,94,0.9); border-color: rgba(34,197,94,1); animation: pulse 2s infinite;">
+                    📊 View Real Data
+                </button>
+            </div>
+        `;
+        
+        // Add pulse animation for the button
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Create modal for full widget (only once)
+        if (!document.getElementById('obmmi-modal')) {
+            this.createFullWidgetModal();
+        }
+
+        this.widgetInitialized = true;
     }
 
     renderTickerData(data) {
@@ -238,8 +253,11 @@ class OBMMITicker {
         modal.innerHTML = `
             <div class="obmmi-modal-content">
                 <div class="obmmi-modal-header">
-                    <h3 class="obmmi-modal-title">Optimal Blue Mortgage Market Indices</h3>
+                    <h3 class="obmmi-modal-title">📊 Live OBMMI Market Data</h3>
                     <button class="obmmi-close" onclick="window.obmmiTicker.hideFullWidget()">&times;</button>
+                </div>
+                <div style="margin-bottom: 10px; padding: 10px; background: #e8f5e8; border: 1px solid #4caf50; border-radius: 4px; color: #2e7d32; font-size: 14px;">
+                    <strong>⚡ Real-Time Data:</strong> This widget shows live mortgage market data from approximately 35% of the U.S. mortgage market, updated throughout the day based on actual loan locks.
                 </div>
                 <iframe 
                     class="obmmi-widget-frame" 
@@ -249,7 +267,7 @@ class OBMMITicker {
                     frameborder="0">
                 </iframe>
                 <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    Real-time mortgage market data from approximately 35% of the U.S. mortgage market
+                    Data source: Optimal Blue Mortgage Market Indices (OBMMI) - Real loan lock data from mortgage professionals
                 </div>
             </div>
         `;
