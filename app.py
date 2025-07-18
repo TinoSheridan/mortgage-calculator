@@ -29,11 +29,7 @@ from config_manager import ConfigManager  # noqa: E402
 
 # Now that paths are set up, we can safely import local modules
 from constants import TRANSACTION_TYPE  # noqa: E402
-from error_handling import (  # noqa: E402
-    ValidationError,
-    handle_errors,
-    validate_request_data,
-)
+from error_handling import ValidationError, handle_errors, validate_request_data  # noqa: E402
 
 # Configure logging early
 logging.basicConfig(level=logging.INFO)
