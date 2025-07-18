@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calculator-enhanced.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/two-column-layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/market-banner.css') }}?v={{ cache_buster }}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
     .monthly-summary {
@@ -270,7 +271,6 @@
 
 {% block content %}
 <main role="main" aria-label="Mortgage Calculator Application">
-<h1 class="text-center mb-4">Mortgage Calculator <small class="text-muted">v{{ version }}</small></h1>
 
 <div class="row">
     <!-- Form Column -->
@@ -1376,6 +1376,7 @@
     import { formatCurrency, formatPercentage, formatCurrencyResponsive, formatLoanAmount, formatLoanAmountResponsive, formatPurchasePrice, formatPurchasePriceResponsive, formatDownPayment, formatDownPaymentResponsive, isMobile } from '{{ url_for("static", filename="js/utils/formatting.js") }}?v={{ cache_buster }}';
     import { updateClosingCostsTable, updatePrepaidsTable, updateCreditsTable } from '{{ url_for("static", filename="js/ui/tableUpdaters.js") }}?v={{ cache_buster }}';
     import { initializeMobileOptimizations, createMobileResultsSummary } from '{{ url_for("static", filename="js/ui/mobileResults.js") }}?v={{ cache_buster }}';
+    import MarketBanner from '{{ url_for("static", filename="js/market-banner.js") }}?v={{ cache_buster }}';
 
     // Make functions globally available
     window.formatCurrency = formatCurrency;
@@ -1881,5 +1882,12 @@
             toggleVAOptions();
         }
     });
+</script>
+
+<script type="module">
+    import MarketBanner from '{{ url_for("static", filename="js/market-banner.js") }}?v={{ cache_buster }}';
+
+    // Market banner is initialized automatically via DOMContentLoaded event
+    console.log('Market banner module loaded');
 </script>
 {% endblock %}

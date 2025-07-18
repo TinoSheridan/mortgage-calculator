@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.6.1"  # Fixed LTV target calculations and enhanced refinance accuracy
+VERSION = "2.6.2"  # Added comprehensive Property Intelligence system with Spokeo integration
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 1, 9)  # Updated date
+LAST_UPDATED = date(2025, 1, 18)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "Fixed LTV target calculations to use accurate backend values, improved cash-out refinance logic, enhanced LTV targets display with proper maximum LTV calculations, and refined UI labels for better clarity."
+UPDATE_DESCRIPTION = "Added comprehensive Property Intelligence system with Spokeo API integration, real-time property analysis popup, address copying functionality, honest data presentation (no test data), and integration with USDA and FEMA APIs for accurate property information."
 
 
 def get_version_info():
@@ -57,4 +57,11 @@ FEATURES = [
     "enhanced_cash_out_refinance_logic",  # v2.6.0: Improved cash-out refinance calculations
     "hoa_fee_integration",  # v2.6.0: Added HOA fee input and calculation integration
     "refined_ui_labels",  # v2.6.0: Improved LTV targets table labels and formatting
+    "property_intelligence_system",  # v2.6.2: Comprehensive property analysis popup with real API integration
+    "spokeo_api_integration",  # v2.6.2: Primary data source for property details and tax information
+    "usda_eligibility_api",  # v2.6.2: Real-time USDA rural development eligibility checking
+    "fema_flood_zone_api",  # v2.6.2: Official FEMA flood zone determination
+    "property_address_copying",  # v2.6.2: One-click address copying for manual verification
+    "honest_data_presentation",  # v2.6.2: Shows "Unknown" instead of test data, provides verification links
+    "property_source_links",  # v2.6.2: Direct links to Spokeo, QPublic, county assessors for manual verification
 ]

@@ -30,8 +30,6 @@ from config_manager import ConfigManager  # noqa: E402
 # Now that paths are set up, we can safely import local modules
 from constants import TRANSACTION_TYPE  # noqa: E402
 from error_handling import (  # noqa: E402
-    CalculationError,
-    ErrorHandler,
     ValidationError,
     handle_errors,
     validate_request_data,
@@ -52,7 +50,6 @@ def force_reload_version():
             importlib.reload(sys.modules["VERSION"])
         else:
             logger.info("Importing VERSION module for the first time")
-            # import VERSION  # Unused, safe to remove
 
         # Get and log the version number
         from VERSION import VERSION as app_version
@@ -376,7 +373,7 @@ def calculate():
     # Log all parameters before calculation
     app.logger.info(
         f"Calculating with the following parameters: \n"
-        f"Purchase price: ${purchase_price:,.2f}\n"
+        f"Purchase price: ${purchase_price:, .2f}\n"
         f"Down payment: {down_payment_percentage}%\n"
         f"Interest rate: {annual_rate}%\n"
         f"Loan term: {loan_term} years\n"
@@ -867,6 +864,59 @@ def index():
     except Exception as e:
         app.logger.error(f"Error in index route: {str(e)}")
         return f"Error rendering calculator: {str(e)}", 500
+
+
+# Property Intelligence API endpoint
+@app.route("/api/property-intel")
+def property_intel():
+    """API endpoint to analyze property for financing information."""
+    address = request.args.get("address", "").strip()
+
+    if not address:
+        return jsonify({"success": False, "error": "Address parameter is required"}), 400
+
+    try:
+        from property_intel_api import property_intel_api
+
+        # Analyze the property
+        analysis = property_intel_api.analyze_property(address)
+
+        return jsonify({"success": True, "data": analysis, "timestamp": datetime.now().isoformat()})
+
+    except Exception as e:
+        app.logger.error(f"Error analyzing property: {str(e)}")
+        return jsonify({"success": False, "error": "Unable to analyze property"}), 500
+
+
+# Market data API endpoint for loan officer banner
+@app.route("/api/market-data")
+def market_data():
+    """
+    API endpoint to fetch real-time market data for loan officer banner
+    Returns mortgage rates, treasury yields, and related news
+    """
+    try:
+        from market_data_api import market_data_api
+
+        # Get comprehensive market summary
+        market_summary = market_data_api.get_market_summary()
+
+        return jsonify(
+            {"success": True, "data": market_summary, "timestamp": datetime.now().isoformat()}
+        )
+
+    except Exception as e:
+        app.logger.error(f"Error fetching market data: {str(e)}")
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Unable to fetch market data",
+                    "timestamp": datetime.now().isoformat(),
+                }
+            ),
+            500,
+        )
 
 
 # Catch-all route to diagnose 404 issues
