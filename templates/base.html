@@ -145,13 +145,14 @@
 
     <!-- Rate Intel Function -->
     <script>
-        // Rate Intel Window Opening Function
+        // Rate Intel Child Window Opening Function
         function openRateWindow(url, title) {
             const width = 1200;
             const height = 800;
             const left = (screen.width - width) / 2;
             const top = (screen.height - height) / 2;
             
+            // Child window features - maintains parent relationship
             const features = `
                 width=${width},
                 height=${height},
@@ -162,13 +163,31 @@
                 toolbar=yes,
                 menubar=yes,
                 location=yes,
-                status=yes
+                status=yes,
+                dependent=yes
             `.replace(/\s+/g, '');
             
+            // Open as child window with parent reference
             const rateWindow = window.open(url, title.replace(/\s+/g, ''), features);
             
             if (rateWindow) {
+                // Set up child window behavior
+                rateWindow.opener = window;
+                
+                // Focus the child window briefly, then return focus to parent
                 rateWindow.focus();
+                setTimeout(() => {
+                    window.focus(); // Return focus to main calculator
+                }, 100);
+                
+                // Handle child window closing to return focus
+                const checkClosed = setInterval(() => {
+                    if (rateWindow.closed) {
+                        window.focus(); // Return focus when child closes
+                        clearInterval(checkClosed);
+                    }
+                }, 1000);
+                
             } else {
                 // Fallback if popup blocked
                 alert('Pop-up blocked. Please allow pop-ups for this site to use Rate Intel.');
