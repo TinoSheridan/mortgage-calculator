@@ -261,7 +261,7 @@ class OBMMITicker {
                 </div>
                 <iframe 
                     class="obmmi-widget-frame" 
-                    src="https://www2.optimalblue.com/OBMMI/widgetConfig.php" 
+                    src="https://www2.optimalblue.com/OBMMI/widget.php" 
                     width="700" 
                     height="522" 
                     frameborder="0">

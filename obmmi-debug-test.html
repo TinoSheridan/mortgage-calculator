@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OBMMI Widget Debug Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section h2 {
+            color: #333;
+            border-bottom: 2px solid #1e3c72;
+            padding-bottom: 10px;
+        }
+        .widget-container {
+            border: 2px solid #1e3c72;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fff;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            font-family: monospace;
+            border-radius: 4px;
+            margin: 10px 0;
+            min-height: 100px;
+        }
+        #debug-log {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>OBMMI Widget Debug Test</h1>
+    
+    <div class="debug-section">
+        <h2>1. Page Load Status</h2>
+        <div id="page-status">Loading...</div>
+        <div class="console-output">
+            <div id="debug-log">Starting debug process...\n</div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. Widget Container Check</h2>
+        <div id="container-status">Checking container...</div>
+        <div class="widget-container" id="obmmi-widget-container">
+            <h3>OBMMI Widget Should Load Here:</h3>
+            <div id="obmmi-widget-target" style="width: 100%; min-height: 522px; border: 1px dashed #ccc; background: #f9f9f9;">
+                <p style="text-align: center; padding: 50px; color: #666;">
+                    Widget container ready - waiting for OBMMI widget to load...
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. Multiple OBMMI URL Tests</h2>
+        <div id="widget-status">Testing different OBMMI URLs...</div>
+        
+        <div class="widget-container">
+            <h3>Test 1: widgetConfig.php (Configuration Page)</h3>
+            <iframe 
+                id="obmmi-config-iframe"
+                src="https://www2.optimalblue.com/OBMMI/widgetConfig.php" 
+                width="100%" 
+                height="300" 
+                frameborder="0"
+                style="border: 1px solid #ccc;">
+                <p>Your browser does not support iframes.</p>
+            </iframe>
+            <div id="config-status">Loading configuration page...</div>
+        </div>
+        
+        <div class="widget-container">
+            <h3>Test 2: widget.php (Actual Widget)</h3>
+            <iframe 
+                id="obmmi-widget-iframe"
+                src="https://www2.optimalblue.com/OBMMI/widget.php" 
+                width="100%" 
+                height="522" 
+                frameborder="0"
+                style="border: 1px solid #ccc;">
+                <p>Your browser does not support iframes.</p>
+            </iframe>
+            <div id="widget-iframe-status">Loading widget...</div>
+        </div>
+        
+        <div class="widget-container">
+            <h3>Test 3: Direct OBMMI Page</h3>
+            <iframe 
+                id="obmmi-direct-iframe"
+                src="https://www2.optimalblue.com/obmmi/" 
+                width="100%" 
+                height="522" 
+                frameborder="0"
+                style="border: 1px solid #ccc;">
+                <p>Your browser does not support iframes.</p>
+            </iframe>
+            <div id="direct-status">Loading direct page...</div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. Network and Loading Tests</h2>
+        <div id="network-status">Testing network connectivity...</div>
+        <button onclick="testNetworkConnectivity()">Test Network Connectivity</button>
+        <button onclick="testWidgetLoad()">Test Widget Load</button>
+        <button onclick="testExternalScripts()">Test External Scripts</button>
+        <button onclick="clearDebugLog()">Clear Debug Log</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. Script Loading Tests</h2>
+        <div id="script-status">Ready to test script loading...</div>
+        <div id="script-test-container"></div>
+    </div>
+    
+    <script>
+        // Debug logging function
+        function debugLog(message) {
+            const timestamp = new Date().toISOString();
+            const logElement = document.getElementById('debug-log');
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            console.log(`[OBMMI Debug] ${message}`);
+        }
+        
+        // Test iframe loading function
+        function testIframeLoading(iframeId, statusId, description) {
+            const iframe = document.getElementById(iframeId);
+            if (iframe) {
+                debugLog(`✓ ${description} iframe element found`);
+                
+                iframe.onload = function() {
+                    debugLog(`✓ ${description} iframe loaded successfully`);
+                    document.getElementById(statusId).innerHTML = `✓ ${description} loaded`;
+                    
+                    // Try to access iframe content (will likely fail due to CORS)
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc) {
+                            debugLog(`✓ ${description} iframe document accessible`);
+                            
+                            // Try to get some info about the content
+                            if (iframeDoc.title) {
+                                debugLog(`✓ ${description} iframe title: ${iframeDoc.title}`);
+                            }
+                            
+                            // Look for script tags
+                            const scripts = iframeDoc.querySelectorAll('script');
+                            if (scripts.length > 0) {
+                                debugLog(`✓ ${description} iframe has ${scripts.length} script tags`);
+                            }
+                        } else {
+                            debugLog(`✗ ${description} iframe document not accessible (CORS restriction)`);
+                        }
+                    } catch (e) {
+                        debugLog(`✗ ${description} iframe access error: ${e.message}`);
+                    }
+                };
+                
+                iframe.onerror = function() {
+                    debugLog(`✗ ${description} iframe failed to load`);
+                    document.getElementById(statusId).innerHTML = `✗ ${description} failed`;
+                };
+            } else {
+                debugLog(`✗ ${description} iframe element not found`);
+            }
+        }
+        
+        // Page load event
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('✓ DOMContentLoaded event fired');
+            document.getElementById('page-status').innerHTML = '✓ Page loaded successfully';
+            
+            // Check container
+            const container = document.getElementById('obmmi-widget-target');
+            if (container) {
+                debugLog('✓ Widget container found');
+                debugLog(`Container dimensions: ${container.offsetWidth}x${container.offsetHeight}`);
+                document.getElementById('container-status').innerHTML = '✓ Widget container ready';
+            } else {
+                debugLog('✗ Widget container not found');
+                document.getElementById('container-status').innerHTML = '✗ Widget container missing';
+            }
+            
+            // Test all iframe loading
+            testIframeLoading('obmmi-config-iframe', 'config-status', 'Configuration Page');
+            testIframeLoading('obmmi-widget-iframe', 'widget-iframe-status', 'Widget');
+            testIframeLoading('obmmi-direct-iframe', 'direct-status', 'Direct Page');
+            
+            // Check for any immediate console errors
+            setTimeout(() => {
+                debugLog('Initial load complete - checking for errors...');
+            }, 2000);
+        });
+        
+        // Network connectivity test
+        function testNetworkConnectivity() {
+            debugLog('Testing network connectivity to Optimal Blue...');
+            
+            // Test basic connectivity
+            fetch('https://www2.optimalblue.com/OBMMI/widgetConfig.php', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                debugLog('✓ Network request to Optimal Blue successful');
+            })
+            .catch(error => {
+                debugLog(`✗ Network request failed: ${error.message}`);
+            });
+        }
+        
+        // Widget load test
+        function testWidgetLoad() {
+            debugLog('Testing widget load process...');
+            
+            // Create a new iframe to test loading
+            const testIframe = document.createElement('iframe');
+            testIframe.src = 'https://www2.optimalblue.com/OBMMI/widgetConfig.php';
+            testIframe.width = '700';
+            testIframe.height = '522';
+            testIframe.frameBorder = '0';
+            testIframe.style.border = '1px solid #ccc';
+            
+            testIframe.onload = function() {
+                debugLog('✓ Test iframe loaded successfully');
+            };
+            
+            testIframe.onerror = function() {
+                debugLog('✗ Test iframe failed to load');
+            };
+            
+            // Add to container
+            const container = document.getElementById('obmmi-widget-target');
+            container.innerHTML = '<h4>Test Widget Loading:</h4>';
+            container.appendChild(testIframe);
+        }
+        
+        // Clear debug log
+        function clearDebugLog() {
+            document.getElementById('debug-log').textContent = 'Debug log cleared...\n';
+        }
+        
+        // Test external scripts
+        function testExternalScripts() {
+            debugLog('Testing potential external scripts...');
+            
+            // Common widget script URLs to test
+            const potentialScripts = [
+                'https://www2.optimalblue.com/OBMMI/widget.js',
+                'https://www2.optimalblue.com/OBMMI/obmmi.js',
+                'https://www2.optimalblue.com/js/obmmi.js',
+                'https://www2.optimalblue.com/js/widget.js',
+                'https://cdn.optimalblue.com/widget.js',
+                'https://widgets.optimalblue.com/obmmi.js'
+            ];
+            
+            potentialScripts.forEach((scriptUrl, index) => {
+                setTimeout(() => {
+                    testScriptUrl(scriptUrl);
+                }, index * 500); // Stagger requests
+            });
+        }
+        
+        // Test individual script URL
+        function testScriptUrl(scriptUrl) {
+            debugLog(`Testing script: ${scriptUrl}`);
+            
+            const script = document.createElement('script');
+            script.src = scriptUrl;
+            script.onload = function() {
+                debugLog(`✓ Script loaded successfully: ${scriptUrl}`);
+                document.getElementById('script-status').innerHTML += `<div>✓ ${scriptUrl}</div>`;
+            };
+            script.onerror = function() {
+                debugLog(`✗ Script failed to load: ${scriptUrl}`);
+                document.getElementById('script-status').innerHTML += `<div>✗ ${scriptUrl}</div>`;
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Window error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            debugLog(`✗ JavaScript Error: ${message} at ${source}:${lineno}`);
+            return false;
+        };
+        
+        // Console error capture
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            debugLog(`✗ Console Error: ${args.join(' ')}`);
+            originalConsoleError.apply(console, args);
+        };
+        
+        // Initial debug info
+        debugLog('Debug test page initialized');
+        debugLog(`User Agent: ${navigator.userAgent}`);
+        debugLog(`Page URL: ${window.location.href}`);
+        debugLog(`HTTPS: ${window.location.protocol === 'https:'}`);
+        
+        // Test if running locally vs deployed
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            debugLog('⚠ Running on localhost - may have CORS issues');
+        } else {
+            debugLog('✓ Running on deployed domain');
+        }
+    </script>
+</body>
+</html>
