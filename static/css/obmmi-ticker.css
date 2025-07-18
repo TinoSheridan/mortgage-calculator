@@ -232,9 +232,109 @@
     }
 }
 
+/* OBMMI Full Widget Modal */
+.obmmi-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.obmmi-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: none;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 750px;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.obmmi-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.obmmi-modal-title {
+    margin: 0;
+    color: #1e3c72;
+    font-size: 1.2em;
+}
+
+.obmmi-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+
+.obmmi-close:hover,
+.obmmi-close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.obmmi-widget-frame {
+    width: 100%;
+    height: 522px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.obmmi-expand-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.obmmi-expand-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile modal adjustments */
+@media (max-width: 768px) {
+    .obmmi-modal-content {
+        width: 95%;
+        margin: 10px auto;
+        padding: 15px;
+        max-height: 95vh;
+    }
+    
+    .obmmi-widget-frame {
+        height: 450px;
+    }
+    
+    .obmmi-modal-title {
+        font-size: 1.1em;
+    }
+}
+
 /* Print styles */
 @media print {
-    .obmmi-ticker-container {
+    .obmmi-ticker-container,
+    .obmmi-modal {
         display: none;
     }
 }
