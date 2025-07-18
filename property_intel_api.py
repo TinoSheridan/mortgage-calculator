@@ -509,8 +509,6 @@ class PropertyIntelligenceAPI:
     def _scrape_qpublic(self, address: str, state: str) -> Optional[Dict]:
         """Scrape QPublic.net for property tax data"""
         try:
-            from bs4 import BeautifulSoup
-
             # Get the appropriate QPublic link for this location
             qpublic_url = self._get_qpublic_link(address, state)
             if qpublic_url == "https://qpublic.net":

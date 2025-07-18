@@ -872,16 +872,23 @@ def property_intel():
         return jsonify({"success": False, "error": "Address parameter is required"}), 400
 
     try:
+        app.logger.info(f"Property intel API called for address: {address}")
         from property_intel_api import property_intel_api
 
         # Analyze the property
         analysis = property_intel_api.analyze_property(address)
+        app.logger.info(f"Property analysis completed. Source links available: {list(analysis.get('sourceLinks', {}).keys())}")
 
         return jsonify({"success": True, "data": analysis, "timestamp": datetime.now().isoformat()})
 
+    except ImportError as e:
+        app.logger.error(f"Import error for property_intel_api: {str(e)}")
+        return jsonify({"success": False, "error": "Property intelligence service unavailable"}), 500
     except Exception as e:
         app.logger.error(f"Error analyzing property: {str(e)}")
-        return jsonify({"success": False, "error": "Unable to analyze property"}), 500
+        import traceback
+        app.logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({"success": False, "error": f"Unable to analyze property: {str(e)}"}), 500
 
 
 # Market data API endpoint for loan officer banner
@@ -892,22 +899,39 @@ def market_data():
     Returns mortgage rates, treasury yields, and related news
     """
     try:
+        app.logger.info("Market data API endpoint called")
         from market_data_api import market_data_api
 
         # Get comprehensive market summary
         market_summary = market_data_api.get_market_summary()
+        app.logger.info(f"Market data retrieved successfully: {len(str(market_summary))} characters")
 
         return jsonify(
             {"success": True, "data": market_summary, "timestamp": datetime.now().isoformat()}
         )
 
-    except Exception as e:
-        app.logger.error(f"Error fetching market data: {str(e)}")
+    except ImportError as e:
+        app.logger.error(f"Import error for market_data_api: {str(e)}")
         return (
             jsonify(
                 {
                     "success": False,
-                    "error": "Unable to fetch market data",
+                    "error": "Market data service unavailable - import error",
+                    "timestamp": datetime.now().isoformat(),
+                }
+            ),
+            500,
+        )
+    except Exception as e:
+        app.logger.error(f"Error fetching market data: {str(e)}")
+        app.logger.error(f"Exception type: {type(e).__name__}")
+        import traceback
+        app.logger.error(f"Traceback: {traceback.format_exc()}")
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": f"Unable to fetch market data: {str(e)}",
                     "timestamp": datetime.now().isoformat(),
                 }
             ),

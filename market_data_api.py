@@ -247,8 +247,24 @@ class MarketDataAPI:
             return result
 
         except ImportError:
-            logger.error("feedparser not installed - cannot fetch RSS news")
-            return None
+            logger.warning("feedparser not installed - using fallback news")
+            # Return fallback news items
+            fallback_news = [
+                {
+                    "title": "View Current Mortgage Rates & Market Analysis",
+                    "link": "https://www.mortgagenewsdaily.com/mortgage-rates",
+                    "published": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "source": "Mortgage News Daily",
+                },
+                {
+                    "title": "Browse Housing Wire - Industry News & Updates", 
+                    "link": "https://www.housingwire.com/",
+                    "published": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "source": "Housing Wire",
+                },
+            ]
+            self._cache_data(cache_key, fallback_news)
+            return fallback_news
         except Exception as e:
             logger.error(f"Error fetching mortgage news: {e}")
             return None
