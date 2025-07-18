@@ -77,14 +77,14 @@ class OBMMITicker {
 
     loadRealOBMMIWidget() {
         try {
-            // Since we cannot extract data from the iframe due to CORS,
-            // we'll focus on making the full widget modal work properly
-            // and use a more obvious ticker message
+            // The OBMMI widget URLs are not publicly accessible
+            // This likely requires registration with Optimal Blue
+            // Show a professional message about obtaining access
             
-            console.log('OBMMI widget integration: Using fallback data for ticker, real data available via Full Widget button');
+            console.log('OBMMI widget integration: Requires registration with Optimal Blue');
             
-            // Load fallback data with a message indicating real data is available
-            this.loadFallbackDataWithRealWidgetNote();
+            // Show professional message about obtaining OBMMI access
+            this.showOBMMIAccessRequired();
             
         } catch (error) {
             console.error('Error loading OBMMI widget:', error);
@@ -199,6 +199,107 @@ class OBMMITicker {
         this.widgetInitialized = true;
     }
 
+    showOBMMIAccessRequired() {
+        // Show a professional message about obtaining OBMMI access
+        this.container.innerHTML = `
+            <div class="obmmi-ticker-content" style="animation: none; justify-content: center; text-align: center;">
+                <div class="obmmi-ticker-item" style="background: rgba(255,255,255,0.2); padding: 8px 16px;">
+                    <div class="obmmi-ticker-rate" style="font-size: 14px;">
+                        📊 OBMMI Widget Access Required
+                    </div>
+                </div>
+            </div>
+            <div class="obmmi-branding">
+                <span>Powered by</span>
+                <a href="https://www.optimalblue.com" target="_blank" rel="noopener">Optimal Blue</a>
+                <button class="obmmi-expand-button" onclick="window.obmmiTicker.showAccessInfo()" style="background: rgba(255,193,7,0.9); border-color: rgba(255,193,7,1);">
+                    ℹ️ Get Access
+                </button>
+            </div>
+        `;
+
+        // Create modal for access info (only once)
+        if (!document.getElementById('obmmi-access-modal')) {
+            this.createAccessInfoModal();
+        }
+
+        this.widgetInitialized = true;
+    }
+
+    createAccessInfoModal() {
+        const modal = document.createElement('div');
+        modal.id = 'obmmi-access-modal';
+        modal.className = 'obmmi-modal';
+        modal.innerHTML = `
+            <div class="obmmi-modal-content">
+                <div class="obmmi-modal-header">
+                    <h3 class="obmmi-modal-title">📊 OBMMI Widget Access Required</h3>
+                    <button class="obmmi-close" onclick="window.obmmiTicker.hideAccessInfo()">&times;</button>
+                </div>
+                <div style="padding: 20px;">
+                    <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffecb5; border-radius: 4px; color: #856404;">
+                        <strong>⚠️ Registration Required:</strong> The OBMMI widget requires registration with Optimal Blue to access real-time mortgage market data.
+                    </div>
+                    
+                    <h4 style="color: #1e3c72; margin-bottom: 15px;">How to Get OBMMI Access:</h4>
+                    <ol style="line-height: 1.8; margin-bottom: 20px;">
+                        <li><strong>Visit Optimal Blue:</strong> Go to <a href="https://www.optimalblue.com" target="_blank" style="color: #1e3c72;">optimalblue.com</a></li>
+                        <li><strong>Register for OBMMI:</strong> Sign up for access to the Optimal Blue Mortgage Market Indices</li>
+                        <li><strong>Get Widget Code:</strong> Obtain your personalized widget embed code</li>
+                        <li><strong>Replace Integration:</strong> Update this ticker with your authorized widget code</li>
+                    </ol>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; color: #0c5460;">
+                        <strong>🎯 OBMMI Benefits:</strong>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Real-time data from ~35% of the U.S. mortgage market</li>
+                            <li>Based on actual loan locks, not advertised rates</li>
+                            <li>Multiple loan types: Conventional, FHA, VA, USDA, Jumbo</li>
+                            <li>Updated throughout the day</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <a href="https://www.optimalblue.com" target="_blank" class="btn btn-primary" style="background: #1e3c72; border: none; padding: 10px 20px; text-decoration: none; border-radius: 4px; color: white;">
+                            Get OBMMI Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.hideAccessInfo();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                this.hideAccessInfo();
+            }
+        });
+    }
+
+    showAccessInfo() {
+        const modal = document.getElementById('obmmi-access-modal');
+        if (modal) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    hideAccessInfo() {
+        const modal = document.getElementById('obmmi-access-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
     renderTickerData(data) {
         if (!data || !data.rates || data.rates.length === 0) {
             this.showErrorState('No market data available');
@@ -246,63 +347,6 @@ class OBMMITicker {
         this.widgetInitialized = true;
     }
 
-    createFullWidgetModal() {
-        const modal = document.createElement('div');
-        modal.id = 'obmmi-modal';
-        modal.className = 'obmmi-modal';
-        modal.innerHTML = `
-            <div class="obmmi-modal-content">
-                <div class="obmmi-modal-header">
-                    <h3 class="obmmi-modal-title">📊 Live OBMMI Market Data</h3>
-                    <button class="obmmi-close" onclick="window.obmmiTicker.hideFullWidget()">&times;</button>
-                </div>
-                <div style="margin-bottom: 10px; padding: 10px; background: #e8f5e8; border: 1px solid #4caf50; border-radius: 4px; color: #2e7d32; font-size: 14px;">
-                    <strong>⚡ Real-Time Data:</strong> This widget shows live mortgage market data from approximately 35% of the U.S. mortgage market, updated throughout the day based on actual loan locks.
-                </div>
-                <iframe 
-                    class="obmmi-widget-frame" 
-                    src="https://www2.optimalblue.com/OBMMI/widget.php" 
-                    width="700" 
-                    height="522" 
-                    frameborder="0">
-                </iframe>
-                <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    Data source: Optimal Blue Mortgage Market Indices (OBMMI) - Real loan lock data from mortgage professionals
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.hideFullWidget();
-            }
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.style.display === 'block') {
-                this.hideFullWidget();
-            }
-        });
-    }
-
-    showFullWidget() {
-        const modal = document.getElementById('obmmi-modal');
-        if (modal) {
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        }
-    }
-
-    hideFullWidget() {
-        const modal = document.getElementById('obmmi-modal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = ''; // Restore scrolling
-        }
-    }
 
     refreshWidget() {
         if (this.isLoading) return;
