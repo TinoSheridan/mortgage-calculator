@@ -80,6 +80,9 @@ export class FormManager {
             new_closing_date: this.getValueById('new_closing_date'),
             annual_taxes: safeNumber(this.getValueById('annual_taxes')),
             annual_insurance: safeNumber(this.getValueById('annual_insurance')),
+            // Force amount method when actual dollar amounts are provided
+            tax_method: 'amount',
+            insurance_method: 'amount',
             monthly_hoa_fee: safeNumber(this.getValueById('monthly_hoa_fee')),
             extra_monthly_savings: safeNumber(this.getValueById('extra_monthly_savings')),
             refinance_lender_credit: safeNumber(this.getValueById('refinance_lender_credit')),

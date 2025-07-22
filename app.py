@@ -614,6 +614,10 @@ def refinance():
                 "insurance_escrow_months", 2, int
             )
 
+            # Add tax and insurance method parameters
+            validated_params["tax_method"] = data.get("tax_method", "percentage")
+            validated_params["insurance_method"] = data.get("insurance_method", "percentage")
+
             # Zero cash to close mode
             validated_params["zero_cash_to_close"] = data.get("zero_cash_to_close", False)
 
@@ -873,14 +877,19 @@ def property_intel():
 
     try:
         app.logger.info(f"Property intel API called for address: {address}")
-        
+
         # Try to import property_intel_api, fall back to embedded fallback if not available
         try:
             from property_intel_api import property_intel_api
+
             analysis = property_intel_api.analyze_property(address)
-            app.logger.info(f"Property analysis completed. Source links available: {list(analysis.get('sourceLinks', {}).keys())}")
+            app.logger.info(
+                f"Property analysis completed. Source links available: {list(analysis.get('sourceLinks', {}).keys())}"
+            )
         except ImportError as import_error:
-            app.logger.warning(f"property_intel_api not available, using fallback: {str(import_error)}")
+            app.logger.warning(
+                f"property_intel_api not available, using fallback: {str(import_error)}"
+            )
             analysis = get_fallback_property_data(address)
         except Exception as api_error:
             app.logger.warning(f"property_intel_api failed, using fallback: {str(api_error)}")
@@ -891,19 +900,23 @@ def property_intel():
     except Exception as e:
         app.logger.error(f"Critical error in property intel endpoint: {str(e)}")
         import traceback
+
         app.logger.error(f"Traceback: {traceback.format_exc()}")
-        
+
         # Even if everything fails, return basic fallback data
         fallback_data = get_fallback_property_data(address)
-        return jsonify({"success": True, "data": fallback_data, "timestamp": datetime.now().isoformat()})
+        return jsonify(
+            {"success": True, "data": fallback_data, "timestamp": datetime.now().isoformat()}
+        )
 
 
 def get_fallback_property_data(address):
     """Fallback property data when property_intel_api is not available"""
     # Generate basic source links for the address
     import urllib.parse
+
     encoded_address = urllib.parse.quote(address)
-    
+
     return {
         "address": address,
         "timestamp": datetime.now().isoformat(),
@@ -1012,14 +1025,19 @@ def market_data():
     """
     try:
         app.logger.info("Market data API endpoint called")
-        
+
         # Try to import market_data_api, fall back to embedded fallback if not available
         try:
             from market_data_api import market_data_api
+
             market_summary = market_data_api.get_market_summary()
-            app.logger.info(f"Market data retrieved from API: {len(str(market_summary))} characters")
+            app.logger.info(
+                f"Market data retrieved from API: {len(str(market_summary))} characters"
+            )
         except ImportError as import_error:
-            app.logger.warning(f"market_data_api not available, using fallback: {str(import_error)}")
+            app.logger.warning(
+                f"market_data_api not available, using fallback: {str(import_error)}"
+            )
             market_summary = get_fallback_market_data()
         except Exception as api_error:
             app.logger.warning(f"market_data_api failed, using fallback: {str(api_error)}")
@@ -1032,8 +1050,9 @@ def market_data():
     except Exception as e:
         app.logger.error(f"Critical error in market data endpoint: {str(e)}")
         import traceback
+
         app.logger.error(f"Traceback: {traceback.format_exc()}")
-        
+
         # Even if everything fails, return basic fallback data
         fallback_data = get_fallback_market_data()
         return jsonify(

@@ -934,8 +934,21 @@ class MortgageCalculator:
                 f"Insurance calculations: monthly=${monthly_insurance: .2f}, prepaid=${prepaid['prepaid_insurance']: .2f}, escrow=${prepaid['insurance_escrow']: .2f}. "
             )
 
-            # 4. Calculate total
-            prepaid["total"] = sum(prepaid.values())
+            # 4. Calculate total - only sum monetary amounts, not non-monetary values
+            monetary_fields = [
+                "prepaid_interest",
+                "prepaid_tax",
+                "prepaid_insurance",
+                "tax_escrow",
+                "insurance_escrow",
+            ]
+            # Add optional fields if they exist
+            if "tax_escrow_adjustment" in prepaid:
+                monetary_fields.append("tax_escrow_adjustment")
+            if "borrower_escrow_credit" in prepaid:
+                monetary_fields.append("borrower_escrow_credit")
+
+            prepaid["total"] = sum(prepaid.get(field, 0) for field in monetary_fields)
             self.logger.info(f"Total prepaid items: ${prepaid['total']: .2f}. ")
 
             return prepaid
@@ -1345,8 +1358,8 @@ class MortgageCalculator:
         annual_insurance: float,
         annual_interest_rate: float,
         closing_date,
-        tax_escrow_months: int = 3,
-        insurance_escrow_months: int = 2,
+        tax_escrow_months: int = 2,
+        insurance_escrow_months: int = 3,
         tax_method: str = "percentage",
         insurance_method: str = "percentage",
         annual_tax_rate: float = 1.3,
@@ -1431,8 +1444,16 @@ class MortgageCalculator:
             prepaid["tax_escrow_adjustment"] = 0
             prepaid["borrower_escrow_credit"] = 0
 
-            # Calculate total
-            prepaid["total"] = sum(prepaid.values())
+            # Calculate total - only sum monetary amounts, not month/day counts
+            prepaid["total"] = (
+                prepaid["prepaid_interest"]
+                + prepaid["prepaid_insurance"]
+                + prepaid["prepaid_tax"]
+                + prepaid["tax_escrow"]
+                + prepaid["insurance_escrow"]
+                + prepaid["tax_escrow_adjustment"]
+                + prepaid["borrower_escrow_credit"]
+            )
 
             self.logger.info(f"Refinance prepaid items calculated: ${prepaid['total']:.2f}")
 
@@ -1462,8 +1483,8 @@ class MortgageCalculator:
         cash_option: str = "finance_all",
         target_ltv_value: float = 80.0,
         cash_back_amount: float = 0.0,
-        tax_escrow_months: int = 3,
-        insurance_escrow_months: int = 2,
+        tax_escrow_months: int = 2,
+        insurance_escrow_months: int = 3,
         new_discount_points: float = 0.0,
         loan_type: str = "conventional",
         refinance_type: str = "rate_term",
