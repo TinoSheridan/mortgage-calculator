@@ -11,7 +11,7 @@ export PATH="/opt/render/project/python/venv/bin:/opt/render/project/.venv/bin:/
 # Install dependencies and gunicorn
 echo "===== Installing dependencies ====="
 pip install -r requirements.txt
-pip install gunicorn==21.2.0
+pip install gunicorn==23.0.0
 
 # Create necessary directories
 echo "===== Creating log directories ====="

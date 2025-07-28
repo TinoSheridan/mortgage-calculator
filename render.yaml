@@ -6,7 +6,9 @@ services:
     startCommand: ./start.sh
     envVars:
       - key: FLASK_ENV
-        value: testing
+        value: production
+      - key: SECRET_KEY
+        value: d4PYGtn0dwgmVNOdZQbmXrXdAUMbU01-n20rx-x1_7A
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: PATH
