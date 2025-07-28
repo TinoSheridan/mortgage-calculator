@@ -369,7 +369,7 @@ def calculate():
     # Log all parameters before calculation
     app.logger.info(
         f"Calculating with the following parameters: \n"
-        f"Purchase price: ${purchase_price:, .2f}\n"
+        f"Purchase price: ${purchase_price:,.2f}\n"
         f"Down payment: {down_payment_percentage}%\n"
         f"Interest rate: {annual_rate}%\n"
         f"Loan term: {loan_term} years\n"
