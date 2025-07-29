@@ -4,9 +4,15 @@
 
 The Mortgage Calculator application now uses explicit version tracking to ensure consistent deployments across environments. This helps identify which features are available in each deployed instance.
 
-### Current Version: 1.9.1 (March 19, 2025)
+### Current Version: 2.6.3 (January 29, 2025)
 
-**Features included:**
+**Features included in this release:**
+- **Target LTV Input Fix**: Fixed target LTV input field not appearing when "Target Specific Loan-to-Value" option is selected in refinance cash options
+- **JavaScript Event Listener Fix**: Updated event listeners to properly match HTML radio button IDs (finance_closing_only vs finance_all)
+- **Refinance Options Enhancement**: All four refinance cash options now work correctly with proper show/hide logic
+
+**Previous features:**
+- Comprehensive Property Intelligence system with Spokeo integration
 - Seller credits with proper validation and maximum limits
 - Lender credits
 - VA seller contribution limits with 4% concession cap checking
@@ -26,7 +32,7 @@ python3 scripts/validate_deployment.py
 This script checks for:
 - ✅ Environment variables (SECRET_KEY, etc.)
 - ✅ Format specifier syntax errors
-- ✅ Dependency version consistency  
+- ✅ Dependency version consistency
 - ✅ Critical import availability
 
 #### 2. Manual Environment Variable Check

@@ -171,7 +171,7 @@ class MortgageCalculator {
 
             // Get form data
             const formData = formManager.getFormData('refinance');
-            
+
             // Get the selected cash option
             const cashOption = document.querySelector('input[name="cash_option"]:checked')?.value;
             console.log('Selected cash option:', cashOption);
@@ -590,7 +590,8 @@ class MortgageCalculator {
      * Setup cash to closing options toggle functionality
      */
     setupCashOptionsToggle() {
-        const financeAllRadio = document.getElementById('finance_all');
+        const financeClosingOnlyRadio = document.getElementById('finance_closing_only');
+        const zeroCashToCloseRadio = document.getElementById('zero_cash_to_close');
         const targetLtvRadio = document.getElementById('target_ltv');
         const cashBackRadio = document.getElementById('cash_back');
         const targetLtvGroup = document.getElementById('target_ltv_group');
@@ -598,10 +599,20 @@ class MortgageCalculator {
         const targetLtvInput = document.getElementById('target_ltv_value');
         const cashBackInput = document.getElementById('cash_back_amount');
 
-        if (financeAllRadio && targetLtvRadio && cashBackRadio && targetLtvGroup && cashBackGroup) {
-            // Finance all costs (default)
-            financeAllRadio.addEventListener('change', () => {
-                if (financeAllRadio.checked) {
+        if (financeClosingOnlyRadio && zeroCashToCloseRadio && targetLtvRadio && cashBackRadio && targetLtvGroup && cashBackGroup) {
+            // Finance closing costs only (default)
+            financeClosingOnlyRadio.addEventListener('change', () => {
+                if (financeClosingOnlyRadio.checked) {
+                    targetLtvGroup.style.display = 'none';
+                    cashBackGroup.style.display = 'none';
+                    if (targetLtvInput) targetLtvInput.required = false;
+                    if (cashBackInput) cashBackInput.required = false;
+                }
+            });
+
+            // Zero cash to close
+            zeroCashToCloseRadio.addEventListener('change', () => {
+                if (zeroCashToCloseRadio.checked) {
                     targetLtvGroup.style.display = 'none';
                     cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = false;

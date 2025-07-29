@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.6.2"  # Added comprehensive Property Intelligence system with Spokeo integration
+VERSION = "2.6.3"  # Fixed target LTV input field visibility issue in refinance options
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 1, 18)  # Updated date
+LAST_UPDATED = date(2025, 1, 29)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "Added comprehensive Property Intelligence system with Spokeo API integration, real-time property analysis popup, address copying functionality, honest data presentation (no test data), and integration with USDA and FEMA APIs for accurate property information."
+UPDATE_DESCRIPTION = "Fixed target LTV input field not appearing when 'Target Specific Loan-to-Value' option is selected in refinance cash options. Updated JavaScript event listeners to properly match HTML radio button IDs and ensure all refinance options work correctly."
 
 
 def get_version_info():
@@ -64,4 +64,5 @@ FEATURES = [
     "property_address_copying",  # v2.6.2: One-click address copying for manual verification
     "honest_data_presentation",  # v2.6.2: Shows "Unknown" instead of test data, provides verification links
     "property_source_links",  # v2.6.2: Direct links to Spokeo, QPublic, county assessors for manual verification
+    "target_ltv_input_fix",  # v2.6.3: Fixed target LTV input field not appearing when selected in refinance options
 ]
