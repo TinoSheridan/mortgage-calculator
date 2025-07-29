@@ -18,6 +18,42 @@ The Mortgage Calculator application now uses explicit version tracking to ensure
 
 Before deploying to Render, run the verification script to ensure all features are properly implemented:
 
+#### 1. Run Deployment Validation Script
+```bash
+python3 scripts/validate_deployment.py
+```
+
+This script checks for:
+- ✅ Environment variables (SECRET_KEY, etc.)
+- ✅ Format specifier syntax errors
+- ✅ Dependency version consistency  
+- ✅ Critical import availability
+
+#### 2. Manual Environment Variable Check
+
+**For Render Deployment:**
+Ensure these environment variables are set in Render dashboard:
+- `SECRET_KEY` - Secure random string (32+ characters)
+- `FLASK_ENV` - Set to "production"
+
+**For Local Development:**
+Ensure `.env` file exists with:
+```
+SECRET_KEY=your-secure-key-here
+FLASK_ENV=development
+```
+
+#### 3. Common Issues Prevention
+
+**Format Specifier Errors:**
+- ❌ Wrong: `f"Price: ${price:, .2f}"`  (space after comma)
+- ✅ Correct: `f"Price: ${price:,.2f}"` (no space)
+
+**Missing Environment Variables:**
+- Check `.env.example` for required variables
+- Validate Render environment variables are set
+- Never commit `.env` to version control
+
 ```bash
 python3 verify_deployment.py
 ```
