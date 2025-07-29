@@ -61,7 +61,6 @@ class MortgageCalculator {
         // Calculate button listeners
         const calculateBtn = document.getElementById('calculateBtn');
         const refinanceCalculateBtn = document.getElementById('refinanceCalculateBtn');
-        const refinanceZeroCashBtn = document.getElementById('refinanceZeroCashBtn');
 
         if (calculateBtn) {
             calculateBtn.addEventListener('click', (e) => {
@@ -73,14 +72,7 @@ class MortgageCalculator {
         if (refinanceCalculateBtn) {
             refinanceCalculateBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.handleCalculation('refinance');
-            });
-        }
-
-        if (refinanceZeroCashBtn) {
-            refinanceZeroCashBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleZeroCashRefinance();
+                this.handleRefinanceCalculation();
             });
         }
 
@@ -169,17 +161,44 @@ class MortgageCalculator {
     }
 
     /**
-     * Handle zero cash refinance calculation
+     * Handle refinance calculation with cash option logic
      */
-    async handleZeroCashRefinance() {
-        console.log('Starting zero cash refinance calculation...');
+    async handleRefinanceCalculation() {
+        console.log('Starting refinance calculation...');
 
         try {
-            this.setLoadingState(true, 'refinance_zero_cash');
+            this.setLoadingState(true, 'refinance');
 
-            // Get form data and add zero cash flag
+            // Get form data
             const formData = formManager.getFormData('refinance');
-            formData.zero_cash_to_close = true;
+            
+            // Get the selected cash option
+            const cashOption = document.querySelector('input[name="cash_option"]:checked')?.value;
+            console.log('Selected cash option:', cashOption);
+
+            // Map cash options to backend logic
+            switch (cashOption) {
+                case 'finance_closing_only':
+                    // Standard refinance - finance closing costs only
+                    formData.cash_option = 'finance_all'; // Backend expects this value
+                    break;
+                case 'zero_cash_to_close':
+                    // Zero cash to close - finance all costs and prepaids
+                    formData.zero_cash_to_close = true;
+                    formData.cash_option = 'finance_all';
+                    break;
+                case 'target_ltv':
+                    // Target specific LTV
+                    formData.cash_option = 'target_ltv';
+                    break;
+                case 'cash_back':
+                    // Desired cash back
+                    formData.cash_option = 'cash_back';
+                    break;
+                default:
+                    // Default to standard refinance
+                    formData.cash_option = 'finance_all';
+            }
 
             const validationErrors = this.validateFormData(formData, 'refinance');
             if (validationErrors.length > 0) {
@@ -191,10 +210,10 @@ class MortgageCalculator {
             await this.handleCalculationResponse(response, 'refinance');
 
         } catch (error) {
-            console.error('Zero cash refinance calculation failed:', error);
+            console.error('Refinance calculation failed:', error);
             this.handleCalculationError(error);
         } finally {
-            this.setLoadingState(false, 'refinance_zero_cash');
+            this.setLoadingState(false, 'refinance');
         }
     }
 
@@ -431,7 +450,7 @@ class MortgageCalculator {
     /**
      * Set loading state for buttons and UI
      * @param {boolean} isLoading - Loading state
-     * @param {string} mode - 'purchase', 'refinance', or 'refinance_zero_cash'
+     * @param {string} mode - 'purchase' or 'refinance'
      */
     setLoadingState(isLoading, mode) {
         if (isLoading) {
@@ -446,9 +465,6 @@ class MortgageCalculator {
             uiStateManager.setButtonLoading(button, isLoading);
         } else if (mode === 'refinance') {
             const button = document.getElementById('refinanceCalculateBtn');
-            uiStateManager.setButtonLoading(button, isLoading);
-        } else if (mode === 'refinance_zero_cash') {
-            const button = document.getElementById('refinanceZeroCashBtn');
             uiStateManager.setButtonLoading(button, isLoading);
         }
     }

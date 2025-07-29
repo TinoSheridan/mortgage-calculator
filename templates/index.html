@@ -673,17 +673,25 @@
                         <h6 class="mt-3 mb-2 text-primary">Cash to Closing Options</h6>
                         <div class="form-group mb-1">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="cash_option" value="finance_all" id="finance_all" checked>
-                                <label class="form-check-label" for="finance_all">
-                                    Finance all costs (standard refinance)
+                                <input class="form-check-input" type="radio" name="cash_option" value="finance_closing_only" id="finance_closing_only" checked>
+                                <label class="form-check-label" for="finance_closing_only">
+                                    Standard Refinance - Finance Closing Costs Only
                                 </label>
                             </div>
-                            <div class="form-text text-muted ms-4 mb-2">Roll all closing costs and prepaids into the loan</div>
+                            <div class="form-text text-muted ms-4 mb-2">Roll closing costs into the loan, pay prepaids at closing</div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="cash_option" value="zero_cash_to_close" id="zero_cash_to_close">
+                                <label class="form-check-label" for="zero_cash_to_close">
+                                    Zero Cash to Close - Finance All Costs and Prepaids
+                                </label>
+                            </div>
+                            <div class="form-text text-muted ms-4 mb-2">Roll all closing costs and prepaids into the loan amount</div>
 
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="cash_option" value="target_ltv" id="target_ltv">
                                 <label class="form-check-label" for="target_ltv">
-                                    Target specific LTV (bring cash to reduce loan amount)
+                                    Target Specific Loan-to-Value
                                 </label>
                             </div>
                             <div class="form-text text-muted ms-4 mb-2">Ideal for eliminating mortgage insurance at 80% LTV</div>
@@ -691,7 +699,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="cash_option" value="cash_back" id="cash_back">
                                 <label class="form-check-label" for="cash_back">
-                                    Desired cash back (cash-out refinance)
+                                    Desired Cash Back
                                 </label>
                             </div>
                             <div class="form-text text-muted ms-4 mb-2">Specify how much cash you want to receive at closing</div>
@@ -716,21 +724,14 @@
                 </div>
             </div>
 
-            <!-- Refinance Calculate Buttons -->
+            <!-- Refinance Calculate Button -->
             <div class="mt-3 mb-4">
-                <button type="button" id="refinanceCalculateBtn" class="btn btn-primary btn-lg d-block w-100 mb-2" aria-describedby="refinance_calc_btn_desc">
-                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Calculate Refinance
+                <button type="button" id="refinanceCalculateBtn" class="btn btn-primary btn-lg d-block w-100" aria-describedby="refinance_calc_btn_desc">
+                    <i class="bi bi-calculator" aria-hidden="true"></i> Calculate
                 </button>
                 <span id="refinance_calc_btn_desc" class="visually-hidden">Calculate refinance using selected cash option above</span>
-                <div class="form-text text-muted mb-2">
-                    <small>Uses the cash option selected above (finance all costs or target LTV)</small>
-                </div>
-                <button type="button" id="refinanceZeroCashBtn" class="btn btn-success btn-lg d-block w-100" aria-describedby="zero_cash_btn_desc">
-                    <i class="bi bi-cash-coin" aria-hidden="true"></i> Zero Cash to Close
-                </button>
-                <span id="zero_cash_btn_desc" class="visually-hidden">Calculate refinance with all costs rolled into the loan amount</span>
-                <div class="form-text text-muted mt-1">
-                    <small>Zero cash option overrides settings above and adds all closing costs and prepaids to your loan amount</small>
+                <div class="form-text text-muted mt-2">
+                    <small>Calculates based on the cash option selected above</small>
                 </div>
             </div>
 
