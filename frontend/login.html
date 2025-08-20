@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mortgage Calculator v2.8.0</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="css/calculator.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-calculator"></i> Mortgage Calculator 
+                <small class="opacity-75">v2.8.0</small>
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">
+                    <i class="bi bi-arrow-left"></i> Back to Calculator
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-person-circle"></i> Login
+                        </h4>
+                        <small>Access your personalized calculator</small>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Alert for messages -->
+                        <div id="loginAlert" style="display: none;"></div>
+
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username or Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           placeholder="Enter username or email" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           placeholder="Enter password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me on this device
+                                </label>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" id="loginButton">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Demo Accounts -->
+                        <div class="mt-4">
+                            <h6 class="text-center text-muted mb-3">Demo Accounts</h6>
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-outline-info btn-sm w-100" 
+                                            onclick="fillDemoCredentials('superadmin', 'ChangeMe123!')">
+                                        <i class="bi bi-person-gear"></i> Super Admin Demo
+                                    </button>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted d-block text-center">
+                                        Use demo accounts to test multi-tenant features
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer text-center text-muted">
+                        <small>
+                            Don't have an account? Contact your administrator or 
+                            <a href="register.html" class="text-decoration-none">request access</a>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Features Info -->
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-star"></i> Member Benefits
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                Personalized closing costs and fees
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                Organization-specific settings
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                Save and share calculations
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                Multi-level admin controls
+                            </li>
+                            <li class="mb-0">
+                                <i class="bi bi-check-circle text-success"></i>
+                                Priority support and updates
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">
+                2025 Mortgage Calculator v2.8.0 | Multi-Tenant System
+            </span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        // Login page specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const loginButton = document.getElementById('loginButton');
+            const loginAlert = document.getElementById('loginAlert');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+
+            // Check if already logged in
+            if (authManager.isAuthenticated) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Password toggle functionality
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+
+            // Form submission
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    showAlert('Please enter both username and password', 'danger');
+                    return;
+                }
+
+                // Show loading state
+                loginButton.disabled = true;
+                loginButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Logging in...';
+
+                try {
+                    const result = await authManager.login(username, password);
+                    
+                    if (result.success) {
+                        showAlert('Login successful! Redirecting...', 'success');
+                        
+                        // Redirect after short delay
+                        setTimeout(() => {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const redirect = urlParams.get('redirect') || 'index.html';
+                            window.location.href = redirect;
+                        }, 1000);
+                    } else {
+                        showAlert(result.error || 'Login failed', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showAlert('Login failed. Please check your connection and try again.', 'danger');
+                } finally {
+                    // Reset button state
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Login';
+                }
+            });
+
+            function showAlert(message, type) {
+                loginAlert.className = `alert alert-${type} alert-dismissible fade show`;
+                loginAlert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                loginAlert.style.display = 'block';
+                
+                // Auto-hide success messages
+                if (type === 'success') {
+                    setTimeout(() => {
+                        loginAlert.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        });
+
+        // Demo credentials function
+        function fillDemoCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            
+            // Show tooltip or alert
+            const button = event.target;
+            const tooltip = new bootstrap.Tooltip(button, {
+                title: 'Demo credentials filled!',
+                trigger: 'manual'
+            });
+            tooltip.show();
+            setTimeout(() => tooltip.dispose(), 2000);
+        }
+    </script>
+</body>
+</html>

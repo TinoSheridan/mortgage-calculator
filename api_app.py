@@ -143,6 +143,11 @@ def api_calculate():
         # Update calculator configuration
         calculator.config = config_data
 
+        # Debug logging to verify method exists
+        logger.info(
+            f"Calculator methods available: {[method for method in dir(calculator) if 'calculate' in method]}"
+        )
+
         # Perform calculation
         result = calculator.calculate_all(
             purchase_price=purchase_price,

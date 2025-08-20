@@ -4,15 +4,14 @@
 
 The Mortgage Calculator application now uses explicit version tracking to ensure consistent deployments across environments. This helps identify which features are available in each deployed instance.
 
-### Current Version: 2.6.3 (January 29, 2025)
+### Current Version: 2.7.0 (August 17, 2025)
 
 **Features included in this release:**
-- **Target LTV Input Fix**: Fixed target LTV input field not appearing when "Target Specific Loan-to-Value" option is selected in refinance cash options
-- **JavaScript Event Listener Fix**: Updated event listeners to properly match HTML radio button IDs (finance_closing_only vs finance_all)
-- **Refinance Options Enhancement**: All four refinance cash options now work correctly with proper show/hide logic
+- **Intel Functionality Removal**: Removed Property Intelligence and Rate Intel features to refocus the calculator on its core mortgage calculation mission
+- **Simplified Navigation**: Cleaned up navbar to focus on essential functionality
+- **Core Calculator Focus**: Preserved all essential mortgage calculation features while removing external integrations
 
 **Previous features:**
-- Comprehensive Property Intelligence system with Spokeo integration
 - Seller credits with proper validation and maximum limits
 - Lender credits
 - VA seller contribution limits with 4% concession cap checking

@@ -27,6 +27,11 @@ from calculator import MortgageCalculator  # noqa: E402
 from config_factory import get_config  # noqa: E402
 from config_manager import ConfigManager  # noqa: E402
 
+# Database imports
+import database  # noqa: E402
+from models import db  # noqa: E402
+from flask_login import LoginManager  # noqa: E402
+
 # Now that paths are set up, we can safely import local modules
 from constants import TRANSACTION_TYPE  # noqa: E402
 from error_handling import ValidationError, handle_errors, validate_request_data  # noqa: E402
@@ -72,7 +77,26 @@ app.version = current_version  # Store version in app object for template access
 app.config["VERSION"] = current_version  # Also store in config
 app.config["CACHE_BUSTER"] = f"{current_version}.{cache_timestamp}"  # Create cache buster string
 
+# Configure secret key for sessions
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+
+# Initialize database
+database.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'  # Set login route for redirects
+login_manager.login_message = 'Please log in to access this page.'
+
+# User loader callback for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(int(user_id))
+
 logger.debug("Flask app initialization completed")
+logger.info("Database and authentication system initialized")
 
 # Log at the top level to confirm app.py is loaded and what template folder is used
 logger.info(f"[TOP-LEVEL] app.py loaded. Flask template_folder: {app.template_folder}")
@@ -783,8 +807,13 @@ config_manager = ConfigManager()
 config_manager.load_config()  # Load the config
 config = config_manager.get_config()  # Get the loaded config
 
-# Register admin blueprint
+# Register blueprints
 try:
+    # Import and register auth blueprint
+    import auth_routes
+    app.register_blueprint(auth_routes.auth_bp)
+    logger.debug("Auth blueprint registered successfully")
+    
     app.register_blueprint(admin_routes.admin_bp)
     logger.debug("Admin blueprint registered successfully")
     app.register_blueprint(beta_routes.beta_bp)
@@ -866,112 +895,6 @@ def index():
         return f"Error rendering calculator: {str(e)}", 500
 
 
-# Property Intelligence API endpoint
-@app.route("/api/property-intel")
-def property_intel():
-    """API endpoint to analyze property for financing information."""
-    address = request.args.get("address", "").strip()
-
-    if not address:
-        return jsonify({"success": False, "error": "Address parameter is required"}), 400
-
-    try:
-        app.logger.info(f"Property intel API called for address: {address}")
-
-        # Try to import property_intel_api, fall back to embedded fallback if not available
-        try:
-            from property_intel_api import property_intel_api
-
-            analysis = property_intel_api.analyze_property(address)
-            app.logger.info(
-                f"Property analysis completed. Source links available: {list(analysis.get('sourceLinks', {}).keys())}"
-            )
-        except ImportError as import_error:
-            app.logger.warning(
-                f"property_intel_api not available, using fallback: {str(import_error)}"
-            )
-            analysis = get_fallback_property_data(address)
-        except Exception as api_error:
-            app.logger.warning(f"property_intel_api failed, using fallback: {str(api_error)}")
-            analysis = get_fallback_property_data(address)
-
-        return jsonify({"success": True, "data": analysis, "timestamp": datetime.now().isoformat()})
-
-    except Exception as e:
-        app.logger.error(f"Critical error in property intel endpoint: {str(e)}")
-        import traceback
-
-        app.logger.error(f"Traceback: {traceback.format_exc()}")
-
-        # Even if everything fails, return basic fallback data
-        fallback_data = get_fallback_property_data(address)
-        return jsonify(
-            {"success": True, "data": fallback_data, "timestamp": datetime.now().isoformat()}
-        )
-
-
-def get_fallback_property_data(address):
-    """Fallback property data when property_intel_api is not available"""
-    # Generate basic source links for the address
-    import urllib.parse
-
-    encoded_address = urllib.parse.quote(address)
-
-    return {
-        "address": address,
-        "timestamp": datetime.now().isoformat(),
-        "sourceLinks": {
-            "spokeo": f"https://www.spokeo.com/property-search/{address.replace(' ', '-').replace(',', '').lower()}",
-            "qpublic": "https://qpublic.net",
-            "countyAssessor": "https://www.google.com/search?q=county+assessor+" + encoded_address,
-            "usda": "https://eligibility.sc.egov.usda.gov/eligibility/welcomeAction.do",
-            "fema": f"https://msc.fema.gov/portal/search#{encoded_address}",
-            "zillow": f"https://www.zillow.com/homes/{encoded_address}_rb/",
-            "realtor": f"https://www.realtor.com/realestateandhomes-search/{encoded_address}",
-            "propertyShark": f"https://www.propertyshark.com/mason/Property-Search/?searchtext={encoded_address}",
-            "redfin": f"https://www.redfin.com/stingray/do/location-search?location={encoded_address}",
-        },
-        "tax": {
-            "status": "Unknown",
-            "annualTax": "Unknown",
-            "taxRate": "Unknown",
-            "lastAssessed": "Unknown",
-            "assessedValue": "Unknown",
-            "message": "Manual verification required - API unavailable",
-            "needsManualVerification": True,
-        },
-        "propertyType": {
-            "type": "Unknown",
-            "confidence": "Unknown",
-            "details": "Unknown",
-            "message": "Manual verification required - API unavailable",
-            "needsManualVerification": True,
-        },
-        "usda": {
-            "eligible": "Unknown",
-            "location": "Unknown",
-            "message": "Check USDA eligibility map for this address",
-            "needsManualVerification": True,
-        },
-        "flood": {
-            "zone": "Unknown",
-            "risk": "Unknown",
-            "message": "Check FEMA flood maps for this address",
-            "needsManualVerification": True,
-        },
-        "hoa": {
-            "hasHOA": "Unknown",
-            "fees": "Unknown",
-            "message": "Manual verification required - API unavailable",
-            "needsManualVerification": True,
-        },
-        "financing": {
-            "options": "Unknown",
-            "restrictions": "Unknown",
-            "message": "Manual verification required - API unavailable",
-            "needsManualVerification": True,
-        },
-    }
 
 
 def get_fallback_market_data():

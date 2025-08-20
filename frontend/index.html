@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator v2.8.0 - Multi-Tenant</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="css/calculator.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-calculator"></i> Mortgage Calculator 
+                <small class="opacity-75">v2.8.0</small>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <!-- Login Status -->
+                    <li class="nav-item" id="loginStatus">
+                        <a class="nav-link" href="login.html">
+                            <i class="bi bi-person-circle"></i> Login
+                        </a>
+                    </li>
+                    
+                    <!-- User Menu (hidden by default) -->
+                    <li class="nav-item dropdown" id="userMenu" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-check"></i> <span id="userName">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="profile.html"><i class="bi bi-person"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="config.html"><i class="bi bi-gear"></i> My Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Login Banner -->
+        <div class="alert alert-info alert-dismissible fade show" id="loginBanner" style="display: none;">
+            <i class="bi bi-info-circle"></i>
+            <strong>Multi-Tenant Features Available!</strong> 
+            <a href="login.html" class="alert-link">Login</a> to access personalized closing costs, 
+            organization settings, and save your configurations.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-house-door"></i> Mortgage Calculator
+                        </h4>
+                        <small>Calculate purchase payments and refinance options</small>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Calculation Type Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="calculatorTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="purchase-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#purchase" type="button" role="tab">
+                                    <i class="bi bi-house-add"></i> Purchase
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="refinance-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#refinance" type="button" role="tab">
+                                    <i class="bi bi-arrow-repeat"></i> Refinance
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="calculatorTabContent">
+                            <!-- Purchase Tab -->
+                            <div class="tab-pane fade show active" id="purchase" role="tabpanel">
+                                <form id="purchaseForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="purchase_price" class="form-label">Purchase Price</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="purchase_price" 
+                                                           value="400000" min="0" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="down_payment_percentage" class="form-label">Down Payment %</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="down_payment_percentage" 
+                                                           value="20" min="0" max="100" step="0.1" required>
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="annual_rate" class="form-label">Interest Rate</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="annual_rate" 
+                                                           value="6.5" min="0" max="20" step="0.01" required>
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="loan_term" class="form-label">Loan Term</label>
+                                                <select class="form-select" id="loan_term" required>
+                                                    <option value="15">15 years</option>
+                                                    <option value="30" selected>30 years</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="loan_type" class="form-label">Loan Type</label>
+                                                <select class="form-select" id="loan_type" required>
+                                                    <option value="conventional" selected>Conventional</option>
+                                                    <option value="fha">FHA</option>
+                                                    <option value="va">VA</option>
+                                                    <option value="usda">USDA</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="annual_tax_rate" class="form-label">Property Tax</label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">
+                                                        <input type="radio" class="form-check-input" name="tax_method" value="percentage" id="tax_percentage" checked>
+                                                        <label class="form-check-label ms-1" for="tax_percentage">%</label>
+                                                    </div>
+                                                    <input type="number" class="form-control" id="annual_tax_rate" name="annual_tax_rate"
+                                                           step="0.01" min="0" max="10" value="1.2" required>
+                                                </div>
+                                                <div class="input-group">
+                                                    <div class="input-group-text">
+                                                        <input type="radio" class="form-check-input" name="tax_method" value="amount" id="tax_amount">
+                                                        <label class="form-check-label ms-1" for="tax_amount">$</label>
+                                                    </div>
+                                                    <input type="number" class="form-control" id="annual_tax_amount" name="annual_tax_amount"
+                                                           step="100" min="0" value="0" disabled>
+                                                </div>
+                                                <small class="form-text text-muted">Choose percentage of home value or enter annual amount</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="annual_insurance_rate" class="form-label">Home Insurance</label>
+                                                <div class="input-group mb-2">
+                                                    <div class="input-group-text">
+                                                        <input type="radio" class="form-check-input" name="insurance_method" value="percentage" id="insurance_percentage" checked>
+                                                        <label class="form-check-label ms-1" for="insurance_percentage">%</label>
+                                                    </div>
+                                                    <input type="number" class="form-control" id="annual_insurance_rate" name="annual_insurance_rate"
+                                                           step="0.01" min="0" max="5" value="0.35" required>
+                                                </div>
+                                                <div class="input-group">
+                                                    <div class="input-group-text">
+                                                        <input type="radio" class="form-check-input" name="insurance_method" value="amount" id="insurance_amount">
+                                                        <label class="form-check-label ms-1" for="insurance_amount">$</label>
+                                                    </div>
+                                                    <input type="number" class="form-control" id="annual_insurance_amount" name="annual_insurance_amount"
+                                                           step="50" min="0" value="0" disabled>
+                                                </div>
+                                                <small class="form-text text-muted">Choose percentage of home value or enter annual amount</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="monthly_hoa_fee" class="form-label">Monthly HOA Fee</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="monthly_hoa_fee" 
+                                                           value="0" min="0">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Credits Section -->
+                                    <div class="mb-3">
+                                        <h6><i class="bi bi-cash-coin"></i> Credits & Points</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="seller_credit" class="form-label">Seller Credit</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="seller_credit" value="0" min="0">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="lender_credit" class="form-label">Lender Credit</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="lender_credit" value="0" min="0">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="discount_points" class="form-label">Discount Points</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="discount_points" 
+                                                           value="0" min="0" step="0.25">
+                                                    <span class="input-group-text">pts</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-calculator"></i> Calculate Payment
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Refinance Tab -->
+                            <div class="tab-pane fade" id="refinance" role="tabpanel">
+                                <form id="refinanceForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="home_value" class="form-label">Current Home Value</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="home_value" 
+                                                           value="450000" min="0" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="current_loan_balance" class="form-label">Current Loan Balance</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="current_loan_balance" 
+                                                           value="320000" min="0" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="new_interest_rate" class="form-label">New Interest Rate</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="new_interest_rate" 
+                                                           value="6.0" min="0" max="20" step="0.01" required>
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="new_loan_term" class="form-label">New Loan Term</label>
+                                                <select class="form-select" id="new_loan_term" required>
+                                                    <option value="15">15 years</option>
+                                                    <option value="30" selected>30 years</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="refi_loan_type" class="form-label">Loan Type</label>
+                                                <select class="form-select" id="refi_loan_type" required>
+                                                    <option value="conventional" selected>Conventional</option>
+                                                    <option value="fha">FHA</option>
+                                                    <option value="va">VA</option>
+                                                    <option value="usda">USDA</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="cash_out_amount" class="form-label">Cash Out Amount</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" id="cash_out_amount" 
+                                                           value="0" min="0">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="bi bi-arrow-repeat"></i> Calculate Refinance
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="col-lg-4">
+                <div class="card shadow" id="resultsCard" style="display: none;">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up"></i> Calculation Results
+                        </h5>
+                    </div>
+                    <div class="card-body" id="resultsContent">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+
+                <!-- User Configuration Info -->
+                <div class="card shadow mt-3" id="configInfo" style="display: none;">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-gear"></i> Configuration Source
+                        </h6>
+                    </div>
+                    <div class="card-body small" id="configContent">
+                        <!-- Configuration inheritance info -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">
+                2025 Mortgage Calculator v2.8.0 | 
+                <a href="https://github.com/your-username/mortgage-calculator" class="text-decoration-none">
+                    <i class="bi bi-github"></i> GitHub
+                </a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

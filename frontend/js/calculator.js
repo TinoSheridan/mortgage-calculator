@@ -11,70 +11,34 @@ class Calculator {
     init() {
         // Set up form event listeners
         this.setupFormHandlers();
-
+        
         // Load last calculation if available
         this.loadLastCalculation();
     }
 
     setupFormHandlers() {
-        const mortgageForm = document.getElementById('mortgageForm');
+        const purchaseForm = document.getElementById('purchaseForm');
+        const refinanceForm = document.getElementById('refinanceForm');
 
-        if (mortgageForm) {
-            mortgageForm.addEventListener('submit', (e) => {
+        if (purchaseForm) {
+            purchaseForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                // Check which mode is selected
-                const mode = document.querySelector('input[name="calc_mode"]:checked').value;
-                if (mode === 'purchase') {
-                    this.calculatePurchase();
-                } else if (mode === 'refinance') {
-                    this.calculateRefinance();
-                }
+                this.calculatePurchase();
             });
         }
 
-        // Set up mode switching handlers
-        this.setupModeHandlers();
+        if (refinanceForm) {
+            refinanceForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.calculateRefinance();
+            });
+        }
 
         // Set up radio button handlers for tax and insurance methods
         this.setupTaxInsuranceHandlers();
 
         // Add real-time calculation on input change (debounced)
         this.setupRealtimeCalculation();
-
-        // Set up copy button handlers
-        this.setupCopyHandlers();
-
-        // Set up VA loan options show/hide
-        this.setupVALoanHandlers();
-
-        // Set up manual balance toggle
-        this.setupManualBalanceHandler();
-
-        // Set up seller contribution calculations
-        this.setupSellerContributionCalculation();
-    }
-
-    setupModeHandlers() {
-        const purchaseRadio = document.getElementById('mode_purchase');
-        const refinanceRadio = document.getElementById('mode_refinance');
-        const purchaseFields = document.getElementById('purchaseFields');
-        const refinanceFields = document.getElementById('refinanceFields');
-
-        if (purchaseRadio && refinanceRadio) {
-            purchaseRadio.addEventListener('change', () => {
-                if (purchaseRadio.checked) {
-                    purchaseFields.style.display = 'block';
-                    refinanceFields.style.display = 'none';
-                }
-            });
-
-            refinanceRadio.addEventListener('change', () => {
-                if (refinanceRadio.checked) {
-                    purchaseFields.style.display = 'none';
-                    refinanceFields.style.display = 'block';
-                }
-            });
-        }
     }
 
     setupTaxInsuranceHandlers() {
@@ -127,200 +91,24 @@ class Calculator {
         }
     }
 
-    setupVALoanHandlers() {
-        const loanTypeSelect = document.getElementById('loan_type');
-        const vaOptions = document.getElementById('va_options');
-
-        if (loanTypeSelect && vaOptions) {
-            loanTypeSelect.addEventListener('change', () => {
-                if (loanTypeSelect.value === 'va') {
-                    vaOptions.style.display = 'block';
-                } else {
-                    vaOptions.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    setupManualBalanceHandler() {
-        const manualBalanceCheckbox = document.getElementById('use_manual_balance');
-        const manualBalanceGroup = document.getElementById('manual_balance_group');
-
-        if (manualBalanceCheckbox && manualBalanceGroup) {
-            manualBalanceCheckbox.addEventListener('change', () => {
-                if (manualBalanceCheckbox.checked) {
-                    manualBalanceGroup.style.display = 'block';
-                } else {
-                    manualBalanceGroup.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    setupSellerContributionCalculation() {
-        const purchasePriceInput = document.getElementById('purchase_price');
-        const loanTypeSelect = document.getElementById('loan_type');
-        const downPaymentInput = document.getElementById('down_payment_percentage');
-        const occupancySelect = document.getElementById('occupancy');
-
-        const updateSellerContribution = () => {
-            const maxContributionElement = document.getElementById('maxSellerContribution');
-            if (!maxContributionElement) return;
-
-            const purchasePrice = parseFloat(purchasePriceInput.value || 0);
-            const loanType = loanTypeSelect.value;
-            const downPaymentPercent = parseFloat(downPaymentInput.value || 0);
-            const occupancy = occupancySelect.value;
-
-            if (purchasePrice <= 0) {
-                maxContributionElement.textContent = 'Enter purchase price to calculate max contribution';
-                return;
-            }
-
-            let maxPercentage = 0;
-
-            // Calculate max seller contribution based on loan type and down payment
-            switch (loanType) {
-                case 'conventional':
-                    if (downPaymentPercent < 10) {
-                        maxPercentage = 3; // 3% for less than 10% down
-                    } else if (downPaymentPercent < 25) {
-                        maxPercentage = 6; // 6% for 10-24% down
-                    } else {
-                        maxPercentage = 9; // 9% for 25%+ down
-                    }
-
-                    // Investment properties have lower limits
-                    if (occupancy === 'investment') {
-                        maxPercentage = Math.min(maxPercentage, 2);
-                    }
-                    break;
-
-                case 'fha':
-                    maxPercentage = 6; // FHA allows up to 6%
-                    break;
-
-                case 'va':
-                    maxPercentage = 4; // VA allows up to 4%
-                    break;
-
-                case 'usda':
-                    maxPercentage = 6; // USDA allows up to 6%
-                    break;
-
-                default:
-                    maxPercentage = 3; // Conservative default
-            }
-
-            const maxDollarAmount = (purchasePrice * maxPercentage / 100);
-            maxContributionElement.innerHTML = `<strong>Max contribution: $${maxDollarAmount.toLocaleString()} (${maxPercentage}% of purchase price)</strong>`;
-        };
-
-        // Update on relevant field changes
-        if (purchasePriceInput) purchasePriceInput.addEventListener('input', updateSellerContribution);
-        if (loanTypeSelect) loanTypeSelect.addEventListener('change', updateSellerContribution);
-        if (downPaymentInput) downPaymentInput.addEventListener('input', updateSellerContribution);
-        if (occupancySelect) occupancySelect.addEventListener('change', updateSellerContribution);
-
-        // Initial calculation
-        updateSellerContribution();
-    }
-
     setupRealtimeCalculation() {
         let timeout;
         const inputs = document.querySelectorAll('input[type="number"], select');
-
+        
         inputs.forEach(input => {
             input.addEventListener('input', () => {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     // Auto-calculate if form is valid
-                    const mode = document.querySelector('input[name="calc_mode"]:checked')?.value;
-                    if (mode === 'purchase') {
+                    const activeTab = document.querySelector('.tab-pane.active');
+                    if (activeTab && activeTab.id === 'purchase') {
                         this.calculatePurchase(true); // Silent calculation
-                    } else if (mode === 'refinance') {
+                    } else if (activeTab && activeTab.id === 'refinance') {
                         this.calculateRefinance(true); // Silent calculation
                     }
                 }, 1000); // 1 second delay
             });
         });
-    }
-
-    setupCopyHandlers() {
-        const copyResultsBtn = document.getElementById('copyResultsBtn');
-        const copyDetailBtn = document.getElementById('copyDetailBtn');
-        const copyConfirmation = document.getElementById('copyConfirmation');
-
-        if (copyResultsBtn) {
-            copyResultsBtn.addEventListener('click', () => {
-                this.copyResults('summary');
-            });
-        }
-
-        if (copyDetailBtn) {
-            copyDetailBtn.addEventListener('click', () => {
-                this.copyResults('detail');
-            });
-        }
-    }
-
-    async copyResults(type = 'summary') {
-        try {
-            if (!this.lastResult) {
-                this.showError('No calculation results to copy');
-                return;
-            }
-
-            let copyText = '';
-            const result = this.lastResult;
-
-            if (type === 'summary') {
-                // Copy summary format
-                copyText = `MORTGAGE CALCULATION SUMMARY
-Purchase Price: $${result.purchase_price?.toLocaleString() || 'N/A'}
-Down Payment: $${result.down_payment?.toLocaleString() || 'N/A'}
-Loan Amount: $${result.loan_amount?.toLocaleString() || 'N/A'}
-Monthly Payment: $${result.total_monthly_payment?.toLocaleString() || 'N/A'}
-Interest Rate: ${result.annual_rate || 'N/A'}%
-Loan Term: ${result.loan_term || 'N/A'} years`;
-            } else {
-                // Copy detailed format
-                copyText = `DETAILED MORTGAGE CALCULATION
-Purchase Price: $${result.purchase_price?.toLocaleString() || 'N/A'}
-Down Payment: $${result.down_payment?.toLocaleString() || 'N/A'}
-Loan Amount: $${result.loan_amount?.toLocaleString() || 'N/A'}
-
-MONTHLY PAYMENT BREAKDOWN:
-Principal & Interest: $${result.principal_and_interest?.toLocaleString() || 'N/A'}
-Property Tax: $${result.monthly_tax?.toLocaleString() || 'N/A'}
-Home Insurance: $${result.monthly_insurance?.toLocaleString() || 'N/A'}
-PMI: $${result.monthly_pmi?.toLocaleString() || 'N/A'}
-HOA Fee: $${result.monthly_hoa?.toLocaleString() || 'N/A'}
-Total Monthly Payment: $${result.total_monthly_payment?.toLocaleString() || 'N/A'}
-
-LOAN DETAILS:
-Interest Rate: ${result.annual_rate || 'N/A'}%
-Loan Term: ${result.loan_term || 'N/A'} years
-Loan Type: ${result.loan_type || 'N/A'}`;
-            }
-
-            await navigator.clipboard.writeText(copyText);
-            this.showCopyConfirmation();
-
-        } catch (error) {
-            console.error('Copy failed:', error);
-            this.showError('Failed to copy to clipboard');
-        }
-    }
-
-    showCopyConfirmation() {
-        const confirmation = document.getElementById('copyConfirmation');
-        if (confirmation) {
-            confirmation.classList.remove('d-none');
-            setTimeout(() => {
-                confirmation.classList.add('d-none');
-            }, 3000); // Hide after 3 seconds
-        }
     }
 
     async calculatePurchase(silent = false) {
@@ -330,19 +118,19 @@ Loan Type: ${result.loan_type || 'N/A'}`;
 
         try {
             const formData = this.getPurchaseFormData();
-
+            
             if (!this.validatePurchaseData(formData)) {
                 if (!silent) this.hideLoading();
                 return;
             }
 
             const response = await this.makeCalculationRequest('/api/calculate', formData);
-
+            
             if (response.success) {
                 this.lastResult = response.result;
                 this.saveLastCalculation();
                 this.displayResults(response.result, 'purchase');
-
+                
                 if (!silent) {
                     this.showSuccess('Calculation completed successfully!');
                 }
@@ -368,19 +156,19 @@ Loan Type: ${result.loan_type || 'N/A'}`;
 
         try {
             const formData = this.getRefinanceFormData();
-
+            
             if (!this.validateRefinanceData(formData)) {
                 if (!silent) this.hideLoading();
                 return;
             }
 
             const response = await this.makeCalculationRequest('/api/refinance', formData);
-
+            
             if (response.success) {
                 this.lastResult = response.result;
                 this.saveLastCalculation();
                 this.displayResults(response.result, 'refinance');
-
+                
                 if (!silent) {
                     this.showSuccess('Refinance calculation completed!');
                 }
@@ -401,7 +189,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
 
     async makeCalculationRequest(endpoint, data) {
         const url = getApiUrl(endpoint);
-
+        
         let response;
         if (authManager.isAuthenticated) {
             // Use authenticated API call
@@ -429,7 +217,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
 
     getPurchaseFormData() {
         const purchasePrice = parseFloat(document.getElementById('purchase_price').value);
-
+        
         // Handle tax method (percentage or dollar amount)
         let taxRate = 0;
         const taxMethodPercentage = document.getElementById('tax_percentage');
@@ -440,7 +228,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             const taxAmount = parseFloat(document.getElementById('annual_tax_amount').value || 0);
             taxRate = purchasePrice > 0 ? (taxAmount / purchasePrice) * 100 : 0;
         }
-
+        
         // Handle insurance method (percentage or dollar amount)
         let insuranceRate = 0;
         const insuranceMethodPercentage = document.getElementById('insurance_percentage');
@@ -461,45 +249,23 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             annual_tax_rate: taxRate,
             annual_insurance_rate: insuranceRate,
             monthly_hoa_fee: parseFloat(document.getElementById('monthly_hoa_fee').value || 0),
-            discount_points: parseFloat(document.getElementById('discount_points').value || 0),
-            occupancy: document.getElementById('occupancy').value,
-            closing_date: document.getElementById('closing_date').value,
             seller_credit: parseFloat(document.getElementById('seller_credit').value || 0),
             lender_credit: parseFloat(document.getElementById('lender_credit').value || 0),
-            financed_closing_costs: parseFloat(document.getElementById('financed_closing_costs_purchase').value || 0),
-            total_closing_costs: parseFloat(document.getElementById('total_closing_costs_purchase').value || 0),
-            include_owners_title: document.getElementById('include_owners_title').checked,
-            va_service_type: document.getElementById('va_service_type').value,
-            va_usage: document.getElementById('va_usage').value,
-            va_disability_exempt: document.getElementById('va_disability_exempt').checked
+            discount_points: parseFloat(document.getElementById('discount_points').value || 0)
         };
     }
 
     getRefinanceFormData() {
         return {
-            refinance_loan_type: document.getElementById('refinance_loan_type').value,
-            refinance_type: document.getElementById('refinance_type').value,
-            appraised_value: parseFloat(document.getElementById('appraised_value').value),
-            original_loan_balance: parseFloat(document.getElementById('original_loan_balance').value),
-            original_interest_rate: parseFloat(document.getElementById('original_interest_rate').value),
-            original_loan_term: parseInt(document.getElementById('original_loan_term').value),
-            original_closing_date: document.getElementById('original_closing_date').value,
+            home_value: parseFloat(document.getElementById('home_value').value),
+            current_loan_balance: parseFloat(document.getElementById('current_loan_balance').value),
             new_interest_rate: parseFloat(document.getElementById('new_interest_rate').value),
-            new_discount_points: parseFloat(document.getElementById('new_discount_points').value || 0),
             new_loan_term: parseInt(document.getElementById('new_loan_term').value),
-            new_closing_date: document.getElementById('new_closing_date').value,
-            annual_taxes: parseFloat(document.getElementById('annual_taxes').value),
-            annual_insurance: parseFloat(document.getElementById('annual_insurance').value),
-            monthly_hoa_fee: parseFloat(document.getElementById('monthly_hoa_fee_refi').value || 0),
-            use_manual_balance: document.getElementById('use_manual_balance').checked,
-            manual_current_balance: parseFloat(document.getElementById('manual_current_balance').value || 0),
-            tax_escrow_months: parseInt(document.getElementById('tax_escrow_months').value || 2),
-            insurance_escrow_months: parseInt(document.getElementById('insurance_escrow_months').value || 2),
-            extra_monthly_savings: parseFloat(document.getElementById('extra_monthly_savings').value || 0),
-            refinance_lender_credit: parseFloat(document.getElementById('refinance_lender_credit').value || 0),
-            financed_closing_costs: parseFloat(document.getElementById('financed_closing_costs').value || 0),
-            total_closing_costs: parseFloat(document.getElementById('total_closing_costs').value || 0),
-            cash_out_amount: parseFloat(document.getElementById('cash_out_amount').value || 0)
+            loan_type: document.getElementById('refi_loan_type').value,
+            cash_out_amount: parseFloat(document.getElementById('cash_out_amount').value || 0),
+            annual_tax_rate: parseFloat(document.getElementById('annual_tax_rate').value),
+            annual_insurance_rate: parseFloat(document.getElementById('annual_insurance_rate').value),
+            monthly_hoa_fee: parseFloat(document.getElementById('monthly_hoa_fee').value || 0)
         };
     }
 
@@ -520,40 +286,16 @@ Loan Type: ${result.loan_type || 'N/A'}`;
     }
 
     validateRefinanceData(data) {
-        if (!data.refinance_loan_type) {
-            this.showError('Please select current loan type');
+        if (data.home_value <= 0) {
+            this.showError('Home value must be greater than 0');
             return false;
         }
-        if (!data.refinance_type) {
-            this.showError('Please select refinance type');
-            return false;
-        }
-        if (data.appraised_value <= 0) {
-            this.showError('Appraised value must be greater than 0');
-            return false;
-        }
-        if (data.original_loan_balance < 0) {
-            this.showError('Original loan balance cannot be negative');
-            return false;
-        }
-        if (data.original_interest_rate <= 0 || data.original_interest_rate > 20) {
-            this.showError('Original interest rate must be between 0 and 20%');
+        if (data.current_loan_balance < 0) {
+            this.showError('Current loan balance cannot be negative');
             return false;
         }
         if (data.new_interest_rate <= 0 || data.new_interest_rate > 20) {
-            this.showError('New interest rate must be between 0 and 20%');
-            return false;
-        }
-        if (!data.new_closing_date) {
-            this.showError('Please select new closing date');
-            return false;
-        }
-        if (data.annual_taxes < 0) {
-            this.showError('Annual property taxes cannot be negative');
-            return false;
-        }
-        if (data.annual_insurance < 0) {
-            this.showError('Annual homeowner\'s insurance cannot be negative');
+            this.showError('Interest rate must be between 0 and 20%');
             return false;
         }
         return true;
@@ -570,7 +312,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
 
         // Format and display results
         let html = '';
-
+        
         if (calculationType === 'purchase') {
             html = this.formatPurchaseResults(result);
         } else if (calculationType === 'refinance') {
@@ -604,18 +346,18 @@ Loan Type: ${result.loan_type || 'N/A'}`;
                 <div class="row g-2 small">
                     <div class="col-6">Principal & Interest:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.principal_and_interest)}</div>
-
+                    
                     <div class="col-6">Property Tax:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.property_tax)}</div>
-
+                    
                     <div class="col-6">Insurance:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.homeowners_insurance)}</div>
-
+                    
                     ${monthly.pmi ? `
                     <div class="col-6">PMI:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.pmi)}</div>
                     ` : ''}
-
+                    
                     ${monthly.hoa_fee > 0 ? `
                     <div class="col-6">HOA:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.hoa_fee)}</div>
@@ -651,7 +393,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             </div>
             ` : `
             <div class="alert alert-warning small">
-                <i class="bi bi-exclamation-triangle"></i>
+                <i class="bi bi-exclamation-triangle"></i> 
                 <a href="login.html" class="alert-link">Login</a> for personalized calculations
             </div>
             `}
@@ -685,13 +427,13 @@ Loan Type: ${result.loan_type || 'N/A'}`;
                 <div class="row g-2 small">
                     <div class="col-6">Principal & Interest:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.principal_and_interest)}</div>
-
+                    
                     <div class="col-6">Property Tax:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.property_tax)}</div>
-
+                    
                     <div class="col-6">Insurance:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.homeowners_insurance)}</div>
-
+                    
                     ${monthly.pmi ? `
                     <div class="col-6">PMI:</div>
                     <div class="col-6 text-end">$${this.formatCurrency(monthly.pmi)}</div>
@@ -717,7 +459,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             </div>
             ` : `
             <div class="alert alert-warning small">
-                <i class="bi bi-exclamation-triangle"></i>
+                <i class="bi bi-exclamation-triangle"></i> 
                 <a href="login.html" class="alert-link">Login</a> for personalized calculations
             </div>
             `}
@@ -770,12 +512,12 @@ Loan Type: ${result.loan_type || 'N/A'}`;
     hideLoading() {
         const purchaseBtn = document.querySelector('#purchase button[type="submit"]');
         const refinanceBtn = document.querySelector('#refinance button[type="submit"]');
-
+        
         if (purchaseBtn) {
             purchaseBtn.disabled = false;
             purchaseBtn.innerHTML = '<i class="bi bi-calculator"></i> Calculate Payment';
         }
-
+        
         if (refinanceBtn) {
             refinanceBtn.disabled = false;
             refinanceBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Calculate Refinance';
@@ -799,9 +541,9 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
-
+        
         document.body.appendChild(alert);
-
+        
         // Auto-remove after 5 seconds
         setTimeout(() => {
             if (alert.parentNode) {

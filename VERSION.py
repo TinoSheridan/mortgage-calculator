@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.6.3"  # Fixed target LTV input field visibility issue in refinance options
+VERSION = "2.8.0"  # Added multi-tenant database system with hierarchical admin levels
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 1, 29)  # Updated date
+LAST_UPDATED = date(2025, 8, 17)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "Fixed target LTV input field not appearing when 'Target Specific Loan-to-Value' option is selected in refinance cash options. Updated JavaScript event listeners to properly match HTML radio button IDs and ensure all refinance options work correctly."
+UPDATE_DESCRIPTION = "Added comprehensive multi-tenant database system with hierarchical admin levels (Super Admin, Organization Admin, Individual User). Includes configuration inheritance system where version control updates preserve individual customizations. Uses PostgreSQL with Flask-SQLAlchemy for scalable user management."
 
 
 def get_version_info():
@@ -57,12 +57,12 @@ FEATURES = [
     "enhanced_cash_out_refinance_logic",  # v2.6.0: Improved cash-out refinance calculations
     "hoa_fee_integration",  # v2.6.0: Added HOA fee input and calculation integration
     "refined_ui_labels",  # v2.6.0: Improved LTV targets table labels and formatting
-    "property_intelligence_system",  # v2.6.2: Comprehensive property analysis popup with real API integration
-    "spokeo_api_integration",  # v2.6.2: Primary data source for property details and tax information
-    "usda_eligibility_api",  # v2.6.2: Real-time USDA rural development eligibility checking
-    "fema_flood_zone_api",  # v2.6.2: Official FEMA flood zone determination
-    "property_address_copying",  # v2.6.2: One-click address copying for manual verification
-    "honest_data_presentation",  # v2.6.2: Shows "Unknown" instead of test data, provides verification links
-    "property_source_links",  # v2.6.2: Direct links to Spokeo, QPublic, county assessors for manual verification
     "target_ltv_input_fix",  # v2.6.3: Fixed target LTV input field not appearing when selected in refinance options
+    "multi_tenant_database_system",  # v2.8.0: PostgreSQL-based multi-tenant system with user/organization isolation
+    "hierarchical_admin_system",  # v2.8.0: Super Admin, Organization Admin, and Individual User role levels
+    "configuration_inheritance",  # v2.8.0: Global -> Organization -> User configuration inheritance system
+    "user_customization_preservation",  # v2.8.0: User customizations preserved during version control updates
+    "flask_login_authentication",  # v2.8.0: Secure user authentication with Flask-Login and bcrypt
+    "role_based_access_control",  # v2.8.0: RBAC system with proper permission boundaries
+    "database_migration_support",  # v2.8.0: Automated migration from file-based to database configuration
 ]

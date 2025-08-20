@@ -19,12 +19,12 @@ class MortgageCalculatorApp {
     onDOMReady() {
         console.log('Mortgage Calculator v2.8.0 - Multi-Tenant System');
         console.log('API Base URL:', getApiBaseUrl());
-
+        
         // Initialize app components
         this.setupEventListeners();
         this.loadUserPreferences();
         this.checkApiConnection();
-
+        
         // Show app info in console for debugging
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             console.log('Development Mode - API calls will go to:', getApiBaseUrl());
@@ -74,7 +74,7 @@ class MortgageCalculatorApp {
 
     handleOnlineStatus(isOnline) {
         const statusElement = this.getOrCreateStatusElement();
-
+        
         if (isOnline) {
             statusElement.className = 'alert alert-success position-fixed bottom-0 end-0 m-3';
             statusElement.innerHTML = '<i class="bi bi-wifi"></i> Back online';
@@ -102,11 +102,11 @@ class MortgageCalculatorApp {
                 method: 'GET',
                 timeout: 5000
             });
-
+            
             if (response.ok) {
                 const data = await response.json();
                 console.log('API Health Check:', data);
-
+                
                 // Show API status in footer or somewhere subtle
                 this.updateApiStatus(true, data);
             } else {
@@ -175,7 +175,7 @@ class MortgageCalculatorApp {
         try {
             const preferences = {};
             const inputs = document.querySelectorAll('input[type="number"], select');
-
+            
             inputs.forEach(input => {
                 if (input.id && input.value) {
                     preferences[input.id] = input.value;
@@ -191,7 +191,7 @@ class MortgageCalculatorApp {
     resetForm(form) {
         if (form) {
             form.reset();
-
+            
             // Reset to default values
             const defaults = APP_CONFIG.DEFAULTS;
             Object.keys(defaults).forEach(key => {
@@ -268,7 +268,7 @@ class MortgageCalculatorApp {
             const alert = document.createElement('div');
             alert.className = 'alert alert-info alert-dismissible fade show mt-3';
             alert.innerHTML = `
-                <strong>Get More Features!</strong>
+                <strong>Get More Features!</strong> 
                 <a href="login.html" class="alert-link">Create an account</a> to:
                 <ul class="mt-2 mb-0">
                     <li>Save your calculations</li>
@@ -278,7 +278,7 @@ class MortgageCalculatorApp {
                 </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-
+            
             const container = document.querySelector('.container');
             if (container && container.firstChild) {
                 container.insertBefore(alert, container.firstChild);

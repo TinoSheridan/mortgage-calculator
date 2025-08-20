@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Register - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0 text-center">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" 
+                                           placeholder="John" value="{{ request.form.first_name or '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" 
+                                           placeholder="Doe" value="{{ request.form.last_name or '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" required 
+                                       placeholder="Choose a username (3+ characters)" value="{{ request.form.username or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required 
+                                       placeholder="your.email@example.com" value="{{ request.form.email or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="organization_name" class="form-label">Organization Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <input type="text" class="form-control" id="organization_name" name="organization_name" 
+                                       placeholder="Your company/organization (optional)" value="{{ request.form.organization_name or '' }}">
+                            </div>
+                            <div class="form-text">
+                                Leave blank to join the default organization, or enter your company name to create/join it.
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password" required 
+                                               placeholder="8+ characters">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password_confirm" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                        <input type="password" class="form-control" id="password_confirm" name="password_confirm" required 
+                                               placeholder="Repeat password">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Account Setup:</strong> New accounts are created as regular users. 
+                                    Organization admins can promote users to admin roles after registration.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> Create Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-center text-muted">
+                    <small>
+                        Already have an account? 
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Login here</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add some spacing -->
+<div class="py-4"></div>
+{% endblock %}

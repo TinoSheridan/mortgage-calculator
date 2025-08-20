@@ -169,19 +169,19 @@ body {
         padding-left: 1rem;
         padding-right: 1rem;
     }
-
+    
     .card {
         margin-bottom: 1rem;
     }
-
+    
     .payment-amount {
         font-size: 1.5rem;
     }
-
+    
     .navbar-brand {
         font-size: 1rem;
     }
-
+    
     .btn-lg {
         padding: 0.5rem 1rem;
         font-size: 1rem;
@@ -284,12 +284,12 @@ footer a:hover {
     .navbar, .btn, .alert, footer {
         display: none !important;
     }
-
+    
     .card {
         box-shadow: none !important;
         border: 1px solid #ddd !important;
     }
-
+    
     .container {
         max-width: none !important;
     }
@@ -300,7 +300,7 @@ footer a:hover {
     .card {
         border: 2px solid var(--dark-color) !important;
     }
-
+    
     .btn {
         border: 2px solid currentColor !important;
     }
@@ -321,23 +321,23 @@ footer a:hover {
         --light-color: #212529;
         --dark-color: #f8f9fa;
     }
-
+    
     body {
         background-color: var(--dark-color);
         color: var(--light-color);
     }
-
+    
     .card {
         background-color: #2d3748;
         color: var(--light-color);
     }
-
+    
     .form-control, .form-select {
         background-color: #2d3748;
         border-color: #4a5568;
         color: var(--light-color);
     }
-
+    
     .input-group-text {
         background-color: #4a5568;
         border-color: #4a5568;

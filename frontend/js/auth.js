@@ -13,7 +13,7 @@ class AuthManager {
         // Check if user is logged in from previous session
         this.loadUserFromStorage();
         this.updateUI();
-
+        
         // Check session validity with API
         if (this.isAuthenticated) {
             this.validateSession();
@@ -109,7 +109,7 @@ class AuthManager {
                     return true;
                 }
             }
-
+            
             // Session invalid, clear local data
             this.clearUserData();
             this.updateUI();
@@ -133,7 +133,7 @@ class AuthManager {
             if (userMenu) userMenu.style.display = 'block';
             if (userName) userName.textContent = this.user.full_name || this.user.username;
             if (loginBanner) loginBanner.style.display = 'none';
-
+            
             // Show configuration info
             if (configInfo) {
                 configInfo.style.display = 'block';
@@ -191,7 +191,7 @@ class AuthManager {
         const headers = {
             'Content-Type': 'application/json'
         };
-
+        
         // For session-based auth, credentials: 'include' is more important than headers
         return headers;
     }
@@ -214,7 +214,7 @@ class AuthManager {
 
         try {
             const response = await fetch(url, mergedOptions);
-
+            
             // Check if unauthorized (session expired)
             if (response.status === 401) {
                 this.clearUserData();
