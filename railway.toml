@@ -17,4 +17,4 @@ PORT = "8000"
 buildCommand = "pip install -r requirements-api.txt"
 
 [services.deploy]
-startCommand = "gunicorn api_app:app --bind 0.0.0.0:$PORT --workers 2"
+startCommand = "gunicorn api_app:app --bind 0.0.0.0:$PORT --workers 2"# Railway deployment timestamp: Wed Aug 20 11:43:47 EDT 2025
