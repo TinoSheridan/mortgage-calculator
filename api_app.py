@@ -40,10 +40,13 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "api-secret-key")
 CORS(
     app,
     origins=[
-        "https://your-username.github.io",  # Replace with your GitHub Pages URL
+        "https://tinosheridan.github.io",  # GitHub Pages URL
         "http://localhost:3000",  # For local development
         "http://127.0.0.1:3000",  # For local development
+        "http://localhost:5000",  # Local Flask development
+        "http://127.0.0.1:5000",  # Local Flask development
     ],
+    supports_credentials=True,
 )
 
 # Initialize database
