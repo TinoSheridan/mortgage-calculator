@@ -3,7 +3,7 @@ services:
     name: mortgage-calculator-v3
     env: python
     buildCommand: pip install -r requirements-render.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --log-level info ultra_simple_app:app
+    startCommand: python3 ultra_simple_app.py
     envVars:
       - key: FLASK_ENV
         value: production

@@ -1,3 +1,2 @@
-# Ultra-minimal requirements for Render deployment
+# Ultra-minimal requirements for Render deployment - no gunicorn
 Flask==3.0.3
-gunicorn==21.2.0
