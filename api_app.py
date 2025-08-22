@@ -3,6 +3,8 @@ API-only Flask application for GitHub Pages deployment.
 
 This is a pure API version of the mortgage calculator that serves JSON responses
 and can be deployed to Railway/Vercel while the frontend runs on GitHub Pages.
+
+Updated: 2025-08-22 02:00:00 UTC - CORS fix for GitHub Pages
 """
 
 import logging
