@@ -1,4 +1,6 @@
-# API-only requirements for Railway/Vercel deployment
+# Minimal requirements for Railway API deployment
+# Optimized for memory usage and fast startup
+
 # Core Web Framework
 gunicorn==23.0.0
 Flask==3.1.1
@@ -11,7 +13,7 @@ MarkupSafe==3.0.2
 itsdangerous==2.2.0
 click==8.1.8
 
-# Database & User Management
+# Database & User Management (essential for API)
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
 Flask-Migrate==4.0.7
@@ -20,12 +22,7 @@ SQLAlchemy==2.0.25
 alembic==1.13.1
 bcrypt==4.2.0
 
-# Data Processing (for calculations)
-pandas==2.2.3
-numpy==2.2.3
-
-# Additional Security Dependencies
+# Essential Security
 jsonschema==4.24.0
 
-# Monitoring (optional for production)
-blinker==1.9.0
+# NO heavy dependencies: pandas, matplotlib, numpy removed to fix memory issues
