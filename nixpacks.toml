@@ -9,10 +9,10 @@ dependsOn = ["python"]
 
 [phases.install]
 dependsOn = ["setup"]
-cmds = ["pip install -r requirements-api.txt"]
+cmds = ["pip install -r requirements.txt"]
 
 [phases.build]
 dependsOn = ["install"]
 
 [start]
-cmd = "python -m gunicorn api_app:app --bind 0.0.0.0:$PORT"
+cmd = "python -m gunicorn test_api:app --bind 0.0.0.0:$PORT"
