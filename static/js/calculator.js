@@ -462,16 +462,16 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             annual_insurance_rate: insuranceRate,
             monthly_hoa_fee: parseFloat(document.getElementById('monthly_hoa_fee').value || 0),
             discount_points: parseFloat(document.getElementById('discount_points').value || 0),
-            occupancy: document.getElementById('occupancy').value,
-            closing_date: document.getElementById('closing_date').value,
+            occupancy: document.getElementById('occupancy')?.value || 'primary',
+            closing_date: document.getElementById('closing_date')?.value || '',
             seller_credit: parseFloat(document.getElementById('seller_credit').value || 0),
             lender_credit: parseFloat(document.getElementById('lender_credit').value || 0),
-            financed_closing_costs: parseFloat(document.getElementById('financed_closing_costs_purchase').value || 0),
-            total_closing_costs: parseFloat(document.getElementById('total_closing_costs_purchase').value || 0),
-            include_owners_title: document.getElementById('include_owners_title').checked,
-            va_service_type: document.getElementById('va_service_type').value,
-            va_usage: document.getElementById('va_usage').value,
-            va_disability_exempt: document.getElementById('va_disability_exempt').checked
+            financed_closing_costs: parseFloat((document.getElementById('financed_closing_costs_purchase')?.value || 0)),
+            total_closing_costs: parseFloat((document.getElementById('total_closing_costs_purchase')?.value || 0)),
+            include_owners_title: document.getElementById('include_owners_title')?.checked || false,
+            va_service_type: document.getElementById('va_service_type')?.value || '',
+            va_usage: document.getElementById('va_usage')?.value || '',
+            va_disability_exempt: document.getElementById('va_disability_exempt')?.checked || false
         };
     }
 
