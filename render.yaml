@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: mortgage-calculator
+    name: mortgage-calculator-v3
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: ./start.sh
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT simple_render_app:app
     envVars:
       - key: FLASK_ENV
         value: production

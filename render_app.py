@@ -39,8 +39,15 @@ CORS(
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize calculator with default configuration
-calculator = MortgageCalculator()
+# Initialize calculator with minimal configuration
+try:
+    calculator = MortgageCalculator()
+except Exception as e:
+    logger.warning(f"Could not load full calculator config: {e}")
+    # Create a minimal calculator instance
+    from calculator import MortgageCalculator
+
+    calculator = None  # We'll initialize it in each endpoint
 
 
 @app.route("/")
@@ -91,8 +98,14 @@ def api_calculate():
         lender_credit = float(data.get("lender_credit", 0))
         discount_points = float(data.get("discount_points", 0))
 
+        # Initialize calculator if needed
+        if calculator is None:
+            calc_instance = MortgageCalculator()
+        else:
+            calc_instance = calculator
+
         # Perform calculation
-        result = calculator.calculate_all(
+        result = calc_instance.calculate_all(
             purchase_price=purchase_price,
             down_payment_percentage=down_payment_percentage,
             annual_rate=annual_rate,
@@ -143,8 +156,14 @@ def api_refinance():
         annual_insurance_rate = float(data.get("annual_insurance_rate", 0.35))
         monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
 
+        # Initialize calculator if needed
+        if calculator is None:
+            calc_instance = MortgageCalculator()
+        else:
+            calc_instance = calculator
+
         # Perform refinance calculation
-        result = calculator.calculate_refinance(
+        result = calc_instance.calculate_refinance(
             home_value=home_value,
             current_loan_balance=current_loan_balance,
             new_interest_rate=new_interest_rate,
