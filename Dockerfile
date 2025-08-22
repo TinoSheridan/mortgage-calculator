@@ -8,12 +8,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy our simple Flask app
+# Copy our Flask app
 COPY ultra_simple_app.py .
-COPY debug_start.sh .
-
-# Make debug script executable
-RUN chmod +x debug_start.sh
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
@@ -21,5 +17,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port (will be set by Render)
 EXPOSE $PORT
 
-# Run the debug script which starts our app
-CMD ["./debug_start.sh"]
+# Run the app directly
+CMD ["python3", "ultra_simple_app.py"]

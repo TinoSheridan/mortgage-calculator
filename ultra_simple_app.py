@@ -42,12 +42,15 @@ def home():
     """Home endpoint."""
     return jsonify(
         {
-            "name": "Simple Mortgage Calculator API",
+            "name": "Mortgage Calculator API v3",
             "version": "3.1.0",
+            "description": "Standalone mortgage and refinance calculator API",
+            "platform": "Render",
             "status": "working",
             "endpoints": {
                 "/health": "Health check",
                 "/api/calculate": "POST - Calculate mortgage payment",
+                "/api/refinance": "POST - Calculate refinance options",
             },
             "timestamp": datetime.now().isoformat(),
         }
@@ -105,6 +108,70 @@ def api_calculate():
             "total_monthly_payment": round(total_monthly_payment, 2),
             "annual_rate": annual_rate,
             "loan_term": loan_term,
+        }
+
+        return jsonify(
+            {
+                "success": True,
+                "result": result,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/refinance", methods=["POST"])
+def api_refinance():
+    """Calculate refinance options via API endpoint."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        # Extract refinance parameters
+        home_value = float(data.get("home_value", 0))
+        current_loan_balance = float(data.get("current_loan_balance", 0))
+        new_interest_rate = float(data.get("new_interest_rate", 6.5))
+        new_loan_term = int(data.get("new_loan_term", 30))
+        cash_out_amount = float(data.get("cash_out_amount", 0))
+
+        # Calculate new loan amount
+        new_loan_amount = current_loan_balance + cash_out_amount
+
+        # Calculate new monthly payment
+        new_monthly_payment = calculate_monthly_payment(
+            new_loan_amount, new_interest_rate, new_loan_term
+        )
+
+        # Calculate LTV
+        ltv_ratio = (new_loan_amount / home_value) * 100 if home_value > 0 else 0
+
+        # Calculate basic taxes and insurance
+        annual_tax_rate = float(data.get("annual_tax_rate", 1.2))
+        annual_insurance_rate = float(data.get("annual_insurance_rate", 0.35))
+        monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
+
+        monthly_taxes = home_value * (annual_tax_rate / 100) / 12
+        monthly_insurance = home_value * (annual_insurance_rate / 100) / 12
+        total_monthly_payment = (
+            new_monthly_payment + monthly_taxes + monthly_insurance + monthly_hoa_fee
+        )
+
+        result = {
+            "home_value": home_value,
+            "current_loan_balance": current_loan_balance,
+            "cash_out_amount": cash_out_amount,
+            "new_loan_amount": round(new_loan_amount, 2),
+            "new_monthly_payment": round(new_monthly_payment, 2),
+            "monthly_taxes": round(monthly_taxes, 2),
+            "monthly_insurance": round(monthly_insurance, 2),
+            "monthly_hoa_fee": monthly_hoa_fee,
+            "total_monthly_payment": round(total_monthly_payment, 2),
+            "ltv_ratio": round(ltv_ratio, 2),
+            "new_interest_rate": new_interest_rate,
+            "new_loan_term": new_loan_term,
         }
 
         return jsonify(
