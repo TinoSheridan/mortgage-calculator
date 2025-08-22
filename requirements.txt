@@ -1,6 +1,3 @@
-# Ultra-minimal requirements for Railway deployment test
-# Just Flask and CORS to get the API running
-
+# Absolute minimal requirements - just Flask
 Flask==3.1.1
-Flask-Cors==6.0.1
 gunicorn==23.0.0
