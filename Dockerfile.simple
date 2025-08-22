@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy only the files we need
+COPY test_app.py .
+
+# Expose port
+EXPOSE $PORT
+
+# Run the app
+CMD ["python3", "test_app.py"]
