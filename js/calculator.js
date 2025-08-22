@@ -402,6 +402,10 @@ Loan Type: ${result.loan_type || 'N/A'}`;
     async makeCalculationRequest(endpoint, data) {
         const url = getApiUrl(endpoint);
 
+        // Debug: Log the data being sent to the API
+        console.log('Sending data to API:', data);
+        console.log('API URL:', url);
+
         let response;
         if (authManager.isAuthenticated) {
             // Use authenticated API call
@@ -424,7 +428,10 @@ Loan Type: ${result.loan_type || 'N/A'}`;
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        // Debug: Log the API response
+        console.log('API response:', result);
+        return result;
     }
 
     getPurchaseFormData() {
