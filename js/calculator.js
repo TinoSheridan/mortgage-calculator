@@ -609,15 +609,15 @@ Loan Type: ${result.loan_type || 'N/A'}`;
                         <tbody>
                             <tr>
                                 <td>Principal & Interest:</td>
-                                <td class="text-end">$${this.formatCurrency(monthly.principal_interest || 0)}</td>
+                                <td class="text-end">$${this.formatCurrency(result.monthly_payment || 0)}</td>
                             </tr>
                             <tr>
                                 <td>Property Tax:</td>
-                                <td class="text-end">$${this.formatCurrency(monthly.property_tax || 0)}</td>
+                                <td class="text-end">$${this.formatCurrency(result.monthly_taxes || 0)}</td>
                             </tr>
                             <tr>
                                 <td>Home Insurance:</td>
-                                <td class="text-end">$${this.formatCurrency(monthly.insurance || 0)}</td>
+                                <td class="text-end">$${this.formatCurrency(result.monthly_insurance || 0)}</td>
                             </tr>
                             <tr>
                                 <td>PMI:</td>
@@ -625,13 +625,13 @@ Loan Type: ${result.loan_type || 'N/A'}`;
                             </tr>
                             <tr>
                                 <td>HOA Fee:</td>
-                                <td class="text-end">$${this.formatCurrency(monthly.hoa || 0)}</td>
+                                <td class="text-end">$${this.formatCurrency(result.monthly_hoa_fee || 0)}</td>
                             </tr>
                         </tbody>
                         <tfoot class="total-row">
                             <tr>
                                 <td><strong>Total Monthly Payment:</strong></td>
-                                <td class="text-end"><strong>$${this.formatCurrency(monthly.total || 0)}</strong></td>
+                                <td class="text-end"><strong>$${this.formatCurrency(result.total_monthly_payment || 0)}</strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -649,7 +649,7 @@ Loan Type: ${result.loan_type || 'N/A'}`;
                         <tbody>
                             <tr>
                                 <td>Down Payment</td>
-                                <td class="text-end">$${this.formatCurrency(loanDetails.down_payment || 0)}</td>
+                                <td class="text-end">$${this.formatCurrency(result.down_payment || 0)}</td>
                             </tr>
                         </tbody>
                     </table>
