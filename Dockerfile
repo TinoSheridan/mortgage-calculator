@@ -1,11 +1,15 @@
-# Simple Dockerfile for test_app.py
+# Simple Dockerfile for Flask app
 FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy our simple test app
-COPY test_app.py .
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy our simple Flask app
+COPY ultra_simple_app.py .
 COPY debug_start.sh .
 
 # Make debug script executable

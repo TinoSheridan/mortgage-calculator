@@ -9,4 +9,4 @@ echo "Files in current directory:"
 ls -la
 
 echo "=== STARTING APP ==="
-python3 test_app.py
+python3 ultra_simple_app.py
