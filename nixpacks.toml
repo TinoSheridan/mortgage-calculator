@@ -1,0 +1,18 @@
+[providers]
+python = "python"
+
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.11"
+
+[phases.setup]
+dependsOn = ["python"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["pip install -r requirements-api.txt"]
+
+[phases.build]
+dependsOn = ["install"]
+
+[start]
+cmd = "python -m gunicorn api_app:app --bind 0.0.0.0:$PORT"
