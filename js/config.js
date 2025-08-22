@@ -5,8 +5,8 @@
 
 // API Configuration
 const API_CONFIG = {
-    // Replace with your Railway/Vercel API URL
-    BASE_URL: 'https://mortgage-calculator-api-production.up.railway.app',  // Your Railway API
+    // Replace with your Render v3 API URL
+    BASE_URL: 'https://mortgage-calculator-v3.onrender.com',  // Your Render v3 API
 
     // Local development fallback
     DEV_URL: 'http://127.0.0.1:5000',
