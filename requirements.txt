@@ -1,3 +1,2 @@
-# Absolute minimal requirements - just Flask
+# Absolute minimal requirements - just Flask (no gunicorn)
 Flask==3.1.1
-gunicorn==23.0.0
