@@ -1,10 +1,12 @@
-"""Ultra-simple calculator app for Render deployment."""
+"""Full-featured calculator app for Render deployment."""
 
 import os
 from datetime import datetime
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+from calculator import MortgageCalculator
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "test-key")
@@ -20,21 +22,8 @@ CORS(
     supports_credentials=True,
 )
 
-
-def calculate_monthly_payment(loan_amount, annual_rate, loan_term_years):
-    """Calculate monthly mortgage payment."""
-    monthly_rate = annual_rate / 100 / 12
-    num_payments = loan_term_years * 12
-
-    if monthly_rate == 0:
-        return loan_amount / num_payments
-
-    payment = (
-        loan_amount
-        * (monthly_rate * (1 + monthly_rate) ** num_payments)
-        / ((1 + monthly_rate) ** num_payments - 1)
-    )
-    return payment
+# Initialize the full mortgage calculator
+calculator = MortgageCalculator()
 
 
 @app.route("/")
@@ -73,42 +62,28 @@ def api_calculate():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        # Extract basic parameters with defaults
-        purchase_price = float(data.get("purchase_price", 0))
-        down_payment_percentage = float(data.get("down_payment_percentage", 20))
-        annual_rate = float(data.get("annual_rate", 6.5))
-        loan_term = int(data.get("loan_term", 30))
-
-        # Calculate loan amount
-        down_payment = purchase_price * (down_payment_percentage / 100)
-        loan_amount = purchase_price - down_payment
-
-        # Calculate monthly payment
-        monthly_payment = calculate_monthly_payment(loan_amount, annual_rate, loan_term)
-
-        # Calculate basic taxes and insurance
-        annual_tax_rate = float(data.get("annual_tax_rate", 1.2))
-        annual_insurance_rate = float(data.get("annual_insurance_rate", 0.35))
-        monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
-
-        monthly_taxes = purchase_price * (annual_tax_rate / 100) / 12
-        monthly_insurance = purchase_price * (annual_insurance_rate / 100) / 12
-        total_monthly_payment = (
-            monthly_payment + monthly_taxes + monthly_insurance + monthly_hoa_fee
+        # Use the full calculator's calculate_all method
+        result = calculator.calculate_all(
+            purchase_price=float(data.get("purchase_price", 0)),
+            down_payment_percentage=float(data.get("down_payment_percentage", 20)),
+            annual_rate=float(data.get("annual_rate", 6.5)),
+            loan_term=int(data.get("loan_term", 30)),
+            loan_type=data.get("loan_type", "conventional"),
+            annual_tax_rate=float(data.get("annual_tax_rate", 1.2)),
+            annual_insurance_rate=float(data.get("annual_insurance_rate", 0.35)),
+            monthly_hoa_fee=float(data.get("monthly_hoa_fee", 0)),
+            seller_credit=float(data.get("seller_credit", 0)),
+            lender_credit=float(data.get("lender_credit", 0)),
+            discount_points=float(data.get("discount_points", 0)),
+            occupancy=data.get("occupancy", "primary"),
+            closing_date=data.get("closing_date", ""),
+            financed_closing_costs=float(data.get("financed_closing_costs", 0)),
+            total_closing_costs=float(data.get("total_closing_costs", 0)),
+            include_owners_title=data.get("include_owners_title", False),
+            va_service_type=data.get("va_service_type", ""),
+            va_usage=data.get("va_usage", ""),
+            va_disability_exempt=data.get("va_disability_exempt", False),
         )
-
-        result = {
-            "purchase_price": purchase_price,
-            "down_payment": round(down_payment, 2),
-            "loan_amount": round(loan_amount, 2),
-            "monthly_payment": round(monthly_payment, 2),
-            "monthly_taxes": round(monthly_taxes, 2),
-            "monthly_insurance": round(monthly_insurance, 2),
-            "monthly_hoa_fee": monthly_hoa_fee,
-            "total_monthly_payment": round(total_monthly_payment, 2),
-            "annual_rate": annual_rate,
-            "loan_term": loan_term,
-        }
 
         return jsonify(
             {
@@ -130,49 +105,19 @@ def api_refinance():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        # Extract refinance parameters
-        home_value = float(data.get("home_value", 0))
-        current_loan_balance = float(data.get("current_loan_balance", 0))
-        new_interest_rate = float(data.get("new_interest_rate", 6.5))
-        new_loan_term = int(data.get("new_loan_term", 30))
-        cash_out_amount = float(data.get("cash_out_amount", 0))
-
-        # Calculate new loan amount
-        new_loan_amount = current_loan_balance + cash_out_amount
-
-        # Calculate new monthly payment
-        new_monthly_payment = calculate_monthly_payment(
-            new_loan_amount, new_interest_rate, new_loan_term
+        # Use the full calculator's calculate_refinance method
+        result = calculator.calculate_refinance(
+            home_value=float(data.get("home_value", 0)),
+            current_loan_balance=float(data.get("current_loan_balance", 0)),
+            new_interest_rate=float(data.get("new_interest_rate", 6.5)),
+            new_loan_term=int(data.get("new_loan_term", 30)),
+            loan_type=data.get("loan_type", "conventional"),
+            cash_out_amount=float(data.get("cash_out_amount", 0)),
+            target_ltv=float(data.get("target_ltv")) if data.get("target_ltv") else None,
+            annual_tax_rate=float(data.get("annual_tax_rate", 1.2)),
+            annual_insurance_rate=float(data.get("annual_insurance_rate", 0.35)),
+            monthly_hoa_fee=float(data.get("monthly_hoa_fee", 0)),
         )
-
-        # Calculate LTV
-        ltv_ratio = (new_loan_amount / home_value) * 100 if home_value > 0 else 0
-
-        # Calculate basic taxes and insurance
-        annual_tax_rate = float(data.get("annual_tax_rate", 1.2))
-        annual_insurance_rate = float(data.get("annual_insurance_rate", 0.35))
-        monthly_hoa_fee = float(data.get("monthly_hoa_fee", 0))
-
-        monthly_taxes = home_value * (annual_tax_rate / 100) / 12
-        monthly_insurance = home_value * (annual_insurance_rate / 100) / 12
-        total_monthly_payment = (
-            new_monthly_payment + monthly_taxes + monthly_insurance + monthly_hoa_fee
-        )
-
-        result = {
-            "home_value": home_value,
-            "current_loan_balance": current_loan_balance,
-            "cash_out_amount": cash_out_amount,
-            "new_loan_amount": round(new_loan_amount, 2),
-            "new_monthly_payment": round(new_monthly_payment, 2),
-            "monthly_taxes": round(monthly_taxes, 2),
-            "monthly_insurance": round(monthly_insurance, 2),
-            "monthly_hoa_fee": monthly_hoa_fee,
-            "total_monthly_payment": round(total_monthly_payment, 2),
-            "ltv_ratio": round(ltv_ratio, 2),
-            "new_interest_rate": new_interest_rate,
-            "new_loan_term": new_loan_term,
-        }
 
         return jsonify(
             {

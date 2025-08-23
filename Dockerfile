@@ -5,11 +5,18 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements and install
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-render.txt .
+RUN pip install --no-cache-dir -r requirements-render.txt
 
-# Copy our Flask app
+# Copy our Flask app and calculator dependencies
 COPY ultra_simple_app.py .
+COPY calculator.py .
+COPY constants.py .
+COPY config_manager.py .
+COPY mortgage_insurance.py .
+COPY financed_fees.py .
+COPY config/ ./config/
+COPY calculations/ ./calculations/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
