@@ -75,13 +75,11 @@ def api_calculate():
             seller_credit=float(data.get("seller_credit", 0)),
             lender_credit=float(data.get("lender_credit", 0)),
             discount_points=float(data.get("discount_points", 0)),
-            occupancy=data.get("occupancy", "primary"),
-            closing_date=data.get("closing_date", ""),
-            financed_closing_costs=float(data.get("financed_closing_costs", 0)),
-            total_closing_costs=float(data.get("total_closing_costs", 0)),
             include_owners_title=data.get("include_owners_title", False),
-            va_service_type=data.get("va_service_type", ""),
-            va_usage=data.get("va_usage", ""),
+            va_service_type=data.get("va_service_type", "")
+            if data.get("va_service_type")
+            else None,
+            va_usage=data.get("va_usage", "") if data.get("va_usage") else None,
             va_disability_exempt=data.get("va_disability_exempt", False),
         )
 
