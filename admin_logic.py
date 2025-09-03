@@ -4,7 +4,7 @@ Admin logic functions for managing fees, closing costs, templates, and configura
 Each function returns a tuple of (updated_data, error_message) or (updated_data, None) on success.
 """
 import re
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 
 
 def validate_string_field(
@@ -87,7 +87,7 @@ def update_closing_cost_logic(costs, n, data):
         return costs, value_error
 
     # Validate calculation_base
-    valid_bases = ["purchase_price", "loan_amount"]
+    valid_bases = ["purchase_price", "loan_amount", "fixed"]
     if data["calculation_base"] not in valid_bases:
         return costs, f"Calculation base must be one of: {', '.join(valid_bases)}"
 

@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.8.0"  # Added multi-tenant database system with hierarchical admin levels
+VERSION = "2.8.1"  # Fixed admin validation for fixed closing costs + multi-tenant system
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 8, 17)  # Updated date
+LAST_UPDATED = date(2025, 9, 2)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "Added comprehensive multi-tenant database system with hierarchical admin levels (Super Admin, Organization Admin, Individual User). Includes configuration inheritance system where version control updates preserve individual customizations. Uses PostgreSQL with Flask-SQLAlchemy for scalable user management."
+UPDATE_DESCRIPTION = "CRITICAL ADMIN FIX: Fixed admin validation error preventing updates to fixed closing costs. Added 'fixed' to valid calculation_base options allowing updates to appraisal fees, processing fees, etc. Updated closing costs: processing_fee=$650, doc_prep=$240. Includes all v2.8.0 multi-tenant features."
 
 
 def get_version_info():
@@ -65,4 +65,5 @@ FEATURES = [
     "flask_login_authentication",  # v2.8.0: Secure user authentication with Flask-Login and bcrypt
     "role_based_access_control",  # v2.8.0: RBAC system with proper permission boundaries
     "database_migration_support",  # v2.8.0: Automated migration from file-based to database configuration
+    "admin_fixed_cost_validation_fix",  # v2.8.1: Fixed admin validation to allow updates to fixed closing costs
 ]

@@ -36,7 +36,7 @@
     },
     "processing_fee": {
         "type": "fixed",
-        "value": 575.0,
+        "value": 650.0,
         "calculation_base": "fixed",
         "description": "Processing Fee",
         "applies_to": ["Purchase", "Refinance"]
@@ -64,7 +64,7 @@
     },
     "doc_prep": {
         "type": "fixed",
-        "value": 115.0,
+        "value": 240.0,
         "calculation_base": "fixed",
         "description": "Closing Documents",
         "applies_to": ["Purchase", "Refinance"]
