@@ -1,2 +1,2 @@
 #!/bin/bash
-gunicorn --bind 0.0.0.0:$PORT render_app:app
+gunicorn --bind 0.0.0.0:$PORT api_app:app
