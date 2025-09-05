@@ -144,9 +144,16 @@ def api_calculate():
         # Load configuration with inheritance
         config_data = config_service.get_config("mortgage_config", user_id, organization_id)
         closing_costs_config = config_service.get_config("closing_costs", user_id, organization_id)
+        pmi_rates_config = config_service.get_config("pmi_rates", user_id, organization_id)
 
-        # Update calculator configuration
-        calculator.config = config_data
+        # Update calculator configuration with all required configs
+        calculator.config.update(
+            {
+                "mortgage_config": config_data,
+                "closing_costs": closing_costs_config,
+                "pmi_rates": pmi_rates_config,
+            }
+        )
 
         # Debug logging to verify method exists
         logger.info(
