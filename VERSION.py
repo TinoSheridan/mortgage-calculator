@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.8.1"  # Fixed admin validation for fixed closing costs + multi-tenant system
+VERSION = "2.8.2"  # Fixed seller credit display + removed tax proration double-counting
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 9, 2)  # Updated date
+LAST_UPDATED = date(2025, 9, 9)  # Updated date
 
 # Description of the last update
-UPDATE_DESCRIPTION = "CRITICAL ADMIN FIX: Fixed admin validation error preventing updates to fixed closing costs. Added 'fixed' to valid calculation_base options allowing updates to appraisal fees, processing fees, etc. Updated closing costs: processing_fee=$650, doc_prep=$240. Includes all v2.8.0 multi-tenant features."
+UPDATE_DESCRIPTION = "SELLER CREDIT DISPLAY FIX: Fixed seller credit not displaying in credits table despite correct calculations. Fixed function parameter mismatch in purchaseResultRenderer.js and credits object override in app.py. Removed seller tax proration from credits section to prevent double-counting (already handled in prepaids). Includes all v2.8.1 features."
 
 
 def get_version_info():
@@ -66,4 +66,5 @@ FEATURES = [
     "role_based_access_control",  # v2.8.0: RBAC system with proper permission boundaries
     "database_migration_support",  # v2.8.0: Automated migration from file-based to database configuration
     "admin_fixed_cost_validation_fix",  # v2.8.1: Fixed admin validation to allow updates to fixed closing costs
+    "seller_credit_display_fix",  # v2.8.2: Fixed seller credit display in credits table and removed tax proration double-counting
 ]

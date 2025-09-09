@@ -17,13 +17,13 @@ export function updateClosingCostsTable(closingCosts, formData, calculationResul
 
     // Get transaction type from API result if available, fallback to form radio button
     let transactionType = calculationResult?.loan_details?.transaction_type?.toLowerCase() || '';
-    
+
     // If transaction type not in API response, use the form's calc_mode radio button
     if (!transactionType) {
         const mode = document.querySelector('input[name="calc_mode"]:checked')?.value || 'purchase';
         transactionType = mode.toLowerCase();
     }
-    
+
     console.log(`Current transaction type: ${transactionType}`);
 
     // Show correct closing costs based on transaction type
@@ -81,7 +81,7 @@ export function updateClosingCostsTable(closingCosts, formData, calculationResul
             // Add each line item to the table
             // Define items that should always be shown, even if $0
             const alwaysShowItems = ['origination_fee', 'discount_points'];
-            
+
             for (const key of sortedKeys) {
                 if (!skipKeys.includes(key)) {
                     const value = closingCosts[key];
@@ -207,17 +207,17 @@ function updateRefinanceClosingCostsTable(result) {
 
     // Skip these keys when rendering
     const skipKeys = ['total', 'financed_closing_costs', 'financed_amount', 'cash_to_close'];
-    
+
     // Sort the keys for consistent display
     const sortedKeys = Object.keys(closingCostsDetails).sort();
-    
+
     // Track if we have any costs to display
     let hasClosingCosts = false;
-    
+
     // Add each line item to the table
     // Define items that should always be shown, even if $0
     const alwaysShowItems = ['origination_fee', 'discount_points'];
-    
+
     for (const key of sortedKeys) {
         if (!skipKeys.includes(key)) {
             const value = closingCostsDetails[key];
@@ -226,7 +226,7 @@ function updateRefinanceClosingCostsTable(result) {
                 hasClosingCosts = true;
                 // Convert snake_case to Title Case for display
                 const displayName = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${displayName}</td>
@@ -258,7 +258,7 @@ function updateRefinanceClosingCostsTable(result) {
         `;
         tbody.appendChild(totalRow);
         addDebug(`Added total row: ${formatCurrency(closingCostsDetails.total)}`);
-        
+
         // Add explanation about all costs being financed
         const explanationRow = document.createElement('tr');
         explanationRow.innerHTML = `
@@ -318,19 +318,18 @@ export function updateCreditsTable(result) {
     // Use optional chaining and nullish coalescing for safer access
     const sellerCredit = parseFloat(credits?.seller_credit ?? 0);
     const lenderCredit = parseFloat(credits?.lender_credit ?? 0);
-    // Include tax proration if it exists and is a credit (positive value)
-    const sellerTaxProrationCredit = Math.max(0, parseFloat(credits?.seller_tax_proration ?? 0));
+    // Note: seller_tax_proration is handled in prepaids section, not credits
 
-    addDebug(`Credits from API: Seller=${sellerCredit}, Lender=${lenderCredit}, TaxProration=${sellerTaxProrationCredit}`);
+    addDebug(`Credits from API: Seller=${sellerCredit}, Lender=${lenderCredit}`);
 
-    if (isNaN(sellerCredit) || isNaN(lenderCredit) || isNaN(sellerTaxProrationCredit)) {
+    if (isNaN(sellerCredit) || isNaN(lenderCredit)) {
         console.error("Invalid credit values received:", credits);
         addDebug("ERROR: Invalid credit values received.");
         return 0; // Return 0 if values are not valid numbers
     }
 
-    // Calculate total only *after* validation
-    const totalCredits = sellerCredit + lenderCredit + sellerTaxProrationCredit;
+    // Calculate total only *after* validation (excluding tax proration)
+    const totalCredits = sellerCredit + lenderCredit;
 
 
     // Add rows to the table based on available credits
@@ -356,16 +355,7 @@ export function updateCreditsTable(result) {
         hasCredits = true;
     }
 
-    // Add Tax Proration if it's a credit to the buyer
-    if (sellerTaxProrationCredit > 0) {
-        const row = tbody.insertRow();
-        const descCell = row.insertCell(0);
-        const amountCell = row.insertCell(1);
-        descCell.textContent = 'Seller Tax Proration Credit'; // Clearer label
-        amountCell.textContent = formatCurrency(sellerTaxProrationCredit);
-        amountCell.classList.add('text-end');
-        hasCredits = true;
-    }
+    // Tax proration is handled in the prepaids section, not here
 
 
     // If no credits, add a 'No Credits' row

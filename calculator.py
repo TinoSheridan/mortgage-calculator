@@ -454,11 +454,11 @@ class MortgageCalculator:
                 seller_tax_credit = abs(prepaid_items["tax_escrow_adjustment"])
                 self.logger.info(f"Seller tax credit (proration): ${seller_tax_credit: .2f}. ")
 
-            # Add seller's tax proration to the credits
-            total_credits = seller_credit + lender_credit + seller_tax_credit
+            # Credits are only seller and lender credits (tax proration is handled in prepaids)
+            total_credits = seller_credit + lender_credit
             self.logger.info(
-                f"Total credits: Seller (${seller_credit: .2f}) + Lender (${lender_credit: .2f}) + "
-                f"Tax Proration (${seller_tax_credit: .2f}) = ${total_credits: .2f}. "
+                f"Total credits: Seller (${seller_credit: .2f}) + Lender (${lender_credit: .2f}) = ${total_credits: .2f}. "
+                f"Tax Proration (${seller_tax_credit: .2f}) handled separately in prepaids."
             )
 
             # Calculate total cash needed at closing
@@ -504,7 +504,6 @@ class MortgageCalculator:
                 "credits": {
                     "seller_credit": round(seller_credit, 2),
                     "lender_credit": round(lender_credit, 2),
-                    "seller_tax_proration": round(seller_tax_credit, 2),
                     "total": round(total_credits, 2),
                 },
                 "total_cash_needed": round(total_cash_needed, 2),

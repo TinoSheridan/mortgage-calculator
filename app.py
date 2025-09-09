@@ -20,21 +20,22 @@ sys.modules["MortgageCalc"] = sys.modules["__main__"]
 # Add current directory to path to ensure imports work properly
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from flask_login import LoginManager  # noqa: E402
+
 import admin_routes  # noqa: E402
 import beta_routes  # noqa: E402
+
+# Database imports
+import database  # noqa: E402
 import health_check  # noqa: E402
 from calculator import MortgageCalculator  # noqa: E402
 from config_factory import get_config  # noqa: E402
 from config_manager import ConfigManager  # noqa: E402
 
-# Database imports
-import database  # noqa: E402
-from models import db  # noqa: E402
-from flask_login import LoginManager  # noqa: E402
-
 # Now that paths are set up, we can safely import local modules
 from constants import TRANSACTION_TYPE  # noqa: E402
 from error_handling import ValidationError, handle_errors, validate_request_data  # noqa: E402
+from models import db  # noqa: E402
 
 # Configure logging early
 logging.basicConfig(level=logging.INFO)
@@ -78,7 +79,7 @@ app.config["VERSION"] = current_version  # Also store in config
 app.config["CACHE_BUSTER"] = f"{current_version}.{cache_timestamp}"  # Create cache buster string
 
 # Configure secret key for sessions
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
 
 # Initialize database
 database.init_app(app)
@@ -86,14 +87,17 @@ database.init_app(app)
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'auth.login'  # Set login route for redirects
-login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_view = "auth.login"  # Set login route for redirects
+login_manager.login_message = "Please log in to access this page."
+
 
 # User loader callback for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
+
     return User.query.get(int(user_id))
+
 
 logger.debug("Flask app initialization completed")
 logger.info("Database and authentication system initialized")
@@ -470,18 +474,21 @@ def calculate():
             "max_seller_contribution": result["loan_details"].get("max_seller_contribution"),
             "seller_credit_exceeds_max": result["loan_details"].get("seller_credit_exceeds_max"),
         },
-        "credits": {
-            "seller_credit": seller_credit,
-            "lender_credit": lender_credit,
-            "total": round(seller_credit + lender_credit, 2),
-        },
+        "credits": result.get(
+            "credits",
+            {
+                "seller_credit": seller_credit,
+                "lender_credit": lender_credit,
+                "total": round(seller_credit + lender_credit, 2),
+            },
+        ),
         # Calculate total cash needed if not in the result, making sure to subtract all credits
         "total_cash_needed": result.get(
-            "cash_to_close",
+            "total_cash_needed",
             result["loan_details"]["down_payment"]
             + result["closing_costs"].get("total", 0)
             + result["prepaid_items"].get("total", 0)
-            - (seller_credit + lender_credit),
+            - result.get("credits", {}).get("total", seller_credit + lender_credit),
         ),
     }
 
@@ -811,9 +818,10 @@ config = config_manager.get_config()  # Get the loaded config
 try:
     # Import and register auth blueprint
     import auth_routes
+
     app.register_blueprint(auth_routes.auth_bp)
     logger.debug("Auth blueprint registered successfully")
-    
+
     app.register_blueprint(admin_routes.admin_bp)
     logger.debug("Admin blueprint registered successfully")
     app.register_blueprint(beta_routes.beta_bp)
@@ -893,8 +901,6 @@ def index():
     except Exception as e:
         app.logger.error(f"Error in index route: {str(e)}")
         return f"Error rendering calculator: {str(e)}", 500
-
-
 
 
 def get_fallback_market_data():

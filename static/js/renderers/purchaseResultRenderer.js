@@ -207,7 +207,7 @@ export class PurchaseResultRenderer {
 
             // Update credits table
             if (data.credits && typeof updateCreditsTable === 'function') {
-                updateCreditsTable(data.credits);
+                updateCreditsTable(data);
             }
 
             // Update prepaids table
