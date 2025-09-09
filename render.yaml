@@ -14,5 +14,5 @@ services:
       - key: PATH
         value: /opt/render/project/python/venv/bin:/opt/render/project/.venv/bin:/opt/render/project/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     healthCheckPath: /health
-    healthCheckTimeout: 5
+    healthCheckTimeout: 30
     autoDeploy: true
