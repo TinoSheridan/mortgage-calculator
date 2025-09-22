@@ -1548,10 +1548,29 @@ class MortgageCalculator:
             # Note: LTV validation moved to after loan amount calculation to handle cash contributions
 
             # 3. Calculate closing costs automatically (similar to purchase transaction)
-            # For refinance, we use the current balance as the basis for calculating closing costs
+            # For refinance, we need to estimate the new loan amount first to calculate percentage-based costs
+            # This is an iterative process since closing costs affect loan amount and vice versa
+
+            # First iteration: estimate closing costs based on current balance
+            estimated_closing_costs_details = self.calculate_closing_costs(
+                purchase_price=appraised_value,  # Use appraised value as purchase price
+                loan_amount=current_balance,  # Use current balance as initial estimate
+                transaction_type=transaction_type,  # Use passed transaction type
+                include_owners_title=False,  # No owner's title insurance for refinance
+                discount_points=new_discount_points,
+            )
+
+            # Estimate new loan amount for better closing cost calculation
+            estimated_total_closing_costs = estimated_closing_costs_details.get("total", 0.0)
+            estimated_financed_closing_costs = max(
+                0, estimated_total_closing_costs - refinance_lender_credit
+            )
+            estimated_new_loan_amount = current_balance + estimated_financed_closing_costs
+
+            # Second iteration: recalculate closing costs using estimated new loan amount
             closing_costs_details = self.calculate_closing_costs(
                 purchase_price=appraised_value,  # Use appraised value as purchase price
-                loan_amount=current_balance,  # Use current balance as loan amount
+                loan_amount=estimated_new_loan_amount,  # Use estimated new loan amount for accurate percentage-based costs
                 transaction_type=transaction_type,  # Use passed transaction type
                 include_owners_title=False,  # No owner's title insurance for refinance
                 discount_points=new_discount_points,
@@ -1774,6 +1793,27 @@ class MortgageCalculator:
                     new_loan_amount = preliminary_loan_amount
                     cash_needed = 0
                     self.logger.info(f"Standard mode - New loan amount: ${new_loan_amount:.2f}")
+
+            # 3.5. Final recalculation of closing costs using the actual new loan amount
+            # This ensures percentage-based fees (like origination fees) are calculated on the correct loan amount
+            if (
+                abs(new_loan_amount - estimated_new_loan_amount) > 1.0
+            ):  # Only recalculate if significant difference
+                self.logger.info(
+                    f"Recalculating closing costs with final loan amount: ${new_loan_amount:.2f}"
+                )
+                closing_costs_details = self.calculate_closing_costs(
+                    purchase_price=appraised_value,  # Use appraised value as purchase price
+                    loan_amount=new_loan_amount,  # Use final new loan amount for accurate percentage-based costs
+                    transaction_type=transaction_type,  # Use passed transaction type
+                    include_owners_title=False,  # No owner's title insurance for refinance
+                    discount_points=new_discount_points,
+                )
+                total_closing_costs = closing_costs_details.get("total", 0.0)
+                financed_closing_costs = max(0, total_closing_costs - refinance_lender_credit)
+                self.logger.info(
+                    f"Final closing costs: ${total_closing_costs:.2f}, Financed: ${financed_closing_costs:.2f}"
+                )
 
             # 4. Validate refinance parameters with final loan amount (after cash contributions)
             validation_errors = self._validate_refinance_parameters(
