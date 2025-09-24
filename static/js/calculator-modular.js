@@ -640,6 +640,9 @@ class MortgageCalculator {
                     cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = false;
                     if (cashBackInput) cashBackInput.required = false;
+
+                    // Clear results and auto-recalculate
+                    this.handleCashOptionChange();
                 }
             });
 
@@ -650,6 +653,9 @@ class MortgageCalculator {
                     cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = false;
                     if (cashBackInput) cashBackInput.required = false;
+
+                    // Clear results and auto-recalculate
+                    this.handleCashOptionChange();
                 }
             });
 
@@ -660,6 +666,9 @@ class MortgageCalculator {
                     cashBackGroup.style.display = 'none';
                     if (targetLtvInput) targetLtvInput.required = true;
                     if (cashBackInput) cashBackInput.required = false;
+
+                    // Clear results and auto-recalculate
+                    this.handleCashOptionChange();
                 }
             });
 
@@ -670,11 +679,65 @@ class MortgageCalculator {
                     cashBackGroup.style.display = 'block';
                     if (targetLtvInput) targetLtvInput.required = false;
                     if (cashBackInput) cashBackInput.required = true;
+
+                    // Clear results and auto-recalculate
+                    this.handleCashOptionChange();
                 }
             });
 
             console.log('Cash options toggle initialized');
         }
+    }
+
+    /**
+     * Clear refinance results and reset UI state
+     */
+    clearRefinanceResults() {
+        console.log('Clearing refinance results...');
+
+        // Hide results section
+        uiStateManager.hideRefinanceResults();
+
+        // Clear any error messages
+        uiStateManager.hideError();
+        uiStateManager.hideValidationError();
+
+        // Reset any calculated values that might be cached
+        this.lastRefinanceData = null;
+
+        console.log('Refinance results cleared');
+    }
+
+    /**
+     * Handle cash option change - clear results and optionally recalculate
+     */
+    async handleCashOptionChange(recalculateIfNeeded = true) {
+        console.log('Cash option changed, clearing previous results...');
+
+        // Always clear previous results when switching cash options
+        this.clearRefinanceResults();
+
+        // If we have form data and auto-recalculation is enabled, recalculate
+        if (recalculateIfNeeded && this.shouldAutoRecalculate()) {
+            console.log('Auto-recalculating with new cash option...');
+
+            // Small delay to ensure UI updates have completed
+            setTimeout(() => {
+                this.handleRefinanceCalculation();
+            }, 100);
+        }
+    }
+
+    /**
+     * Check if auto-recalculation should occur
+     */
+    shouldAutoRecalculate() {
+        // Check if basic required fields are filled
+        const appraised_value = document.getElementById('appraised_value_refinance')?.value;
+        const original_loan_balance = document.getElementById('original_loan_balance')?.value;
+        const new_interest_rate = document.getElementById('new_interest_rate')?.value;
+
+        return appraised_value && original_loan_balance && new_interest_rate;
     }
 
     /**
