@@ -48,13 +48,19 @@ class MortgageCalculator {
 
         if (purchaseRadio && refinanceRadio) {
             purchaseRadio.addEventListener('change', () => {
-                this.currentMode = 'purchase';
-                uiStateManager.toggleFormVisibility();
+                // Store the selected mode and refresh to ensure clean state
+                if (purchaseRadio.checked && this.currentMode !== 'purchase') {
+                    sessionStorage.setItem('calculatorMode', 'purchase');
+                    window.location.reload();
+                }
             });
 
             refinanceRadio.addEventListener('change', () => {
-                this.currentMode = 'refinance';
-                uiStateManager.toggleFormVisibility();
+                // Store the selected mode and refresh to ensure clean state
+                if (refinanceRadio.checked && this.currentMode !== 'refinance') {
+                    sessionStorage.setItem('calculatorMode', 'refinance');
+                    window.location.reload();
+                }
             });
         }
 
@@ -113,6 +119,9 @@ class MortgageCalculator {
      * Initialize UI state
      */
     initializeUI() {
+        // Restore saved calculator mode from sessionStorage
+        this.restoreCalculatorMode();
+
         // Set initial form visibility
         uiStateManager.toggleFormVisibility();
 
@@ -124,6 +133,30 @@ class MortgageCalculator {
         uiStateManager.hideValidationError();
 
         console.log('UI initialization complete');
+    }
+
+    /**
+     * Restore calculator mode from sessionStorage after page refresh
+     */
+    restoreCalculatorMode() {
+        const savedMode = sessionStorage.getItem('calculatorMode');
+        if (savedMode) {
+            console.log(`Restoring calculator mode: ${savedMode}`);
+
+            const purchaseRadio = document.getElementById('mode_purchase');
+            const refinanceRadio = document.getElementById('mode_refinance');
+
+            if (savedMode === 'purchase' && purchaseRadio) {
+                purchaseRadio.checked = true;
+                this.currentMode = 'purchase';
+            } else if (savedMode === 'refinance' && refinanceRadio) {
+                refinanceRadio.checked = true;
+                this.currentMode = 'refinance';
+            }
+
+            // Clear the saved mode so it doesn't persist unnecessarily
+            sessionStorage.removeItem('calculatorMode');
+        }
     }
 
     /**
