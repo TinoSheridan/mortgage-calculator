@@ -164,7 +164,7 @@ def add_header(response):
         "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "  # Allow Font Awesome
         "img-src 'self' data: https:; "
         "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "  # Allow Font Awesome
-        "connect-src 'self'"
+        "connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
     )
     response.headers["Content-Security-Policy"] = csp_policy
     response.headers["X-Content-Type-Options"] = "nosniff"
