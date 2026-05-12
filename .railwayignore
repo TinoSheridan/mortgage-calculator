@@ -1,0 +1,12 @@
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+instance/
+logs/
+flask_session/
+.git
+chats/
+backups/
