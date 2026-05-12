@@ -1,1 +1,1 @@
-web: sh -c 'gunicorn app:app --bind 0.0.0.0:$PORT --workers 2'
+web: gunicorn app:app --config gunicorn.conf.py

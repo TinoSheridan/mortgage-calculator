@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "pip install -r requirements.txt --no-cache-dir"
 
 [deploy]
-startCommand = "sh -c 'gunicorn app:app --bind 0.0.0.0:$PORT --workers 2'"
+startCommand = "gunicorn app:app --config gunicorn.conf.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "always"
