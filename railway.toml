@@ -1,20 +1,9 @@
 [build]
 builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt --no-cache-dir"
 
 [deploy]
+startCommand = "gunicorn api_app:app --bind 0.0.0.0:$PORT --workers 2"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "always"
-
-[[services]]
-name = "mortgage-calculator-api"
-
-[services.variables]
-FLASK_ENV = "production"
-PORT = "8000"
-
-[services.build]
-buildCommand = "pip install -r requirements-api.txt"
-
-[services.deploy]
-startCommand = "gunicorn api_app:app --bind 0.0.0.0:$PORT --workers 2"# Railway deployment timestamp: Wed Aug 20 11:43:47 EDT 2025
