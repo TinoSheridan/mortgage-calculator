@@ -1,19 +1,11 @@
-"""
-Statistics Manager for Mortgage Calculator
+"""Statistics Manager for Mortgage Calculator."""
 
-This module provides functionality for tracking usage data and generating
-statistics for the admin dashboard.
-"""
-
-import base64
-import io
 import json
 import logging
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -41,9 +33,7 @@ class StatisticsManager:
     def _load_stats(self):
         """Load statistics from the JSON file."""
         if not os.path.exists(self.stats_file):
-            logger.info(
-                f"Statistics file not found, creating new one: {self.stats_file}"
-            )
+            logger.info(f"Statistics file not found, creating new one: {self.stats_file}")
             return []
 
         try:
@@ -101,9 +91,7 @@ class StatisticsManager:
         record = {
             "timestamp": timestamp,
             "params": essential_params,
-            "user_agent_type": self._classify_user_agent(user_agent)
-            if user_agent
-            else "unknown",
+            "user_agent_type": self._classify_user_agent(user_agent) if user_agent else "unknown",
             "anonymized_ip": ip_address,
         }
 
@@ -204,9 +192,7 @@ class StatisticsManager:
 
         # Calculate averages
         data["avg_loan_amount"] = (
-            total_loan_amount / data["total_calculations"]
-            if data["total_calculations"] > 0
-            else 0
+            total_loan_amount / data["total_calculations"] if data["total_calculations"] > 0 else 0
         )
         data["avg_interest_rate"] = (
             total_interest_rate / data["total_calculations"]
@@ -311,13 +297,11 @@ class StatisticsManager:
         # Most popular loan term
         if summary["loan_terms"]:
             most_common_term = max(summary["loan_terms"].items(), key=lambda x: x[1])
-            term_percentage = (
-                most_common_term[1] / summary["total_calculations"]
-            ) * 100
+            term_percentage = (most_common_term[1] / summary["total_calculations"]) * 100
             insights.append(
                 {
                     "title": "Popular Loan Term",
-                    "description": f"{most_common_term[0]}-year mortgages are the most popular choice ({term_percentage:.1f}% of calculations).",
+                    "description": f"{most_common_term[0]}-year mortgages are the most popular choice ({term_percentage:.1f}% of calculations).",  # noqa: E231
                     "type": "info",
                 }
             )
@@ -325,13 +309,11 @@ class StatisticsManager:
         # Most popular loan type
         if summary["loan_types"]:
             most_common_type = max(summary["loan_types"].items(), key=lambda x: x[1])
-            type_percentage = (
-                most_common_type[1] / summary["total_calculations"]
-            ) * 100
+            type_percentage = (most_common_type[1] / summary["total_calculations"]) * 100
             insights.append(
                 {
                     "title": "Popular Loan Type",
-                    "description": f"{most_common_type[0].title()} loans are the most frequently calculated ({type_percentage:.1f}% of calculations).",
+                    "description": f"{most_common_type[0].title()} loans are the most frequently calculated ({type_percentage:.1f}% of calculations).",  # noqa: E231
                     "type": "info",
                 }
             )
@@ -343,7 +325,7 @@ class StatisticsManager:
                 insights.append(
                     {
                         "title": "High Interest Rates",
-                        "description": f"The average interest rate of {current_avg_rate:.2f}% is historically high.",
+                        "description": f"The average interest rate of {current_avg_rate:.2f}% is historically high.",  # noqa: E231
                         "type": "warning",
                     }
                 )
@@ -351,7 +333,7 @@ class StatisticsManager:
                 insights.append(
                     {
                         "title": "Low Interest Rates",
-                        "description": f"The average interest rate of {current_avg_rate:.2f}% is historically low.",
+                        "description": f"The average interest rate of {current_avg_rate:.2f}% is historically low.",  # noqa: E231
                         "type": "success",
                     }
                 )
@@ -366,7 +348,7 @@ class StatisticsManager:
                 insights.append(
                     {
                         "title": "Mobile Usage",
-                        "description": f"Most users ({mobile_percentage:.1f}%) access the calculator from mobile devices.",
+                        "description": f"Most users ({mobile_percentage:.1f}%) access the calculator from mobile devices.",  # noqa: E231
                         "type": "info",
                     }
                 )
@@ -382,9 +364,7 @@ class StatisticsManager:
         original_count = len(self.calculations)
 
         self.calculations = [
-            calc
-            for calc in self.calculations
-            if calc.get("timestamp", "") >= cutoff_date
+            calc for calc in self.calculations if calc.get("timestamp", "") >= cutoff_date
         ]
 
         # Save if any records were removed

@@ -1,5 +1,4 @@
 """Gunicorn configuration for production deployment."""
-import multiprocessing
 import os
 
 # Render assigns a PORT environment variable - use it or fallback to 10000
@@ -8,7 +7,7 @@ bind = f"0.0.0.0:{port}"  # noqa: E231
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+workers = 2
 worker_class = "sync"
 worker_connections = 1000
 timeout = 120  # Increased from 30 to 120 seconds
