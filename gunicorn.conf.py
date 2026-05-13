@@ -4,7 +4,7 @@ import os
 
 # Render assigns a PORT environment variable - use it or fallback to 10000
 port = int(os.environ.get("PORT", 10000))
-bind = f"0.0.0.0:{port}"
+bind = f"0.0.0.0:{port}"  # noqa: E231
 backlog = 2048
 
 # Worker processes
@@ -24,13 +24,9 @@ ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA
 proc_name = "mortgage_calc"
 pythonpath = "."
 
-# Logging - Store logs in a directory that will be available in Render
-log_directory = "./logs"
-if not os.path.exists(log_directory):
-    os.makedirs(log_directory, exist_ok=True)
-
-accesslog = os.path.join(log_directory, "access.log")
-errorlog = os.path.join(log_directory, "error.log")
+# Log to stderr so Railway/cloud platforms can capture output
+accesslog = "-"
+errorlog = "-"
 loglevel = "info"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
@@ -50,11 +46,6 @@ tmp_upload_dir = None
 # SSL Session configuration
 ssl_session_cache = None
 ssl_session_tickets = False
-
-
-def when_ready(server):
-    """Run when server is ready."""
-    pass  # Simply pass as Render handles server readiness
 
 
 def on_starting(server):
