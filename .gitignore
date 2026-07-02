@@ -82,7 +82,7 @@ npm-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# Project-specific directories to exclude  
+# Project-specific directories to exclude
 /chats/
 /backups/
 /config/backups/
@@ -101,3 +101,4 @@ nohup.out
 
 # Runtime session files
 flask_session/
+.claude/
