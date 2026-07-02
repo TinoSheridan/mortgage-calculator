@@ -1,0 +1,1142 @@
+{
+  "_meta": {
+    "frozen_today": "2026-07-01",
+    "note": "Golden regression fixtures. Regenerate ONLY for intentional calculation changes."
+  },
+  "purchase_conv_actual_amounts_no_owners_title": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1080.0,
+        "lender_title_insurance": 1237.5,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 0.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 450.0,
+        "third_party_certs": 55.0,
+        "total": 6947.5,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 90000.0,
+        "down_payment_percentage": 20,
+        "financed_fees": 0.0,
+        "interest_rate": 6.5,
+        "loan_amount": 360000.0,
+        "loan_term_years": 30,
+        "loan_type": "conventional",
+        "ltv_ratio": 80.0,
+        "max_seller_contribution": 27000.0,
+        "original_loan_amount": 360000.0,
+        "purchase_price": 450000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 150.0,
+        "pmi": 0.0,
+        "principal_interest": 2275.44,
+        "property_tax": 350.0,
+        "total": 2775.44
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -350.0,
+        "insurance_escrow": 450.0,
+        "prepaid_insurance": 1800.0,
+        "prepaid_interest": 1040.0,
+        "prepaid_tax": 4200.0,
+        "tax_escrow": 700.0,
+        "tax_escrow_adjustment": -2968.77,
+        "total": 4871.23
+      },
+      "total_cash_needed": 101818.73
+    },
+    "inputs": {
+      "annual_insurance_amount": 1800.0,
+      "annual_rate": 6.5,
+      "annual_tax_amount": 4200.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 20,
+      "include_owners_title": false,
+      "insurance_method": "amount",
+      "loan_term": 30,
+      "loan_type": "conventional",
+      "purchase_price": 450000,
+      "tax_method": "amount"
+    },
+    "kind": "purchase"
+  },
+  "purchase_conventional_15yr_points": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 3750.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1125.0,
+        "lender_title_insurance": 1031.25,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1743.75,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 500.0,
+        "third_party_certs": 55.0,
+        "total": 12330.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 125000.0,
+        "down_payment_percentage": 25,
+        "financed_fees": 0.0,
+        "interest_rate": 5.875,
+        "loan_amount": 375000.0,
+        "loan_term_years": 15,
+        "loan_type": "conventional",
+        "ltv_ratio": 75.0,
+        "max_seller_contribution": 45000.0,
+        "original_loan_amount": 375000.0,
+        "purchase_price": 500000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 109.38,
+        "pmi": 0.0,
+        "principal_interest": 3139.19,
+        "property_tax": 416.67,
+        "total": 3665.23
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -416.67,
+        "insurance_escrow": 328.12,
+        "prepaid_insurance": 1312.5,
+        "prepaid_interest": 979.17,
+        "prepaid_tax": 5000.0,
+        "tax_escrow": 833.33,
+        "tax_escrow_adjustment": -3534.25,
+        "total": 4502.200000000001
+      },
+      "total_cash_needed": 141832.2
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 5.875,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "discount_points": 1.0,
+      "down_payment_percentage": 25,
+      "loan_term": 15,
+      "loan_type": "conventional",
+      "purchase_price": 500000
+    },
+    "kind": "purchase"
+  },
+  "purchase_conventional_20down": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1080.0,
+        "lender_title_insurance": 990.0,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1522.5,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 450.0,
+        "third_party_certs": 55.0,
+        "total": 8222.5,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 90000.0,
+        "down_payment_percentage": 20,
+        "financed_fees": 0.0,
+        "interest_rate": 6.5,
+        "loan_amount": 360000.0,
+        "loan_term_years": 30,
+        "loan_type": "conventional",
+        "ltv_ratio": 80.0,
+        "max_seller_contribution": 27000.0,
+        "original_loan_amount": 360000.0,
+        "purchase_price": 450000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 105.0,
+        "pmi": 0.0,
+        "principal_interest": 2275.44,
+        "property_tax": 375.0,
+        "total": 2755.44
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -375.0,
+        "insurance_escrow": 315.0,
+        "prepaid_insurance": 1260.0,
+        "prepaid_interest": 1040.0,
+        "prepaid_tax": 4500.0,
+        "tax_escrow": 750.0,
+        "tax_escrow_adjustment": -3180.82,
+        "total": 4309.18
+      },
+      "total_cash_needed": 102531.68
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.5,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 20,
+      "loan_term": 30,
+      "loan_type": "conventional",
+      "purchase_price": 450000
+    },
+    "kind": "purchase"
+  },
+  "purchase_conventional_3down_credits": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 873.0,
+        "lender_title_insurance": 800.25,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 924.75,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 300.0,
+        "third_party_certs": 55.0,
+        "total": 7078.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 1000,
+        "seller_credit": 5000,
+        "total": 6000
+      },
+      "loan_details": {
+        "down_payment": 9000.0,
+        "down_payment_percentage": 3,
+        "financed_fees": 0.0,
+        "interest_rate": 7.0,
+        "loan_amount": 291000.0,
+        "loan_term_years": 30,
+        "loan_type": "conventional",
+        "ltv_ratio": 97.0,
+        "max_seller_contribution": 9000.0,
+        "original_loan_amount": 291000.0,
+        "purchase_price": 300000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 84.88,
+        "pmi": 213.4,
+        "principal_interest": 1936.03,
+        "property_tax": 250.0,
+        "total": 2484.3
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -250.0,
+        "insurance_escrow": 254.62,
+        "prepaid_insurance": 1018.5,
+        "prepaid_interest": 905.33,
+        "prepaid_tax": 3000.0,
+        "tax_escrow": 500.0,
+        "tax_escrow_adjustment": -2120.55,
+        "total": 3307.8999999999996
+      },
+      "total_cash_needed": 13385.9
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 7.0,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 3,
+      "lender_credit": 1000,
+      "loan_term": 30,
+      "loan_type": "conventional",
+      "purchase_price": 300000,
+      "seller_credit": 5000
+    },
+    "kind": "purchase"
+  },
+  "purchase_conventional_5down_pmi": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 997.5,
+        "lender_title_insurance": 914.38,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1073.12,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 350.0,
+        "third_party_certs": 55.0,
+        "total": 7515.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 17500.0,
+        "down_payment_percentage": 5,
+        "financed_fees": 0.0,
+        "interest_rate": 6.75,
+        "loan_amount": 332500.0,
+        "loan_term_years": 30,
+        "loan_type": "conventional",
+        "ltv_ratio": 95.0,
+        "max_seller_contribution": 10500.0,
+        "original_loan_amount": 332500.0,
+        "purchase_price": 350000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 96.98,
+        "pmi": 185.65,
+        "principal_interest": 2156.59,
+        "property_tax": 291.67,
+        "total": 2730.89
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -291.67,
+        "insurance_escrow": 290.94,
+        "prepaid_insurance": 1163.75,
+        "prepaid_interest": 997.5,
+        "prepaid_tax": 3500.0,
+        "tax_escrow": 583.33,
+        "tax_escrow_adjustment": -2473.97,
+        "total": 3769.8799999999997
+      },
+      "total_cash_needed": 28784.88
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.75,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 5,
+      "loan_term": 30,
+      "loan_type": "conventional",
+      "purchase_price": 350000
+    },
+    "kind": "purchase"
+  },
+  "purchase_fha_min_down": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 926.4,
+        "lender_title_insurance": 849.2,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 980.8,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 320.0,
+        "third_party_certs": 55.0,
+        "total": 7256.4,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 11200.0,
+        "down_payment_percentage": 3.5,
+        "financed_fees": 5404.0,
+        "interest_rate": 6.25,
+        "loan_amount": 314204.0,
+        "loan_term_years": 30,
+        "loan_type": "fha",
+        "ltv_ratio": 96.5,
+        "max_seller_contribution": 19200.0,
+        "original_loan_amount": 308800.0,
+        "purchase_price": 320000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 91.64,
+        "pmi": 144.01,
+        "principal_interest": 1934.61,
+        "property_tax": 266.67,
+        "total": 2436.93
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -266.67,
+        "insurance_escrow": 274.93,
+        "prepaid_insurance": 1099.71,
+        "prepaid_interest": 872.79,
+        "prepaid_tax": 3200.0,
+        "tax_escrow": 533.33,
+        "tax_escrow_adjustment": -2261.92,
+        "total": 3452.17
+      },
+      "total_cash_needed": 21908.57
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.25,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 3.5,
+      "loan_term": 30,
+      "loan_type": "fha",
+      "purchase_price": 320000
+    },
+    "kind": "purchase"
+  },
+  "purchase_usda_0down": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 840.0,
+        "lender_title_insurance": 770.0,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 850.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 280.0,
+        "third_party_certs": 55.0,
+        "total": 6920.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 0.0,
+        "down_payment_percentage": 0,
+        "financed_fees": 2800.0,
+        "interest_rate": 6.375,
+        "loan_amount": 282800.0,
+        "loan_term_years": 30,
+        "loan_type": "usda",
+        "ltv_ratio": 100.0,
+        "max_seller_contribution": 16800.0,
+        "original_loan_amount": 280000.0,
+        "purchase_price": 280000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 82.48,
+        "pmi": 82.48,
+        "principal_interest": 1764.3,
+        "property_tax": 233.33,
+        "total": 2162.6
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -233.33,
+        "insurance_escrow": 247.45,
+        "prepaid_insurance": 989.8,
+        "prepaid_interest": 801.27,
+        "prepaid_tax": 2800.0,
+        "tax_escrow": 466.67,
+        "tax_escrow_adjustment": -1979.18,
+        "total": 3092.6799999999994
+      },
+      "total_cash_needed": 10012.68
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.375,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 0,
+      "loan_term": 30,
+      "loan_type": "usda",
+      "purchase_price": 280000
+    },
+    "kind": "purchase"
+  },
+  "purchase_va_active_first_0down": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1200.0,
+        "lender_title_insurance": 1100.0,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1150.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 400.0,
+        "third_party_certs": 55.0,
+        "total": 8030.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 0.0,
+        "down_payment_percentage": 0,
+        "financed_fees": 9200.0,
+        "interest_rate": 6.0,
+        "loan_amount": 409200.0,
+        "loan_term_years": 30,
+        "loan_type": "va",
+        "ltv_ratio": 100.0,
+        "max_seller_contribution": 16000.0,
+        "original_loan_amount": 400000.0,
+        "purchase_price": 400000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 119.35,
+        "pmi": 0.0,
+        "principal_interest": 2453.36,
+        "property_tax": 333.33,
+        "total": 2906.04
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -333.33,
+        "insurance_escrow": 358.05,
+        "prepaid_insurance": 1432.2,
+        "prepaid_interest": 1091.2,
+        "prepaid_tax": 4000.0,
+        "tax_escrow": 666.67,
+        "tax_escrow_adjustment": -2827.4,
+        "total": 4387.389999999999
+      },
+      "total_cash_needed": 12417.39
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.0,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 0,
+      "loan_term": 30,
+      "loan_type": "va",
+      "purchase_price": 400000,
+      "va_disability_exempt": false,
+      "va_service_type": "active",
+      "va_usage": "first"
+    },
+    "kind": "purchase"
+  },
+  "purchase_va_disability_exempt": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1200.0,
+        "lender_title_insurance": 1100.0,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1150.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 400.0,
+        "third_party_certs": 55.0,
+        "total": 8030.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 0.0,
+        "down_payment_percentage": 0,
+        "financed_fees": 0.0,
+        "interest_rate": 6.0,
+        "loan_amount": 400000.0,
+        "loan_term_years": 30,
+        "loan_type": "va",
+        "ltv_ratio": 100.0,
+        "max_seller_contribution": 16000.0,
+        "original_loan_amount": 400000.0,
+        "purchase_price": 400000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 116.67,
+        "pmi": 0.0,
+        "principal_interest": 2398.2,
+        "property_tax": 333.33,
+        "total": 2848.2
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -333.33,
+        "insurance_escrow": 350.0,
+        "prepaid_insurance": 1400.0,
+        "prepaid_interest": 1066.67,
+        "prepaid_tax": 4000.0,
+        "tax_escrow": 666.67,
+        "tax_escrow_adjustment": -2827.4,
+        "total": 4322.610000000001
+      },
+      "total_cash_needed": 12352.61
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.0,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 0,
+      "loan_term": 30,
+      "loan_type": "va",
+      "purchase_price": 400000,
+      "va_disability_exempt": true,
+      "va_service_type": "active",
+      "va_usage": "first"
+    },
+    "kind": "purchase"
+  },
+  "purchase_va_reserves_subsequent_5down": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1083.0,
+        "lender_title_insurance": 992.75,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 1152.25,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 380.0,
+        "third_party_certs": 55.0,
+        "total": 7788.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 19000.0,
+        "down_payment_percentage": 5,
+        "financed_fees": 5956.5,
+        "interest_rate": 6.125,
+        "loan_amount": 366956.5,
+        "loan_term_years": 30,
+        "loan_type": "va",
+        "ltv_ratio": 95.0,
+        "max_seller_contribution": 15200.0,
+        "original_loan_amount": 361000.0,
+        "purchase_price": 380000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 107.03,
+        "pmi": 0.0,
+        "principal_interest": 2229.67,
+        "property_tax": 316.67,
+        "total": 2653.37
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -316.67,
+        "insurance_escrow": 321.09,
+        "prepaid_insurance": 1284.35,
+        "prepaid_interest": 998.94,
+        "prepaid_tax": 3800.0,
+        "tax_escrow": 633.33,
+        "tax_escrow_adjustment": -2686.03,
+        "total": 4035.01
+      },
+      "total_cash_needed": 30823.01
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.125,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 5,
+      "loan_term": 30,
+      "loan_type": "va",
+      "purchase_price": 380000,
+      "va_disability_exempt": false,
+      "va_service_type": "reserves",
+      "va_usage": "subsequent"
+    },
+    "kind": "purchase"
+  },
+  "refi_conventional_cash_out": {
+    "expected": {
+      "base_monthly_savings": -171.44,
+      "break_even_months": null,
+      "break_even_time": null,
+      "cash_needed_at_closing": -40000.0,
+      "cash_option": "cash_back",
+      "cash_received": 40000.0,
+      "cash_to_close": -40000.0,
+      "closing_costs_details": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 956.36,
+        "lender_title_insurance": 1095.83,
+        "origination_fee": 0.0,
+        "owners_title_insurance": 0.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 0.0,
+        "third_party_certs": 55.0,
+        "total": 6232.19,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "total": 0.0
+      },
+      "current_balance": 270000.0,
+      "discount_points_cost": 0.0,
+      "discount_points_percent": 0.0,
+      "extra_monthly_savings": 0.0,
+      "financed_closing_costs": 6232.19,
+      "loan_increase": 48786.38,
+      "loan_type": "conventional",
+      "ltv": 57.96,
+      "manual_current_balance": 270000.0,
+      "min_appraised_values": {
+        "ltv_80": 338000,
+        "ltv_90": 300000,
+        "ltv_95": 285000
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 175.0,
+        "pmi": 0.0,
+        "principal_interest": 2067.64,
+        "property_tax": 433.33,
+        "total": 2675.97
+      },
+      "monthly_savings": -171.44,
+      "new_loan_amount": 318786.38,
+      "new_monthly_payment": 2067.64,
+      "original_monthly_payment": 1896.2,
+      "prepaid_items": {
+        "borrower_escrow_credit": 0,
+        "insurance_escrow": 876.6625359880206,
+        "insurance_escrow_months": 3,
+        "interest_days": 17,
+        "prepaid_insurance": 0,
+        "prepaid_interest": 1016.1315758042967,
+        "prepaid_tax": 0,
+        "prepaid_tax_months": 0,
+        "tax_escrow": 1191.6666666666667,
+        "tax_escrow_adjustment": 0,
+        "tax_escrow_months": 2,
+        "total": 3084.4607784589844
+      },
+      "refinance_lender_credit": 0.0,
+      "refinance_type": "cash_out",
+      "target_ltv_value": null,
+      "total_closing_costs": 6232.19,
+      "total_financed_closing_costs": 6232.19,
+      "total_savings": 0,
+      "use_manual_balance": true,
+      "zero_cash_mode": false
+    },
+    "inputs": {
+      "annual_insurance": 2100.0,
+      "annual_taxes": 5200.0,
+      "appraised_value": 550000,
+      "cash_back_amount": 40000.0,
+      "cash_option": "cash_back",
+      "loan_type": "conventional",
+      "manual_current_balance": 270000.0,
+      "new_closing_date": "2026-08-15",
+      "new_interest_rate": 6.75,
+      "new_loan_term": 30,
+      "original_closing_date": "2020-03-01",
+      "original_interest_rate": 6.5,
+      "original_loan_balance": 300000,
+      "original_loan_term": 30,
+      "refinance_type": "cash_out",
+      "use_manual_balance": true
+    },
+    "kind": "refinance"
+  },
+  "refi_conventional_rate_term": {
+    "expected": {
+      "base_monthly_savings": 385.09,
+      "break_even_months": 17.4,
+      "break_even_time": "1 years, 5 months",
+      "cash_needed_at_closing": 0,
+      "cash_option": "finance_all",
+      "cash_received": 0,
+      "cash_to_close": 3316.57,
+      "closing_costs_details": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1175.1,
+        "lender_title_insurance": 1346.47,
+        "origination_fee": 0.0,
+        "owners_title_insurance": 0.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 0.0,
+        "third_party_certs": 55.0,
+        "total": 6701.57,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "total": 0.0
+      },
+      "current_balance": 385000.0,
+      "discount_points_cost": 0.0,
+      "discount_points_percent": 0.0,
+      "extra_monthly_savings": 0.0,
+      "financed_closing_costs": 6701.57,
+      "loan_increase": 6701.31,
+      "loan_type": "conventional",
+      "ltv": 78.34,
+      "manual_current_balance": 385000.0,
+      "min_appraised_values": {
+        "ltv_80": 482000,
+        "ltv_90": 428000,
+        "ltv_95": 406000,
+        "ltv_97": 397000
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 158.33,
+        "pmi": 0.0,
+        "principal_interest": 2411.77,
+        "property_tax": 400.0,
+        "total": 2970.1
+      },
+      "monthly_savings": 385.09,
+      "new_loan_amount": 391701.31,
+      "new_monthly_payment": 2411.77,
+      "original_monthly_payment": 2796.86,
+      "prepaid_items": {
+        "borrower_escrow_credit": 0,
+        "insurance_escrow": 1077.1786025000001,
+        "insurance_escrow_months": 3,
+        "interest_days": 17,
+        "prepaid_insurance": 0,
+        "prepaid_interest": 1156.0628940972224,
+        "prepaid_tax": 0,
+        "prepaid_tax_months": 0,
+        "tax_escrow": 1083.3333333333333,
+        "tax_escrow_adjustment": 0,
+        "tax_escrow_months": 2,
+        "total": 3316.574829930556
+      },
+      "refinance_lender_credit": 0.0,
+      "refinance_type": "rate_term",
+      "target_ltv_value": null,
+      "total_closing_costs": 6701.57,
+      "total_financed_closing_costs": 6701.57,
+      "total_savings": 131930.83,
+      "use_manual_balance": true,
+      "zero_cash_mode": false
+    },
+    "inputs": {
+      "annual_insurance": 1900.0,
+      "annual_taxes": 4800.0,
+      "appraised_value": 500000,
+      "loan_type": "conventional",
+      "manual_current_balance": 385000.0,
+      "new_closing_date": "2026-08-15",
+      "new_interest_rate": 6.25,
+      "new_loan_term": 30,
+      "original_closing_date": "2023-06-01",
+      "original_interest_rate": 7.5,
+      "original_loan_balance": 400000,
+      "original_loan_term": 30,
+      "refinance_type": "rate_term",
+      "use_manual_balance": true
+    },
+    "kind": "refinance"
+  },
+  "refi_fha_streamline": {
+    "expected": {
+      "base_monthly_savings": 251.66,
+      "break_even_months": 25.5,
+      "break_even_time": "2 years, 1 months",
+      "cash_needed_at_closing": 0,
+      "cash_option": "finance_all",
+      "cash_received": 0,
+      "cash_to_close": 2800.79,
+      "closing_costs_details": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1039.23,
+        "lender_title_insurance": 1190.78,
+        "origination_fee": 0.0,
+        "owners_title_insurance": 0.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 0.0,
+        "third_party_certs": 55.0,
+        "total": 6410.01,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "total": 0.0
+      },
+      "current_balance": 340000.0,
+      "discount_points_cost": 0.0,
+      "discount_points_percent": 0.0,
+      "extra_monthly_savings": 0.0,
+      "financed_closing_costs": 6410.01,
+      "loan_increase": 6409.75,
+      "loan_type": "fha",
+      "ltv": 86.6,
+      "manual_current_balance": 340000.0,
+      "min_appraised_values": {
+        "ltv_80": 425000,
+        "ltv_90": 378000,
+        "ltv_95": 358000,
+        "ltv_96": 353000
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 133.33,
+        "pmi": 158.77,
+        "principal_interest": 2076.9,
+        "property_tax": 316.67,
+        "total": 2685.67
+      },
+      "monthly_savings": 251.66,
+      "new_loan_amount": 346409.75,
+      "new_monthly_payment": 2076.9,
+      "original_monthly_payment": 2328.56,
+      "prepaid_items": {
+        "borrower_escrow_credit": 0,
+        "insurance_escrow": 952.6268125000001,
+        "insurance_escrow_months": 3,
+        "interest_days": 17,
+        "prepaid_insurance": 0,
+        "prepaid_interest": 981.4942916666666,
+        "prepaid_tax": 0,
+        "prepaid_tax_months": 0,
+        "tax_escrow": 866.6666666666666,
+        "tax_escrow_adjustment": 0,
+        "tax_escrow_months": 2,
+        "total": 2800.7877708333335
+      },
+      "refinance_lender_credit": 0.0,
+      "refinance_type": "streamline",
+      "target_ltv_value": null,
+      "total_closing_costs": 6410.01,
+      "total_financed_closing_costs": 6410.01,
+      "total_savings": 84187.59,
+      "use_manual_balance": true,
+      "zero_cash_mode": false
+    },
+    "inputs": {
+      "annual_insurance": 1600.0,
+      "annual_taxes": 3800.0,
+      "appraised_value": 400000,
+      "loan_type": "fha",
+      "manual_current_balance": 340000.0,
+      "new_closing_date": "2026-08-15",
+      "new_interest_rate": 6.0,
+      "new_loan_term": 30,
+      "original_closing_date": "2024-01-01",
+      "original_interest_rate": 7.0,
+      "original_loan_balance": 350000,
+      "original_loan_term": 30,
+      "refinance_type": "streamline",
+      "use_manual_balance": true
+    },
+    "kind": "refinance"
+  },
+  "refi_va_irrrl": {
+    "expected": {
+      "base_monthly_savings": 252.87,
+      "break_even_months": 26.1,
+      "break_even_time": "2 years, 2 months",
+      "cash_needed_at_closing": 0,
+      "cash_option": "finance_all",
+      "cash_received": 0,
+      "cash_to_close": 3064.7,
+      "closing_costs_details": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 1123.77,
+        "lender_title_insurance": 1287.66,
+        "origination_fee": 0.0,
+        "owners_title_insurance": 0.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 0.0,
+        "third_party_certs": 55.0,
+        "total": 6591.43,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "total": 0.0
+      },
+      "current_balance": 368000.0,
+      "discount_points_cost": 0.0,
+      "discount_points_percent": 0.0,
+      "extra_monthly_savings": 0.0,
+      "financed_closing_costs": 6591.43,
+      "loan_increase": 6591.16,
+      "loan_type": "va",
+      "ltv": 83.24,
+      "manual_current_balance": 368000.0,
+      "min_appraised_values": {
+        "ltv_100": 368000,
+        "ltv_80": 460000,
+        "ltv_90": 409000,
+        "ltv_95": 388000
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 145.83,
+        "pmi": 0.0,
+        "principal_interest": 2243.46,
+        "property_tax": 358.33,
+        "total": 2747.63
+      },
+      "monthly_savings": 252.87,
+      "new_loan_amount": 374591.16,
+      "new_monthly_payment": 2243.46,
+      "original_monthly_payment": 2496.33,
+      "prepaid_items": {
+        "borrower_escrow_credit": 0,
+        "insurance_escrow": 1030.12569,
+        "insurance_escrow_months": 3,
+        "interest_days": 17,
+        "prepaid_insurance": 0,
+        "prepaid_interest": 1059.5727173,
+        "prepaid_tax": 0,
+        "prepaid_tax_months": 0,
+        "tax_escrow": 975.0,
+        "tax_escrow_adjustment": 0,
+        "tax_escrow_months": 2,
+        "total": 3064.6984073000003
+      },
+      "refinance_lender_credit": 0.0,
+      "refinance_type": "streamline",
+      "target_ltv_value": null,
+      "total_closing_costs": 6591.43,
+      "total_financed_closing_costs": 6591.43,
+      "total_savings": 84441.77,
+      "use_manual_balance": true,
+      "zero_cash_mode": false
+    },
+    "inputs": {
+      "annual_insurance": 1750.0,
+      "annual_taxes": 4300.0,
+      "appraised_value": 450000,
+      "loan_type": "va",
+      "manual_current_balance": 368000.0,
+      "new_closing_date": "2026-08-15",
+      "new_interest_rate": 5.99,
+      "new_loan_term": 30,
+      "original_closing_date": "2023-10-01",
+      "original_interest_rate": 6.875,
+      "original_loan_balance": 380000,
+      "original_loan_term": 30,
+      "refinance_type": "streamline",
+      "use_manual_balance": true
+    },
+    "kind": "refinance"
+  }
+}

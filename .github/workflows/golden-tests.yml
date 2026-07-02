@@ -1,0 +1,24 @@
+name: Golden Regression Tests
+
+# Locks in exact calculator outputs. If this fails, a calculation changed —
+# either fix the code or intentionally regenerate the fixtures.
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  golden-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install pytest freezegun python-dateutil
+
+      - name: Run golden regression tests
+        run: python -m pytest tests/test_golden_scenarios.py -v
