@@ -61,6 +61,16 @@ PURCHASE_SCENARIOS = {
         loan_type="fha",
         closing_date=date(2026, 9, 15),
     ),
+    "purchase_fha_5down_low_ltv_mip": dict(
+        purchase_price=320000,
+        down_payment_percentage=5,
+        annual_rate=6.25,
+        loan_term=30,
+        annual_tax_rate=1.0,
+        annual_insurance_rate=0.35,
+        loan_type="fha",
+        closing_date=date(2026, 9, 15),
+    ),
     "purchase_va_active_first_0down": dict(
         purchase_price=400000,
         down_payment_percentage=0,

@@ -7,14 +7,14 @@ This file helps track which version is deployed and what features are included.
 from datetime import date
 
 # Main application version
-VERSION = "2.8.2"  # Fixed seller credit display + removed tax proration double-counting
+VERSION = "2.8.3"  # Fixed FHA MIP config lookup + repo cleanup (Phase 2)
 
 # Date of the last update
 # Format: YYYY-MM-DD
-LAST_UPDATED = date(2025, 9, 9)  # Updated date
+LAST_UPDATED = date(2026, 7, 2)
 
 # Description of the last update
-UPDATE_DESCRIPTION = "SELLER CREDIT DISPLAY FIX: Fixed seller credit not displaying in credits table despite correct calculations. Fixed function parameter mismatch in purchaseResultRenderer.js and credits object override in app.py. Removed seller tax proration from credits section to prevent double-counting (already handled in prepaids). Includes all v2.8.1 features."
+UPDATE_DESCRIPTION = "FHA MIP FIX: Corrected annual MIP rate lookup keys to match pmi_rates.json (low_ltv/high_ltv). FHA loans with LTV <= 95% now correctly get 0.50% instead of the 0.55% fallback. Also includes Phase 2 repo cleanup (~50k lines of dead code removed) and golden regression test suite (15 scenarios)."
 
 
 def get_version_info():

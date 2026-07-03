@@ -23,14 +23,10 @@ from mortgage_insurance import calculate_conventional_pmi, calculate_fha_mip, ca
 
 
 class MortgageCalculator:
-    """
-    MortgageCalculator provides methods to compute mortgage payments, insurance, closing costs, and related values.
-    """
+    """Compute mortgage payments, insurance, closing costs, and related values."""
 
     def __init__(self):
-        """
-        Initialize the MortgageCalculator with config and logger.
-        """
+        """Initialize the MortgageCalculator with config and logger."""
         self.logger = logging.getLogger(__name__)
         self.logger.info("Initializing MortgageCalculator.")
         self.config_manager = ConfigManager()
@@ -84,15 +80,18 @@ class MortgageCalculator:
         home_value: float,
         loan_type: str,
         loan_term_months: int = CalculationConstants.DEFAULT_LOAN_TERM_MONTHS,
+        base_loan_amount: float = None,
     ) -> float:
         """
         Calculate monthly mortgage insurance based on loan type, loan amount, and LTV. Dispatches to specific calculation functions.
 
         Args:
-            loan_amount (float): Amount being borrowed.
+            loan_amount (float): Amount being borrowed (may include financed fees).
             home_value (float): Total value/purchase price of the home.
             loan_type (str): Type of loan ('conventional', 'fha', 'va', 'usda').
             loan_term_months (int): Loan term in months.
+            base_loan_amount (float): Loan amount BEFORE financed fees (UFMIP etc.).
+                Used for FHA rate-band determination per HUD ML 2023-05.
 
         Returns:
             float: Monthly mortgage insurance premium.
@@ -117,7 +116,12 @@ class MortgageCalculator:
             elif loan_type == "fha":
                 fha_config = pmi_rates_config.get("fha", {})
                 return calculate_fha_mip(
-                    loan_amount, home_value, loan_term_months, fha_config, self.logger
+                    loan_amount,
+                    home_value,
+                    loan_term_months,
+                    fha_config,
+                    self.logger,
+                    base_loan_amount=base_loan_amount,
                 )
 
             elif loan_type == "usda":
@@ -371,8 +375,13 @@ class MortgageCalculator:
                 )
 
             # Calculate monthly mortgage insurance
+            # (rate band determined by base loan LTV, premium charged on full amount)
             mortgage_insurance = self.calculate_mortgage_insurance(
-                loan_amount, purchase_price, loan_type, loan_term * 12
+                loan_amount,
+                purchase_price,
+                loan_type,
+                loan_term * 12,
+                base_loan_amount=original_loan_amount,
             )
             self.logger.info(f"Calculated mortgage insurance: ${mortgage_insurance: .2f}. ")
 
@@ -1027,8 +1036,6 @@ class MortgageCalculator:
         try:
             if not closing_date:
                 return 0
-
-            from calendar import monthrange
 
             # Calculate first payment date
             # First payment is due the 1st of the month after the end of the closing month
@@ -1890,7 +1897,6 @@ class MortgageCalculator:
             monthly_hoa = monthly_hoa_fee
 
             # Calculate mortgage insurance if needed
-            ltv_for_mi = (new_loan_amount / appraised_value) * 100
             mortgage_insurance = self.calculate_mortgage_insurance(
                 loan_amount=new_loan_amount,
                 home_value=appraised_value,
@@ -1966,9 +1972,8 @@ class MortgageCalculator:
                         purchase_price=appraised_value,
                     )
 
-            # 16. Calculate credits (lender credits, etc.)
+            # 16. Calculate credits (lender credits only; seller credits N/A for refinance)
             lender_credit = refinance_lender_credit
-            seller_credit = 0  # Not applicable for refinance
             total_credits = lender_credit
 
             # 17. Calculate cash to close (prepaids + cash contribution - credits)
@@ -2044,9 +2049,9 @@ class MortgageCalculator:
                 "extra_monthly_savings": round(extra_monthly_savings, 2),
                 "refinance_lender_credit": round(refinance_lender_credit, 2),
                 "use_manual_balance": use_manual_balance,
-                "manual_current_balance": round(manual_current_balance, 2)
-                if use_manual_balance
-                else None,
+                "manual_current_balance": (
+                    round(manual_current_balance, 2) if use_manual_balance else None
+                ),
                 "cash_option": cash_option,
                 "target_ltv_value": target_ltv_value if cash_option == "target_ltv" else None,
                 "cash_needed_at_closing": round(cash_contribution, 2),

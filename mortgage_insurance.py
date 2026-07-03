@@ -1,6 +1,6 @@
-# mortgage_insurance.py
+"""Monthly mortgage insurance calculations (conventional PMI, FHA MIP, USDA fee)."""
+
 import logging
-from decimal import ROUND_HALF_UP, Decimal
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
@@ -85,28 +85,37 @@ def calculate_fha_mip(
     loan_term_months: int,
     mip_config: dict,
     logger: logging.Logger,
+    base_loan_amount: float = None,
 ) -> float:
-    """Calculate monthly FHA Mortgage Insurance Premium (MIP)."""
+    """Calculate monthly FHA Mortgage Insurance Premium (MIP).
+
+    Per HUD (ML 2023-05), the MIP rate band is determined by the BASE loan
+    amount LTV (before financed UFMIP), while the premium itself is charged
+    on the full loan amount (including financed UFMIP).
+    """
     try:
         if not mip_config:
             logger.error("FHA MIP rates configuration is missing")
             raise ValueError("FHA MIP rates configuration is missing")
 
-        ltv = (loan_amount / home_value) * 100
+        # Rate band uses base loan LTV; premium uses the full loan amount.
+        ltv_basis = base_loan_amount if base_loan_amount else loan_amount
+        ltv = (ltv_basis / home_value) * 100
         standard_loan_limit = mip_config.get(
             "standard_loan_limit", 726200
         )  # Default if not in config
 
         logger.info(
-            f"Calculating FHA MIP with loan_term={loan_term_months / 12} years, loan_amount=${loan_amount:,.2f}, ltv={ltv:.2f}%"
+            f"Calculating FHA MIP with loan_term={loan_term_months / 12} years, "
+            f"loan_amount=${loan_amount:,.2f}, base LTV={ltv:.2f}%"
         )
 
         # Determine term category
         term_category = "long_term" if loan_term_months / 12 > 15 else "short_term"
         logger.info(f"Using {term_category} FHA MIP rates.")
 
-        # Determine amount category
-        amount_category = "standard_amount" if loan_amount <= standard_loan_limit else "high_amount"
+        # Determine amount category (HUD bands by base loan amount)
+        amount_category = "standard_amount" if ltv_basis <= standard_loan_limit else "high_amount"
         logger.info(f"Using {amount_category} FHA MIP rates.")
 
         # Determine LTV category
@@ -120,28 +129,31 @@ def calculate_fha_mip(
             # Use a reasonable default based on term if specific config is missing
             annual_mip_rate = 0.55 if term_category == "long_term" else 0.40
         else:
-            # Simplified logic based on common FHA rules
+            # Map LTV to the rate keys used in config/pmi_rates.json
+            # (low_ltv / high_ltv, plus very_low_ltv for short-term high-amount loans).
             if term_category == "long_term":
-                if ltv <= 95:  # Typically one rate up to 95 LTV
-                    ltv_category = "le_95"
+                if ltv <= 95:
+                    ltv_category = "low_ltv"
                     logger.info("Using FHA MIP LTV rate <= 95%")
-                else:  # Higher rate above 95 LTV
-                    ltv_category = "gt_95"
+                else:
+                    ltv_category = "high_ltv"
                     logger.info("Using FHA MIP LTV rate > 95%")
             else:  # short_term (<= 15 years)
-                # Often has a single rate regardless of LTV for shorter terms
-                # Check if config specifies LTV breakdown, otherwise use a single key like 'all' or default
+                # Check if config specifies a single rate, otherwise use LTV breakdown
                 if len(annual_mip_rate_config) == 1 and next(iter(annual_mip_rate_config)) in [
                     "all",
                     "default",
                 ]:
                     ltv_category = next(iter(annual_mip_rate_config))
                     logger.info("Using single FHA MIP rate for short term loan")
-                elif ltv <= 90:  # Or check common LTV threshold if specified
-                    ltv_category = "le_90"
+                elif ltv <= 78 and "very_low_ltv" in annual_mip_rate_config:
+                    ltv_category = "very_low_ltv"
+                    logger.info("Using FHA MIP short term LTV rate <= 78%")
+                elif ltv <= 90:
+                    ltv_category = "low_ltv"
                     logger.info("Using FHA MIP short term LTV rate <= 90%")
                 else:
-                    ltv_category = "gt_90"
+                    ltv_category = "high_ltv"
                     logger.info("Using FHA MIP short term LTV rate > 90%")
 
             annual_mip_rate = annual_mip_rate_config.get(ltv_category, 0)

@@ -369,6 +369,78 @@
     },
     "kind": "purchase"
   },
+  "purchase_fha_5down_low_ltv_mip": {
+    "expected": {
+      "closing_costs": {
+        "admin_fee": 125.0,
+        "appraisal_fee": 675.0,
+        "attorney's_fee": 1200.0,
+        "credit_report_fee": 350.0,
+        "discount_points": 0.0,
+        "doc_prep": 240.0,
+        "intangible_tax": 912.0,
+        "lender_title_insurance": 836.0,
+        "origination_fee": 0.0,
+        "owner_title_insurance": 994.0,
+        "processing_fee": 650.0,
+        "recording_fee": 60.0,
+        "state_tax_stamp": 320.0,
+        "third_party_certs": 55.0,
+        "total": 7242.0,
+        "underwriting_fee": 675.0,
+        "verification_fee": 150.0
+      },
+      "credits": {
+        "lender_credit": 0.0,
+        "seller_credit": 0.0,
+        "total": 0.0
+      },
+      "loan_details": {
+        "down_payment": 16000.0,
+        "down_payment_percentage": 5,
+        "financed_fees": 5320.0,
+        "interest_rate": 6.25,
+        "loan_amount": 309320.0,
+        "loan_term_years": 30,
+        "loan_type": "fha",
+        "ltv_ratio": 95.0,
+        "max_seller_contribution": 19200.0,
+        "original_loan_amount": 304000.0,
+        "purchase_price": 320000,
+        "seller_credit_exceeds_max": false
+      },
+      "monthly_breakdown": {
+        "hoa": 0.0,
+        "insurance": 90.22,
+        "pmi": 128.88,
+        "principal_interest": 1904.54,
+        "property_tax": 266.67,
+        "total": 2390.3
+      },
+      "prepaid_items": {
+        "borrower_escrow_credit": -266.67,
+        "insurance_escrow": 270.65,
+        "prepaid_insurance": 1082.62,
+        "prepaid_interest": 859.22,
+        "prepaid_tax": 3200.0,
+        "tax_escrow": 533.33,
+        "tax_escrow_adjustment": -2261.92,
+        "total": 3417.2299999999996
+      },
+      "total_cash_needed": 26659.23
+    },
+    "inputs": {
+      "annual_insurance_rate": 0.35,
+      "annual_rate": 6.25,
+      "annual_tax_rate": 1.0,
+      "closing_date": "2026-09-15",
+      "down_payment_percentage": 5,
+      "loan_term": 30,
+      "loan_type": "fha",
+      "purchase_price": 320000
+    },
+    "kind": "purchase"
+  },
   "purchase_fha_min_down": {
     "expected": {
       "closing_costs": {
@@ -989,10 +1061,10 @@
       "monthly_breakdown": {
         "hoa": 0.0,
         "insurance": 133.33,
-        "pmi": 158.77,
+        "pmi": 144.34,
         "principal_interest": 2076.9,
         "property_tax": 316.67,
-        "total": 2685.67
+        "total": 2671.24
       },
       "monthly_savings": 251.66,
       "new_loan_amount": 346409.75,
