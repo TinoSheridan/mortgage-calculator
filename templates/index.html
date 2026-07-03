@@ -23,14 +23,6 @@
         font-weight: bold;
     }
 
-    #debugOutput {
-        background-color: #f8f9fa;
-        border: 1px solid #ddd;
-        padding: 15px;
-        margin-top: 20px;
-        overflow-x: auto;
-        white-space: pre-wrap;
-    }
 
     .table-primary {
         background-color: #e2e3e5 !important;
@@ -128,32 +120,6 @@
     .table tfoot tr {
         background-color: #f2f2f2;
         border-top: 2px solid #dee2e6;
-    }
-
-    /* Debug section */
-    #debugToggle {
-        cursor: pointer;
-        color: #6c757d;
-        text-decoration: underline;
-        font-size: 0.875rem;
-    }
-
-    #debugSection {
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        margin-top: 1.5rem;
-    }
-
-    #debugOutput {
-        font-family: 'Courier New', monospace;
-        font-size: 0.875rem;
-        background-color: #212529;
-        color: #f8f9fa;
-        border-radius: 6px;
-        padding: 1rem;
-        max-height: 300px;
-        overflow-y: auto;
     }
 
     /* 3D Button styling */
@@ -1358,14 +1324,6 @@
     </div>
 </div>
 
-<!-- Debug Section -->
-<div class="mt-5 mb-3">
-    <p id="debugToggle" class="text-center">Show/Hide Debug Information</p>
-    <div id="debugSection" class="container" style="display: none;">
-        <h5>Debug Information</h5>
-        <pre id="debugOutput" style="display: none;"></pre>
-    </div>
-</div>
 </main>
 
 {% endblock %}
@@ -1399,18 +1357,6 @@
     });
 </script>
 <script type="module" src="{{ url_for('static', filename='js/calculator-modular.js') }}?v={{ cache_buster }}"></script>
-<!-- Test script removed after validating abbreviation functionality -->
-<!-- <script src="{{ url_for('static', filename='js/test_abbreviations.js') }}?v=1.0.1"></script> -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const debugToggle = document.getElementById('debugToggle');
-        const debugSection = document.getElementById('debugSection');
-
-        debugToggle.addEventListener('click', function () {
-            debugSection.style.display = debugSection.style.display === 'none' ? 'block' : 'none';
-        });
-    });
-</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Toggle refinance fields
