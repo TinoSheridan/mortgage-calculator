@@ -1,12 +1,12 @@
 """Statistics Manager for Mortgage Calculator."""
 
+import csv
+import io
 import json
 import logging
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
-
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -270,12 +270,19 @@ class StatisticsManager:
 
             flattened_data.append(record)
 
-        # Convert to DataFrame
-        df = pd.DataFrame(flattened_data)
+        # Build the CSV with the standard library (column order = first appearance,
+        # missing values blank — matches the previous pandas to_csv output).
+        fieldnames = []
+        for record in flattened_data:
+            for key in record:
+                if key not in fieldnames:
+                    fieldnames.append(key)
 
-        # Create a CSV string
-        csv_data = df.to_csv(index=False)
-        return csv_data
+        buffer = io.StringIO()
+        writer = csv.DictWriter(buffer, fieldnames=fieldnames, restval="", lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(flattened_data)
+        return buffer.getvalue()
 
     def generate_insights(self):
         """Generate insights from the statistics data."""
